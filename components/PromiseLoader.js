@@ -3,10 +3,6 @@ import { useEffect, useState } from "react";
 export default function PromiseLoader({ promise, render, loading, error, deps }) {
     const [state, setState] = useState({ status: 'promised'})
 
-    if (!deps) {
-        deps = [];
-    }
-
     useEffect(() => {
         promise()
             .then((result) => setState({ status: 'loaded', result: result }))
