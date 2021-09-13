@@ -19,7 +19,7 @@ export default function NFTPage() {
         const contractAddress = config.contractAddresses.v1;
         
         const contract = new ethers.Contract(contractAddress, v1Abi, provider);
-        const tURI = await contract.tokenURI(id);
+        const tURI = await contract.uri(id);
   
         setTokenURI(tURI);
     }
@@ -53,7 +53,7 @@ export default function NFTPage() {
                             {tokenData?.description ? <p className="is-italic">{tokenData?.description}</p> : <></>}
                             {tokenContent}
                         </div>
-                    ) 
+                    )
                     : <p>Connect a wallet to view this NFT</p>
 }
                 </div>
