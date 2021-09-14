@@ -1,11 +1,64 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useReadProvider } from "../common/provider";
+import { NFTCard } from "../components";
+import InfiniteScroll from 'react-infinite-scroll-component';
+import config from "../config";
+import { v1Abi } from "../common/abi";
+import { ethers } from "ethers";
 
 export default function Home() {
+  const [readProvider, setReadProvider] = useReadProvider();
+  const [lastNFTId, setLastNFTId] = useState(null);
+  const [nfts, setNFTs] = useState([])
+
+  const increment = 5;
+
+  useEffect(async () => {
+    const contractAddress = config.contractAddresses.v1;
+    const contractABI = v1Abi;
+    const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
+
+    const newLastNFTId = (await contract.lastTokenId());
+    console.log('NEW: ', newLastNFTId)
+
+    setLastNFTId(newLastNFTId.toNumber());
+  }, [])
+
+  const getMoreIds = (count) => {
+    const newNFTs = [...nfts];
+
+    for (let i = 0; i < count; i++) {
+      const newId = lastNFTId - newNFTs.length;
+      if (newId >= 1) {
+        newNFTs.push(newId);
+      }
+    }
+
+    console.log('New: ', newNFTs)
+
+    setNFTs(newNFTs);
+  }
+
+  useEffect(() => getMoreIds(20), [lastNFTId])
+
     return (
         <div>
             <div className="columns m-4">
               <div className="column is-half">
-                <h1 className="title">NFT List (WIP)</h1>
+                <h1 className="title">Latest NFTs</h1>
+                <InfiniteScroll
+                  dataLength={nfts.length} //This is important field to render the next data
+                  next={() => getMoreIds(increment)}
+                  hasMore={nfts.length < lastNFTId}
+                  loader={<h4>Loading...</h4>}
+                  endMessage={
+                    <p style={{ textAlign: 'center' }}>
+                      <b>That's all folks!</b>
+                    </p>
+                  }
+                >
+                {nfts.map((id) => <NFTCard id={id} key={id} />)}
+                </InfiniteScroll>
               </div>
             </div>
         </div>

@@ -22,12 +22,13 @@ export default function NFTPage() {
     const [royaltyInfo, setRoyaltyInfo] = useState(null)
     const [readProvider, setReadProvider] = useReadProvider()
 
+    const contractAddress = config.contractAddresses.v1;
+    const contractABI = v1Abi;
+
     const queryTokenURI = async () => {
         if (!id || !readProvider) return;
-
-        const contractAddress = config.contractAddresses.v1;
         
-        const contract = new ethers.Contract(contractAddress, v1Abi, readProvider);
+        const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
         const tURI = await contract.uri(id);
   
         setTokenURI(tURI);
@@ -36,9 +37,7 @@ export default function NFTPage() {
     const queryTokenAuthor = async () => {
         if (!id || !readProvider) return;
 
-        const contractAddress = config.contractAddresses.v1;
-        
-        const contract = new ethers.Contract(contractAddress, v1Abi, readProvider);
+        const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
         const author = await contract.authorOf(id);
   
         setTokenAuthor(author);
@@ -62,10 +61,8 @@ export default function NFTPage() {
 
     const queryRoyaltyInfo = async () => {
         if (!id || !readProvider) return;
-
-        const contractAddress = config.contractAddresses.v1;
         
-        const contract = new ethers.Contract(contractAddress, v1Abi, readProvider);
+        const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
         const [recipient, amount] = await contract.royaltyInfo(id, 10000);
         setRoyaltyInfo({
             recipient,
@@ -86,9 +83,9 @@ export default function NFTPage() {
                 <div className="column is-half">
                     { readProvider ? (
                         <div>
-                            <h1 className="title">{tokenData?.name || 'Unknown NFT'}</h1>
-                            {tokenAuthor ? <p className="subtitle">By {tokenAuthor}</p> : <></>}
-                            {tokenData?.description ? <p className="is-italic">{tokenData?.description}</p> : <></>}
+                            <h1 className="title">{tokenData?.name || ''}</h1>
+                            <p className="subtitle">{tokenAuthor ? `by ${tokenAuthor}` : ''}</p>
+                            <p className="is-italic">{tokenData?.description || ''}</p>
                             {tokenType && tokenContent ? (
                                 tokenType == 'text/markdown' ? (
                                     <MDViewer source={tokenContent} />
