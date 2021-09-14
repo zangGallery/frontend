@@ -12,6 +12,8 @@ export default function Mint() {
   const [editionSize, setEditionSize] = useState(1)
   const [royaltyPercentage, setRoyaltyPercentage] = useState(10)
   const [provider, setProvider] = useProvider()
+  const [useCustomRecipient, setUseCustomRecipient] = useState(false)
+  const [customRecipient, setCustomRecipient] = useState('')
 
   const useUTF8 = () => {
     return [...text].some(char => char.charCodeAt(0) > 127)
@@ -30,7 +32,9 @@ export default function Mint() {
     const contract = new ethers.Contract(contractAddress, v1Abi, provider);
     const contractWithSigner = contract.connect(provider.getSigner())
 
-    const transaction = await contractWithSigner.mint(getUri(), title, description, editionSize, royaltyPercentage, "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", 0); //TODO: change royalty recipient!!!!
+    const effectiveRoyaltyRecipient = useCustomRecipient ? customRecipient : (await provider.getSigner().getAddress());
+
+    const transaction = await contractWithSigner.mint(getUri(), title, description, editionSize, royaltyPercentage, effectiveRoyaltyRecipient, 0);
     const receipt = await transaction.wait(1)
     if (receipt && receipt.blockNumber) {
       const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)
@@ -80,11 +84,23 @@ export default function Mint() {
           <div className="field">
             <label className="label">Royalty percentage</label>
             <div className="control">
-              <input className="input" type="number" value={royaltyPercentage} onChange={(event) => setRoyaltyPercentage(event.target.value)} min="1" />
+              <input className="input" type="number" value={royaltyPercentage} onChange={(event) => setRoyaltyPercentage(event.target.value)} min="1" max="100" />
             </div>
           </div>
+          <div className="field">
+          <label className="label" for="useCustomRecipient">
+            <input id="useCustomRecipient" className="checkbox" type="checkbox" value={useCustomRecipient} onChange={(event) => setUseCustomRecipient(event.target.checked)} />
+            Custom royalty recipient
+            </label>
+            
+          </div>
           {
-            // add royalty recipient
+            useCustomRecipient ? (
+              <div className="field">
+                <label className="label">Address</label>
+                <input className="input" type="text" value={customRecipient} onChange={(event) => setCustomRecipient(event.target.value)} />
+              </div>
+            ) : <></>
           }
 
           {provider ? <button className="button is-primary" onClick={executeTransaction}>Mint</button> : <></>}
