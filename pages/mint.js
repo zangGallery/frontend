@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ethers } from "ethers";
 import { v1Abi } from '../common/abi';
 import config from '../config'
-import { useProvider } from "../common/provider";
+import { useWalletProvider } from "../common/provider";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import dynamic from "next/dynamic";
@@ -19,7 +19,7 @@ export default function Mint() {
   const [description, setDescription] = useState('')
   const [editionSize, setEditionSize] = useState(1)
   const [royaltyPercentage, setRoyaltyPercentage] = useState(10)
-  const [provider, setProvider] = useProvider()
+  const [walletProvider, setWalletProvider] = useWalletProvider()
   const [useCustomRecipient, setUseCustomRecipient] = useState(false)
   const [customRecipient, setCustomRecipient] = useState('')
 
@@ -37,10 +37,10 @@ export default function Mint() {
   const executeTransaction = async () => {
     const contractAddress = config.contractAddresses.v1;
 
-    const contract = new ethers.Contract(contractAddress, v1Abi, provider);
-    const contractWithSigner = contract.connect(provider.getSigner())
+    const contract = new ethers.Contract(contractAddress, v1Abi, walletProvider);
+    const contractWithSigner = contract.connect(walletProvider.getSigner())
 
-    const effectiveRoyaltyRecipient = useCustomRecipient ? customRecipient : (await provider.getSigner().getAddress());
+    const effectiveRoyaltyRecipient = useCustomRecipient ? customRecipient : (await walletProvider.getSigner().getAddress());
 
     const transaction = await contractWithSigner.mint(getUri(), title, description, editionSize, royaltyPercentage, effectiveRoyaltyRecipient, 0);
     const receipt = await transaction.wait(1)
@@ -114,7 +114,7 @@ export default function Mint() {
             ) : <></>
           }
 
-          {provider ? <button className="button is-primary" onClick={executeTransaction}>Mint</button> : <p>Connect a wallet to mint</p>}
+          {walletProvider ? <button className="button is-primary" onClick={executeTransaction}>Mint</button> : <p>Connect a wallet to mint</p>}
         </div>
       </div>
     </div>

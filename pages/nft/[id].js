@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react';
-import { useProvider } from '../../common/provider';
+import { useReadProvider } from '../../common/provider';
 import config from '../../config';
 import { ethers } from 'ethers';
 import { v1Abi } from '../../common/abi';
@@ -19,25 +19,25 @@ export default function NFTPage() {
     const [tokenType, setTokenType] = useState(null)
     const [tokenContent, setTokenContent] = useState(null)
     const [tokenAuthor, setTokenAuthor] = useState(null)
-    const [provider, setProvider] = useProvider()
+    const [readProvider, setReadProvider] = useReadProvider()
 
     const queryTokenURI = async () => {
-        if (!id || !provider) return;
+        if (!id || !readProvider) return;
 
         const contractAddress = config.contractAddresses.v1;
         
-        const contract = new ethers.Contract(contractAddress, v1Abi, provider);
+        const contract = new ethers.Contract(contractAddress, v1Abi, readProvider);
         const tURI = await contract.uri(id);
   
         setTokenURI(tURI);
     }
 
     const queryTokenAuthor = async () => {
-        if (!id || !provider) return;
+        if (!id || !readProvider) return;
 
         const contractAddress = config.contractAddresses.v1;
         
-        const contract = new ethers.Contract(contractAddress, v1Abi, provider);
+        const contract = new ethers.Contract(contractAddress, v1Abi, readProvider);
         const author = await contract.authorOf(id);
   
         setTokenAuthor(author);
@@ -59,17 +59,17 @@ export default function NFTPage() {
         setTokenContent(parsedText)
     }
 
-    useEffect(queryTokenURI, [id, provider])
+    useEffect(queryTokenURI, [id, readProvider])
     useEffect(queryTokenData, [tokenURI])
     useEffect(queryTokenContent, [tokenData])
 
-    useEffect(queryTokenAuthor, [id, provider])
+    useEffect(queryTokenAuthor, [id, readProvider])
 
     return (
         <div>
             <div className="columns m-4">
                 <div className="column is-half">
-                    { provider ? (
+                    { readProvider ? (
                         <div>
                             <h1 className="title">{tokenData?.name || 'Unknown NFT'}</h1>
                             {tokenAuthor ? <p className="subtitle">By {tokenAuthor}</p> : <></>}

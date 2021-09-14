@@ -2,10 +2,10 @@ import React from "react";
 import { RoutingLink, WalletButton } from ".";
 import PromiseLoader from "./PromiseLoader";
 import { getWalletAddress } from "../common/utils"
-import { useProvider } from "../common/provider";
+import { useWalletProvider } from "../common/provider";
 
 export default function Header() {
-    const [provider, setProvider] = useProvider()
+    const [walletProvider, setWalletProvider] = useWalletProvider()
 
     return (
         <nav className="navbar" role="navigation" aria-label="main navigation">
@@ -35,10 +35,10 @@ export default function Header() {
             
             <div className="navbar-end">
                 <div className="navbar-item">
-                    {provider ? <></> : <WalletButton />}
+                    {walletProvider ? <></> : <WalletButton />}
                 </div>
             </div>
-                <PromiseLoader promise={() => getWalletAddress(provider)} deps={[provider]}
+                <PromiseLoader promise={() => getWalletAddress(walletProvider)} deps={[walletProvider]}
                     render={(user) => (
                         user ? <h4 className="title is-4 has-text-centered">Welcome {user}!</h4> : <h4 className="title is-4 has-text-centered">Not Connected</h4>
                     )}

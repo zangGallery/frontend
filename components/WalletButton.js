@@ -2,10 +2,11 @@ import React from "react";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { useProvider } from "../common/provider";
+import { useReadProvider, useWalletProvider } from "../common/provider";
 
 export default function WalletButton() {
-    const [provider, setProvider] = useProvider()
+    const [readProvider, setReadProvider] = useReadProvider();
+    const [walletProvider, setWalletProvider] = useWalletProvider();
 
     const connectWallet = async () => {
         const providerOptions = {
@@ -26,10 +27,11 @@ export default function WalletButton() {
         });
         //web3Modal.clearCachedProvider();
         
-        const walletProvider = await web3Modal.connect();
-        const newProvider = new ethers.providers.Web3Provider(walletProvider);
+        const wallet = await web3Modal.connect();
+        const newProvider = new ethers.providers.Web3Provider(wallet);
 
-        setProvider(newProvider)
+        setReadProvider(newProvider);
+        setWalletProvider(newProvider);
     }
 
     return (
