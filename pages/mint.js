@@ -6,6 +6,7 @@ import { useWalletProvider } from "../common/provider";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import dynamic from "next/dynamic";
+import { Decimal } from "decimal.js";
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor").then((mod) => mod.default),
@@ -18,7 +19,7 @@ export default function Mint() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [editionSize, setEditionSize] = useState(1)
-  const [royaltyPercentage, setRoyaltyPercentage] = useState(10)
+  const [royaltyPercentage, setRoyaltyPercentage] = useState('10')
   const [walletProvider, setWalletProvider] = useWalletProvider()
   const [useCustomRecipient, setUseCustomRecipient] = useState(false)
   const [customRecipient, setCustomRecipient] = useState('')
@@ -34,6 +35,10 @@ export default function Mint() {
       + ',' + encodeURI(text)
   }
 
+  const effectiveRoyaltyPercentage = () => {
+    return new Decimal(royaltyPercentage).mul('100').toNumber();
+  }
+
   const executeTransaction = async () => {
     const contractAddress = config.contractAddresses.v1;
 
@@ -42,7 +47,7 @@ export default function Mint() {
 
     const effectiveRoyaltyRecipient = useCustomRecipient ? customRecipient : (await walletProvider.getSigner().getAddress());
 
-    const transaction = await contractWithSigner.mint(getUri(), title, description, editionSize, royaltyPercentage, effectiveRoyaltyRecipient, 0);
+    const transaction = await contractWithSigner.mint(getUri(), title, description, editionSize, effectiveRoyaltyPercentage(), effectiveRoyaltyRecipient, 0);
     const receipt = await transaction.wait(1)
     if (receipt && receipt.blockNumber) {
       const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)

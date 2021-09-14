@@ -19,6 +19,7 @@ export default function NFTPage() {
     const [tokenType, setTokenType] = useState(null)
     const [tokenContent, setTokenContent] = useState(null)
     const [tokenAuthor, setTokenAuthor] = useState(null)
+    const [royaltyInfo, setRoyaltyInfo] = useState(null)
     const [readProvider, setReadProvider] = useReadProvider()
 
     const queryTokenURI = async () => {
@@ -59,11 +60,25 @@ export default function NFTPage() {
         setTokenContent(parsedText)
     }
 
+    const queryRoyaltyInfo = async () => {
+        if (!id || !readProvider) return;
+
+        const contractAddress = config.contractAddresses.v1;
+        
+        const contract = new ethers.Contract(contractAddress, v1Abi, readProvider);
+        const [recipient, amount] = await contract.royaltyInfo(id, 10000);
+        setRoyaltyInfo({
+            recipient,
+            amount: amount.div(100).toNumber()
+        })
+    }
+
     useEffect(queryTokenURI, [id, readProvider])
     useEffect(queryTokenData, [tokenURI])
     useEffect(queryTokenContent, [tokenData])
 
     useEffect(queryTokenAuthor, [id, readProvider])
+    useEffect(queryRoyaltyInfo, [id, readProvider])
 
     return (
         <div>
@@ -79,6 +94,10 @@ export default function NFTPage() {
                                     <MDViewer source={tokenContent} />
                                 ) : <p>{tokenContent}</p>
                             ) : <></>}
+                            {royaltyInfo && tokenAuthor && royaltyInfo?.amount != 0 ? 
+                            <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
+                            : <></>
+                            }
                         </div>
                     )
                     : <p>Connect a wallet to view this NFT</p>
