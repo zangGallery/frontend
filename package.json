@@ -9,10 +9,12 @@
     "start": "next start"
   },
   "dependencies": {
+    "@uiw/react-md-editor": "3.6.0",
     "@walletconnect/web3-provider": "^1.6.5",
     "bulma": "^0.9.3",
     "ethers": "^5.4.6",
     "next": "^11.0.0",
+    "next-remove-imports": "^1.0.5",
     "react": "^16.14.0",
     "web3modal": "^1.9.4"
   },

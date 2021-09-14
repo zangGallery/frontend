@@ -3,6 +3,14 @@ import { ethers } from "ethers";
 import { v1Abi } from '../common/abi';
 import config from '../config'
 import { useProvider } from "../common/provider";
+import "@uiw/react-md-editor/markdown-editor.css";
+import "@uiw/react-markdown-preview/markdown.css";
+import dynamic from "next/dynamic";
+
+const MDEditor = dynamic(
+  () => import("@uiw/react-md-editor").then((mod) => mod.default),
+  { ssr: false }
+);
 
 export default function Mint() {
   const [text, setText] = useState('')
@@ -78,7 +86,10 @@ export default function Mint() {
               <option value='text/markdown'>Markdown</option>
             </select>
             <div className="control">
+              { textType == 'text/markdown' ? 
+              <MDEditor value={text} onChange={setText}/> :
               <textarea className="textarea" value={text} onChange={(event) => setText(event.target.value)} placeholder="Content of your artwork"></textarea>
+            }
             </div>
           </div>
           <div className="field">
@@ -88,8 +99,8 @@ export default function Mint() {
             </div>
           </div>
           <div className="field">
-          <label className="label" for="useCustomRecipient">
-            <input id="useCustomRecipient" className="checkbox" type="checkbox" value={useCustomRecipient} onChange={(event) => setUseCustomRecipient(event.target.checked)} />
+          <label className="label">
+            <input className="checkbox" type="checkbox" value={useCustomRecipient} onChange={(event) => setUseCustomRecipient(event.target.checked)} />
             Custom royalty recipient
             </label>
             
@@ -103,7 +114,7 @@ export default function Mint() {
             ) : <></>
           }
 
-          {provider ? <button className="button is-primary" onClick={executeTransaction}>Mint</button> : <></>}
+          {provider ? <button className="button is-primary" onClick={executeTransaction}>Mint</button> : <p>Connect a wallet to mint</p>}
         </div>
       </div>
     </div>
