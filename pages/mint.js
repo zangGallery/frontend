@@ -6,8 +6,6 @@ import { useWalletProvider } from "../common/provider";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import dynamic from "next/dynamic";
-import { Decimal } from "decimal.js";
-
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor").then((mod) => mod.default),
   { ssr: false }
@@ -91,10 +89,13 @@ export default function Mint() {
               <option value='text/markdown'>Markdown</option>
             </select>
             <div className="control">
-              { textType == 'text/markdown' ? 
-              <MDEditor value={text} onChange={setText}/> :
+              { textType == 'text/plain' ? 
               <textarea className="textarea" value={text} onChange={(event) => setText(event.target.value)} placeholder="Content of your artwork"></textarea>
-            }
+              : <></>
+              }
+              <div style={{display : textType == 'text/markdown' ? 'block' : 'none'}}>
+                <MDEditor value={text} onChange={setText}/>
+              </div>
             </div>
           </div>
           <div className="field">
