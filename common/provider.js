@@ -9,12 +9,27 @@ var _walletProvider = null;
 var _readListeners = [];
 var _writeListeners = [];
 
+const _useComponentWillUnmount = (action) => {
+    useEffect(() => {
+        return () => {
+            action();
+        }
+    }, [])
+}
+
 const _useForceUpdate = (listeners) => {
     const [, updateState] = useState();
+    const [ownListener, setOwnListener] = useState(null);
     useEffect(() => {
         const forceUpdate = () => updateState({});
+        setOwnListener(forceUpdate);
         listeners.push(forceUpdate);
     }, [])
+
+    _useComponentWillUnmount(() => {
+        const index = listeners.indexOf(ownListener);
+        listeners.splice(index, 1);
+    })
 
     return () => {
         for (const listener of listeners) {
@@ -46,7 +61,15 @@ const useWalletProvider = () => {
     return [_walletProvider, setWalletProvider];
 }
 
+const restoreDefaultReadProvider = () => {
+    _readProvider = _defaultReadProvider;
+    for (const listener of _readListeners) {
+        listener();
+    }
+}
+
 export {
+    restoreDefaultReadProvider,
     useReadProvider,
     useWalletProvider
 }
