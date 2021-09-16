@@ -6,12 +6,17 @@ import { useWalletProvider } from "../common/provider";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
+
+import Decimal from "decimal.js";
+
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor").then((mod) => mod.default),
   { ssr: false }
 );
 
 export default function Mint() {
+  const router = useRouter();
   const [text, setText] = useState('')
   const [textType, setTextType] = useState('text/plain')
   const [title, setTitle] = useState('')
@@ -21,6 +26,9 @@ export default function Mint() {
   const [walletProvider, setWalletProvider] = useWalletProvider()
   const [useCustomRecipient, setUseCustomRecipient] = useState(false)
   const [customRecipient, setCustomRecipient] = useState('')
+  const [transactionState, setTransactionState] = useState({ status: 'noTransaction'})
+
+  const numConfirmations = 5;
 
   const useUTF8 = () => {
     return [...text].some(char => char.charCodeAt(0) > 127)
@@ -38,6 +46,7 @@ export default function Mint() {
   }
 
   const executeTransaction = async () => {
+    setTransactionState({ status: 'getSigner' });
     const contractAddress = config.contractAddresses.v1;
 
     const contract = new ethers.Contract(contractAddress, v1Abi, walletProvider);
@@ -45,17 +54,61 @@ export default function Mint() {
 
     const effectiveRoyaltyRecipient = useCustomRecipient ? customRecipient : (await walletProvider.getSigner().getAddress());
 
-    const transaction = await contractWithSigner.mint(getUri(), title, description, editionSize, effectiveRoyaltyPercentage(), effectiveRoyaltyRecipient, 0);
-    const receipt = await transaction.wait(1)
-    if (receipt && receipt.blockNumber) {
-      const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)
-      if (matchingEvents.length == 1) {
-        const tokenId = matchingEvents[0].args[3]
-        console.log(await contractWithSigner.uri(tokenId))
+    try {
+      setTransactionState({ status: 'signing'})
+      const transaction = await contractWithSigner.mint(getUri(), title, description, editionSize, effectiveRoyaltyPercentage(), effectiveRoyaltyRecipient, 0);
+
+      let receipt = null;
+
+      for (let i = 0; i < numConfirmations; i++) {
+        setTransactionState({ status: 'confirmations', total: numConfirmations, done: i})
+        receipt = await transaction.wait(1)
       }
-      else {
-        console.log('Error')
+
+      if (receipt && receipt.blockNumber) {
+        const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)
+        if (matchingEvents.length == 1) {
+          const tokenId = matchingEvents[0].args[3]
+          router.push('/nft/' + tokenId);
+        }
+        else {
+          console.log('Error')
+        }
       }
+    }
+    catch (e) {
+      setTransactionState({ status: 'error', error: e})
+    }
+  }
+
+  const getTransactionStatusInfo = () => {
+    let message = null;
+    switch(transactionState.status) {
+      case 'getSigner' : {
+        message = 'Querying signer...';
+        break;
+      }
+      case 'signing' : {
+        message = 'Waiting for signature';
+        break;
+      }
+      case 'confirmations' : {
+        message = `Awaiting confirmations... (${transactionState.done}/${transactionState.total})`;
+      }
+      case 'error': {
+        message = 'Error: ' + transactionState.error.message;
+        if (transactionState.error.data?.message) {
+          message += transactionState.error.data.message;
+        }
+        break;
+      }
+    }
+
+    if (message) {
+      return <p>{message}</p>
+    }
+    else {
+      return <></>
     }
   }
 
@@ -119,8 +172,15 @@ export default function Mint() {
               </div>
             ) : <></>
           }
-
-          {walletProvider ? <button className="button is-primary" onClick={executeTransaction}>Mint</button> : <p>Connect a wallet to mint</p>}
+          {
+            walletProvider ? (
+              transactionState.status == 'noTransaction' || transactionState.status == 'error' ?
+                <button className="button is-primary" onClick={executeTransaction}>Mint</button> : <></>
+            )
+            : <p>Connect a wallet to mint</p>
+          }
+          
+          {getTransactionStatusInfo()}
         </div>
       </div>
     </div>
