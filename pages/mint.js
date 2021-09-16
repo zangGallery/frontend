@@ -8,7 +8,7 @@ import "@uiw/react-markdown-preview/markdown.css";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import Decimal from "decimal.js";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi"
 import { schemas } from "../common";
 import MintConfirmModal from "../components/MintConfirmModal";
@@ -20,24 +20,27 @@ const MDEditor = dynamic(
 
 const defaultValues = {
   editionSize: 1,
-  royaltyPercentage: 10
+  royaltyPercentage: 10,
+  useCustomRecipient: false,
+  textType: 'text/plain'
 }
 
 export default function Mint() {
   const router = useRouter();
-  const { register, formState: { errors }, handleSubmit } = useForm({ defaultValues: defaultValues, mode: 'onChange', resolver: joiResolver(schemas.mint)});
+  const { register, formState: { errors }, control, handleSubmit, watch } = useForm({ defaultValues: defaultValues, mode: 'onChange', resolver: joiResolver(schemas.mint)});
   const [text, setText] = useState('')
   const [textType, setTextType] = useState('text/plain')
   const [walletProvider, setWalletProvider] = useWalletProvider()
-  const [useCustomRecipient, setUseCustomRecipient] = useState(false)
   const [transactionState, setTransactionState] = useState({ status: 'noTransaction'})
   const [confirmModalOpen, setConfirmModalOpen] = useState(false)
+  const watchUseCustomRecipient = watch('useCustomRecipient', defaultValues.useCustomRecipient);
+  const watchTextType = watch('textType', defaultValues.textType)
 
   const numConfirmations = 5;
 
   const executeTransaction = (mintConfirmed)  => async (data) => {
     // Add non-React Hook Form fields
-    data = {...data, text, textType, useCustomRecipient};
+    data = {...data, text};
 
     if (!(data.title && data.description && data.text) && !mintConfirmed) {
       // Open the confirm modal (if it's not already open)
@@ -149,16 +152,16 @@ export default function Mint() {
           </div>
           <div className="field">
             <label className="label">Content</label>
-            <select value={textType} onChange={(event) => setTextType(event.target.value)}>
+            <select {...register('textType')}>
               <option value='text/plain'>Plain Text</option>
               <option value='text/markdown'>Markdown</option>
             </select>
             <div className="control">
-              { textType == 'text/plain' ? 
+              { watchTextType == 'text/plain' ? 
               <textarea className="textarea" value={text} onChange={(event) => setText(event.target.value)} placeholder="Content of your artwork"></textarea>
               : <></>
               }
-              <div style={{display : textType == 'text/markdown' ? 'block' : 'none'}}>
+              <div style={{display : watchTextType == 'text/markdown' ? 'block' : 'none'}}>
                 <MDEditor value={text} onChange={setText}/>
               </div>
             </div>
@@ -172,16 +175,17 @@ export default function Mint() {
           </div>
           <div className="field">
           <label className="label">
-            <input className="checkbox" type="checkbox" value={useCustomRecipient} onChange={(event) => setUseCustomRecipient(event.target.checked)} />
+            <input className="checkbox" type="checkbox" {...register('useCustomRecipient')} />
             Custom royalty recipient
             </label>
             
           </div>
           {
-            useCustomRecipient ? (
+            watchUseCustomRecipient ? (
               <div className="field">
                 <label className="label">Address</label>
-                <input className="input" type="text" {...register('customRecipient', { required: useCustomRecipient })} />
+                <input className="input" type="text" {...register('customRecipient')} placeholder='0x... or ENS address' />
+                {errors.customRecipient?.message || <></>}
               </div>
             ) : <></>
           }
@@ -192,7 +196,6 @@ export default function Mint() {
             )
             : <p>Connect a wallet to mint</p>
           }
-          
           {getTransactionStatusInfo()}
         </div>
       </div>
