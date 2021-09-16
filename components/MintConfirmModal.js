@@ -1,8 +1,6 @@
 import React from "react";
 import Modal from 'react-modal';
 
-Modal.setAppElement('#app');
-
 export default function MintConfirmModal ({ isOpen, setIsOpen, onClose }) {
   const closeModal = (confirmed) => {
     setIsOpen(false);
