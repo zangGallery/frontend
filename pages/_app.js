@@ -6,7 +6,7 @@ import { Header } from "../components";
 
 function MyApp({ Component, pageProps }) {
   return (
-    <div>
+    <div id="app">
       <Head>
           <title>zang</title>
           <link rel="icon" href="/favicon.ico" />

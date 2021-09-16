@@ -21,6 +21,7 @@
     "react": "^16.14.0",
     "react-hook-form": "^7.15.3",
     "react-infinite-scroll-component": "^6.1.0",
+    "react-modal": "^3.14.3",
     "web3modal": "^1.9.4"
   },
   "devDependencies": {

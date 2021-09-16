@@ -11,6 +11,7 @@ import Decimal from "decimal.js";
 import { useForm } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi"
 import { schemas } from "../common";
+import MintConfirmModal from "../components/MintConfirmModal";
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor").then((mod) => mod.default),
@@ -30,12 +31,21 @@ export default function Mint() {
   const [walletProvider, setWalletProvider] = useWalletProvider()
   const [useCustomRecipient, setUseCustomRecipient] = useState(false)
   const [transactionState, setTransactionState] = useState({ status: 'noTransaction'})
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false)
 
   const numConfirmations = 5;
 
-  const executeTransaction = async (data) => {
+  const executeTransaction = (mintConfirmed)  => async (data) => {
     // Add non-React Hook Form fields
     data = {...data, text, textType, useCustomRecipient};
+
+    if (!(data.title && data.description && data.text) && !mintConfirmed) {
+      // Open the confirm modal (if it's not already open)
+      if (!confirmModalOpen) {
+        setConfirmModalOpen(true);
+      }
+      return;
+    }
 
     const useUTF8 = () => {
       return [...data.text].some(char => char.charCodeAt(0) > 127)
@@ -178,7 +188,7 @@ export default function Mint() {
           {
             walletProvider ? (
               transactionState.status == 'noTransaction' || transactionState.status == 'error' ?
-                <button className="button is-primary" onClick={handleSubmit(executeTransaction)}>Mint</button> : <></>
+                <button className="button is-primary" onClick={handleSubmit(executeTransaction(false))}>Mint</button> : <></>
             )
             : <p>Connect a wallet to mint</p>
           }
@@ -186,6 +196,7 @@ export default function Mint() {
           {getTransactionStatusInfo()}
         </div>
       </div>
+      <MintConfirmModal isOpen={confirmModalOpen} setIsOpen={setConfirmModalOpen} onClose={(confirmed) => handleSubmit(executeTransaction(confirmed))()} />
     </div>
   )
 }
