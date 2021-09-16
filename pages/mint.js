@@ -5,18 +5,12 @@ import config from '../config'
 import { useWalletProvider } from "../common/provider";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import Decimal from "decimal.js";
 import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi"
 import { schemas } from "../common";
-import MintConfirmModal from "../components/MintConfirmModal";
-
-const MDEditor = dynamic(
-  () => import("@uiw/react-md-editor").then((mod) => mod.default),
-  { ssr: false }
-);
+import { MintConfirmModal, MultiEditor } from "../components";
 
 const defaultValues = {
   editionSize: 1,
@@ -29,7 +23,6 @@ export default function Mint() {
   const router = useRouter();
   const { register, formState: { errors }, control, handleSubmit, watch } = useForm({ defaultValues: defaultValues, mode: 'onChange', resolver: joiResolver(schemas.mint)});
   const [text, setText] = useState('')
-  const [textType, setTextType] = useState('text/plain')
   const [walletProvider, setWalletProvider] = useWalletProvider()
   const [transactionState, setTransactionState] = useState({ status: 'noTransaction'})
   const [confirmModalOpen, setConfirmModalOpen] = useState(false)
@@ -157,13 +150,7 @@ export default function Mint() {
               <option value='text/markdown'>Markdown</option>
             </select>
             <div className="control">
-              { watchTextType == 'text/plain' ? 
-              <textarea className="textarea" value={text} onChange={(event) => setText(event.target.value)} placeholder="Content of your artwork"></textarea>
-              : <></>
-              }
-              <div style={{display : watchTextType == 'text/markdown' ? 'block' : 'none'}}>
-                <MDEditor value={text} onChange={setText}/>
-              </div>
+              <MultiEditor textType={watchTextType} value={text} setValue={setText} />
             </div>
           </div>
           <div className="field">
