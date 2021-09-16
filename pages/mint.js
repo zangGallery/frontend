@@ -7,7 +7,6 @@ import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-
 import Decimal from "decimal.js";
 
 const MDEditor = dynamic(
@@ -22,7 +21,7 @@ export default function Mint() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [editionSize, setEditionSize] = useState(1)
-  const [royaltyPercentage, setRoyaltyPercentage] = useState('10')
+  const [royaltyPercentage, setRoyaltyPercentage] = useState('10.00')
   const [walletProvider, setWalletProvider] = useWalletProvider()
   const [useCustomRecipient, setUseCustomRecipient] = useState(false)
   const [customRecipient, setCustomRecipient] = useState('')
@@ -72,7 +71,7 @@ export default function Mint() {
           router.push('/nft/' + tokenId);
         }
         else {
-          console.log('Error')
+          throw new Error('Wrong number of events emitted.')
         }
       }
     }
@@ -154,7 +153,7 @@ export default function Mint() {
           <div className="field">
             <label className="label">Royalty percentage</label>
             <div className="control">
-              <input className="input" type="number" value={royaltyPercentage} onChange={(event) => setRoyaltyPercentage(event.target.value)} min="1" max="100" />
+              <input className="input" type="number" value={royaltyPercentage} onChange={(event) => setRoyaltyPercentage(event.target.value)} min="1" max="100" step="0.01" />
             </div>
           </div>
           <div className="field">
