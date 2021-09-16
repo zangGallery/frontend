@@ -156,7 +156,7 @@ export default function Mint() {
           <div className="field">
             <label className="label">Royalty percentage</label>
             <div className="control">
-              <input className="input" type="number" {...register('royaltyPercentage', { required: true, min: "1", max: "100" })} defaultValue="10" min="1" max="100" step="0.01" />
+              <input className="input" type="number" {...register('royaltyPercentage')} defaultValue="10" min="0" max="100" step="0.01" />
             </div>
             {errors.royaltyPercentage?.message || <></>}
           </div>
