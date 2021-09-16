@@ -8,54 +8,56 @@ import "@uiw/react-markdown-preview/markdown.css";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import Decimal from "decimal.js";
+import { useForm } from "react-hook-form";
+import { joiResolver } from "@hookform/resolvers/joi"
+import { schemas } from "../common";
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor").then((mod) => mod.default),
   { ssr: false }
 );
 
+const defaultValues = {
+  editionSize: 1,
+  royaltyPercentage: 10
+}
+
 export default function Mint() {
   const router = useRouter();
+  const { register, formState: { errors }, handleSubmit } = useForm({ defaultValues: defaultValues, mode: 'onChange', resolver: joiResolver(schemas.mint)});
   const [text, setText] = useState('')
   const [textType, setTextType] = useState('text/plain')
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [editionSize, setEditionSize] = useState(1)
-  const [royaltyPercentage, setRoyaltyPercentage] = useState('10.00')
   const [walletProvider, setWalletProvider] = useWalletProvider()
   const [useCustomRecipient, setUseCustomRecipient] = useState(false)
-  const [customRecipient, setCustomRecipient] = useState('')
   const [transactionState, setTransactionState] = useState({ status: 'noTransaction'})
 
   const numConfirmations = 5;
 
-  const useUTF8 = () => {
-    return [...text].some(char => char.charCodeAt(0) > 127)
-  }
+  const executeTransaction = async (data) => {
+    // Add non-React Hook Form fields
+    data = {...data, text, textType, useCustomRecipient};
 
-  const getUri = () => {
-    return 'data:'
-      + textType
-      + (useUTF8() ? ';charset=UTF-8' : '')
-      + ',' + encodeURI(text)
-  }
+    const useUTF8 = () => {
+      return [...data.text].some(char => char.charCodeAt(0) > 127)
+    }
 
-  const effectiveRoyaltyPercentage = () => {
-    return new Decimal(royaltyPercentage).mul('100').toNumber();
-  }
+    const uri = 'data:'
+                + data.textType
+                + (useUTF8() ? ';charset=UTF-8' : '')
+                + ',' + encodeURI(data.text)
 
-  const executeTransaction = async () => {
     setTransactionState({ status: 'getSigner' });
     const contractAddress = config.contractAddresses.v1;
 
     const contract = new ethers.Contract(contractAddress, v1Abi, walletProvider);
     const contractWithSigner = contract.connect(walletProvider.getSigner())
 
-    const effectiveRoyaltyRecipient = useCustomRecipient ? customRecipient : (await walletProvider.getSigner().getAddress());
+    const effectiveRoyaltyPercentage = new Decimal(data.royaltyPercentage).mul('100').toNumber();
+    const effectiveRoyaltyRecipient = data.useCustomRecipient ? data.customRecipient : (await walletProvider.getSigner().getAddress());
 
     try {
       setTransactionState({ status: 'signing'})
-      const transaction = await contractWithSigner.mint(getUri(), title, description, editionSize, effectiveRoyaltyPercentage(), effectiveRoyaltyRecipient, 0);
+      const transaction = await contractWithSigner.mint(uri, data.title, data.description, data.editionSize, effectiveRoyaltyPercentage, effectiveRoyaltyRecipient, 0);
 
       let receipt = null;
 
@@ -93,6 +95,7 @@ export default function Mint() {
       }
       case 'confirmations' : {
         message = `Awaiting confirmations... (${transactionState.done}/${transactionState.total})`;
+        break;
       }
       case 'error': {
         message = 'Error: ' + transactionState.error.message;
@@ -119,19 +122,19 @@ export default function Mint() {
           <div className="field">
             <label className="label">Title</label>
             <div className="control">
-              <input className="input" type="text" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Title of your artwork" />
+              <input className="input" type="text" {...register('title')} placeholder="Title of your artwork" />
             </div>
           </div>
           <div className="field">
             <label className="label">Description</label>
             <div className="control">
-              <input className="input" type="text" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description of your artwork" />
+              <input className="input" type="text" {...register('description')} placeholder="Description of your artwork" />
             </div>
           </div>
           <div className="field">
             <label className="label">Edition size</label>
             <div className="control">
-              <input className="input" type="number" value={editionSize} onChange={(event) => setEditionSize(event.target.value)} min="1" />
+              <input className="input" type="number" {...register('editionSize')} defaultValue="1" min="1" />
             </div>
           </div>
           <div className="field">
@@ -153,8 +156,9 @@ export default function Mint() {
           <div className="field">
             <label className="label">Royalty percentage</label>
             <div className="control">
-              <input className="input" type="number" value={royaltyPercentage} onChange={(event) => setRoyaltyPercentage(event.target.value)} min="1" max="100" step="0.01" />
+              <input className="input" type="number" {...register('royaltyPercentage', { required: true, min: "1", max: "100" })} defaultValue="10" min="1" max="100" step="0.01" />
             </div>
+            {errors.royaltyPercentage?.message || <></>}
           </div>
           <div className="field">
           <label className="label">
@@ -167,14 +171,14 @@ export default function Mint() {
             useCustomRecipient ? (
               <div className="field">
                 <label className="label">Address</label>
-                <input className="input" type="text" value={customRecipient} onChange={(event) => setCustomRecipient(event.target.value)} />
+                <input className="input" type="text" {...register('customRecipient', { required: useCustomRecipient })} />
               </div>
             ) : <></>
           }
           {
             walletProvider ? (
               transactionState.status == 'noTransaction' || transactionState.status == 'error' ?
-                <button className="button is-primary" onClick={executeTransaction}>Mint</button> : <></>
+                <button className="button is-primary" onClick={handleSubmit(executeTransaction)}>Mint</button> : <></>
             )
             : <p>Connect a wallet to mint</p>
           }

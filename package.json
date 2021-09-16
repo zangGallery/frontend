@@ -9,14 +9,17 @@
     "start": "next start"
   },
   "dependencies": {
+    "@hookform/resolvers": "^2.8.0",
     "@uiw/react-md-editor": "3.6.0",
     "@walletconnect/web3-provider": "^1.6.5",
     "bulma": "^0.9.3",
     "decimal.js": "^10.3.1",
     "ethers": "^5.4.6",
+    "joi": "^17.4.2",
     "next": "^11.0.0",
     "next-remove-imports": "^1.0.5",
     "react": "^16.14.0",
+    "react-hook-form": "^7.15.3",
     "react-infinite-scroll-component": "^6.1.0",
     "web3modal": "^1.9.4"
   },
