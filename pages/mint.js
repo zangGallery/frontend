@@ -76,7 +76,7 @@ export default function Mint() {
         const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)
         if (matchingEvents.length == 1) {
           const tokenId = matchingEvents[0].args[3]
-          router.push('/nft/' + tokenId);
+          router.push('/nft?id=' + tokenId);
         }
         else {
           throw new Error('Wrong number of events emitted.')

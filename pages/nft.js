@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react';
-import { useReadProvider } from '../../common/provider';
-import config from '../../config';
+import { useReadProvider } from '../common/provider';
+import config from '../config';
 import { ethers } from 'ethers';
-import { v1Abi } from '../../common/abi';
+import { v1Abi } from '../common/abi';
 import dynamic from "next/dynamic";
 import rehypeSanitize from "rehype-sanitize";
 

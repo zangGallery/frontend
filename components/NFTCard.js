@@ -48,7 +48,7 @@ export default function NFTCard({id}) {
     useEffect(queryTokenAuthor, [id, readProvider])
 
     return (
-        <div className="card" onClick={() => router.push('/nft/' + id)}>
+        <div className="card" onClick={() => router.push('/nft?id=' + id)}>
             <div className="card-content">
                 <div className="media">
                 <div className="media-content">
