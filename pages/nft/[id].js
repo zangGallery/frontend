@@ -5,6 +5,7 @@ import config from '../../config';
 import { ethers } from 'ethers';
 import { v1Abi } from '../../common/abi';
 import dynamic from "next/dynamic";
+import rehypeSanitize from "rehype-sanitize";
 
 const MDViewer = dynamic(
   () => import("@uiw/react-md-editor").then((mod) => mod.default.Markdown),
@@ -88,7 +89,7 @@ export default function NFTPage() {
                             <p className="is-italic">{tokenData?.description || ''}</p>
                             {tokenType && tokenContent ? (
                                 tokenType == 'text/markdown' ? (
-                                    <MDViewer source={tokenContent} />
+                                    <MDViewer source={tokenContent} rehypePlugins={[rehypeSanitize]} />
                                 ) : <p>{tokenContent}</p>
                             ) : <></>}
                             {royaltyInfo && tokenAuthor && royaltyInfo?.amount != 0 ? 

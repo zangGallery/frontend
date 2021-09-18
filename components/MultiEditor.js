@@ -1,5 +1,6 @@
 import React from "react";
 import dynamic from "next/dynamic";
+import rehypeSanitize from "rehype-sanitize";
 
 const MDEditor = dynamic(
     () => import("@uiw/react-md-editor").then((mod) => mod.default),
@@ -14,7 +15,7 @@ export default function MultiEditor({textType, value, setValue}) {
               : <></>
             }
             <div style={{display : textType == 'text/markdown' ? 'block' : 'none'}}>
-                <MDEditor value={value} onChange={setValue}/>
+                <MDEditor value={value} onChange={setValue} previewOptions={{ rehypePlugins : [rehypeSanitize] }}  />
             </div>
         </div>
     )
