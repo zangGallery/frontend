@@ -15,7 +15,7 @@ export default function MultiEditor({textType, value, setValue}) {
               : <></>
             }
             <div style={{display : textType == 'text/markdown' ? 'block' : 'none'}}>
-                <MDEditor value={value} onChange={setValue} previewOptions={{ rehypePlugins : [rehypeSanitize] }}  />
+                <MDEditor value={value} onChange={setValue} highlightEnable={false} previewOptions={{ rehypePlugins : [rehypeSanitize] }}  />
             </div>
         </div>
     )
