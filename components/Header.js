@@ -6,6 +6,12 @@ import { useProvider } from "../common/provider";
 
 export default function Header() {
     const [provider, setProvider] = useProvider()
+    const [isActive, setActive] = React.useState(false)
+    
+    function toggleClass() {
+        setActive(!isActive);
+        console.log(isActive);
+    }
 
     return (
         <nav className="navbar" role="navigation" aria-label="main navigation">
@@ -14,14 +20,14 @@ export default function Header() {
                 <h1 className="title">{".zang{"}</h1>
             </a>
 
-            <a role="button" className="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+            <a role="button" className={"navbar-burger" + (isActive ? " is-active" : "")} onClick={toggleClass} aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
             </a>
             </div>
 
-            <div id="navbarBasicExample" className="navbar-menu">
+            <div id="navbarBasicExample" className={"navbar-menu" + (isActive ? " is-active" : "")} >
             <div className="navbar-start">
                 <RoutingLink href='/' className="navbar-item">
                     Home
