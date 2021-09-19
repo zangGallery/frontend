@@ -10,32 +10,7 @@ const v1Abi = [
         {
           "indexed": true,
           "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "approved",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
-        }
-      ],
-      "name": "Approval",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "owner",
+          "name": "account",
           "type": "address"
         },
         {
@@ -60,6 +35,12 @@ const v1Abi = [
         {
           "indexed": true,
           "internalType": "address",
+          "name": "operator",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
           "name": "from",
           "type": "address"
         },
@@ -70,39 +51,107 @@ const v1Abi = [
           "type": "address"
         },
         {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
+          "indexed": false,
+          "internalType": "uint256[]",
+          "name": "ids",
+          "type": "uint256[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256[]",
+          "name": "values",
+          "type": "uint256[]"
         }
       ],
-      "name": "Transfer",
+      "name": "TransferBatch",
       "type": "event"
     },
     {
+      "anonymous": false,
       "inputs": [
         {
+          "indexed": true,
+          "internalType": "address",
+          "name": "operator",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
           "internalType": "address",
           "name": "to",
           "type": "address"
         },
         {
+          "indexed": false,
           "internalType": "uint256",
-          "name": "tokenId",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
           "type": "uint256"
         }
       ],
-      "name": "approve",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "name": "TransferSingle",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "value",
+          "type": "string"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        }
+      ],
+      "name": "URI",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "authorOf",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
         {
           "internalType": "address",
-          "name": "owner",
+          "name": "account",
           "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
         }
       ],
       "name": "balanceOf",
@@ -119,17 +168,22 @@ const v1Abi = [
     {
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
+          "internalType": "address[]",
+          "name": "accounts",
+          "type": "address[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "ids",
+          "type": "uint256[]"
         }
       ],
-      "name": "getApproved",
+      "name": "balanceOfBatch",
       "outputs": [
         {
-          "internalType": "address",
+          "internalType": "uint256[]",
           "name": "",
-          "type": "address"
+          "type": "uint256[]"
         }
       ],
       "stateMutability": "view",
@@ -139,7 +193,7 @@ const v1Abi = [
       "inputs": [
         {
           "internalType": "address",
-          "name": "owner",
+          "name": "account",
           "type": "address"
         },
         {
@@ -160,21 +214,54 @@ const v1Abi = [
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "lastTokenId",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "string",
-          "name": "textURI",
+          "name": "textURI_",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "name",
+          "name": "name_",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "description",
+          "name": "description_",
           "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount_",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "royaltyPercentage_",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "royaltyRecipient_",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data_",
+          "type": "bytes"
         }
       ],
       "name": "mint",
@@ -207,14 +294,24 @@ const v1Abi = [
           "internalType": "uint256",
           "name": "tokenId",
           "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
         }
       ],
-      "name": "ownerOf",
+      "name": "royaltyInfo",
       "outputs": [
         {
           "internalType": "address",
-          "name": "",
+          "name": "receiver",
           "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "royaltyAmount",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -233,12 +330,22 @@ const v1Abi = [
           "type": "address"
         },
         {
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
+          "internalType": "uint256[]",
+          "name": "ids",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "amounts",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
         }
       ],
-      "name": "safeTransferFrom",
+      "name": "safeBatchTransferFrom",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -257,12 +364,17 @@ const v1Abi = [
         },
         {
           "internalType": "uint256",
-          "name": "tokenId",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
           "type": "uint256"
         },
         {
           "internalType": "bytes",
-          "name": "_data",
+          "name": "data",
           "type": "bytes"
         }
       ],
@@ -348,7 +460,7 @@ const v1Abi = [
           "type": "uint256"
         }
       ],
-      "name": "tokenURI",
+      "name": "uri",
       "outputs": [
         {
           "internalType": "string",
@@ -357,29 +469,6 @@ const v1Abi = [
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "from",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
-        }
-      ],
-      "name": "transferFrom",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     }
   ]

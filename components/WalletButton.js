@@ -2,39 +2,81 @@ import React from "react";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { useProvider } from "../common/provider";
+import { restoreDefaultReadProvider, useReadProvider, useWalletProvider } from "../common/provider";
 
 export default function WalletButton() {
-    const [provider, setProvider] = useProvider()
+    const [readProvider, setReadProvider] = useReadProvider();
+    const [walletProvider, setWalletProvider] = useWalletProvider();
+
+    const providerOptions = {
+        /* See Provider Options Section */
+        walletconnect: {
+            package: WalletConnectProvider, // required
+            options: {
+            infuraId: "INFURA_ID" // required //TODO: Get true infura id
+            }
+        }
+    };
 
     const connectWallet = async () => {
-        const providerOptions = {
-            /* See Provider Options Section */
-            walletconnect: {
-                package: WalletConnectProvider, // required
-                options: {
-                infuraId: "INFURA_ID" // required //TODO: Get true infura id
-                }
-            }
-        };
-        
         const web3Modal = new Web3Modal({
             network: "mainnet", // optional
             cacheProvider: false, // optional
             providerOptions, // required
             disableInjectedProvider: false
         });
-        //web3Modal.clearCachedProvider();
+        // Force to prompt wallet selection
+        web3Modal.clearCachedProvider();
         
-        const walletProvider = await web3Modal.connect();
-        const newProvider = new ethers.providers.Web3Provider(walletProvider);
+        const wallet = await web3Modal.connect();
 
-        setProvider(newProvider)
+        // Remove any pre-existing event handlers
+        delete wallet._events.accountsChanged;
+        delete wallet._events.chainChanged;
+        delete wallet._events.disconnect;
+
+        // The only remaining one is the default connect eventHandler
+        wallet._eventsCount = 1;
+
+        const handleDisconnect = () => {
+            setWalletProvider(null);
+            restoreDefaultReadProvider();
+        }
+
+        const handleChange = async () => {
+            if (wallet.selectedAddress) {
+                const regeneratedProvider = new ethers.providers.Web3Provider(wallet);
+                setReadProvider(regeneratedProvider);
+                setWalletProvider(regeneratedProvider);
+            }
+            else {
+                // If the provider is connected but no addresses are selected, treat it as a disconnection
+                handleDisconnect();
+            }
+        }
+
+        wallet.on('disconnect', handleDisconnect)
+        wallet.on('accountsChanged', handleChange)
+        wallet.on('chainChanged', handleChange)
+
+        const newProvider = new ethers.providers.Web3Provider(wallet);
+        setReadProvider(newProvider);
+        setWalletProvider(newProvider);
+    }
+
+    const disconnectWallet = async () => {
+        // Not every provider supports close()
+        if (walletProvider.provider.close) {
+            await walletProvider.provider.close()
+        }
+
+        setWalletProvider(null);
+        restoreDefaultReadProvider();
     }
 
     return (
         <div className="buttons">
-            <a className="button is-link" onClick={connectWallet}>Connect Wallet</a>
+            <a className="button is-link" onClick={connectWallet}>{walletProvider ? 'Change Wallet' : 'Connect Wallet'}</a>
         </div>
     )
 }

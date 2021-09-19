@@ -1,10 +1,8 @@
 import React from "react";
 import { RoutingLink, WalletButton } from ".";
-import PromiseLoader from "./PromiseLoader";
-import { getWalletAddress } from "../common/utils"
-import { useProvider } from "../common/provider";
 
 export default function Header() {
+<<<<<<< HEAD
     const [provider, setProvider] = useProvider()
     const [isActive, setActive] = React.useState(false)
     
@@ -13,13 +11,16 @@ export default function Header() {
         console.log(isActive);
     }
 
+=======
+>>>>>>> ed89cf62212077430cc929a25d84485ce6ac5bfe
     return (
         <nav className="navbar" role="navigation" aria-label="main navigation">
             <div className="navbar-brand">
-            <a className="navbar-item" href=".">
-                <h1 className="title">{".zang{"}</h1>
-            </a>
+                <a className="navbar-item" href=".">
+                    <h1 className="title">{".zang{"}</h1>
+                </a>
 
+<<<<<<< HEAD
             <a role="button" className={"navbar-burger" + (isActive ? " is-active" : "")} onClick={toggleClass} aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
@@ -32,24 +33,31 @@ export default function Header() {
                 <RoutingLink href='/' className="navbar-item">
                     Home
                 </RoutingLink>
-
-                <RoutingLink href='/mint' className="navbar-item">
-                    Mint
-                </RoutingLink>
-            </div>
-            
-            
-            <div className="navbar-end">
-                <div className="navbar-item">
-                    {provider ? <></> : <WalletButton />}
+=======
+                <a role="button" className="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </a>
                 </div>
-            </div>
-                <PromiseLoader promise={() => getWalletAddress(provider)} deps={[provider]}
-                    render={(user) => (
-                        user ? <h4 className="title is-4 has-text-centered">Welcome {user}!</h4> : <h4 className="title is-4 has-text-centered">Not Connected</h4>
-                    )}
-                    loading={<h4 className="title is-4 has-text-centered">Loading...</h4>}
-                    error = {(error) => {console.log(error); return <p>{error.message}</p>}}/>
+
+                <div id="navbarBasicExample" className="navbar-menu">
+                <div className="navbar-start">
+                    <RoutingLink href='/' className="navbar-item">
+                        Home
+                    </RoutingLink>
+>>>>>>> ed89cf62212077430cc929a25d84485ce6ac5bfe
+
+                    <RoutingLink href='/mint' className="navbar-item">
+                        Mint
+                    </RoutingLink>
+                </div>
+
+                <div className="navbar-end">
+                    <div className="navbar-item">
+                        <WalletButton />
+                    </div>
+                </div>
             </div>
         </nav>
     )
