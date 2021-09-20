@@ -107,7 +107,7 @@ export default function NFTPage() {
                                 {tokenType && tokenContent ? (
                                     tokenType == 'text/markdown' ? (
                                         <MDViewer source={tokenContent} rehypePlugins={[rehypeSanitize]} />
-                                    ) : <p>{tokenContent}</p>
+                                    ) : <p className='line-break'>{tokenContent}</p>
                                 ) : <></>}
                                 </div>
                             </div>

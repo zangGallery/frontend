@@ -18,3 +18,7 @@ a {
 .cursor-pointer {
   cursor: pointer;
 }
+
+.line-break {
+  white-space: pre-wrap;
+}
