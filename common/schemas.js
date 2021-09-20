@@ -26,7 +26,7 @@ const mint = Joi.object().keys({
     title: Joi.string().allow('').label('Title'),
     description: Joi.string().allow('').label('Description'),
     editionSize: Joi.number().integer().min(1).empty('').required().label('Edition size'),
-    royaltyPercentage: Joi.number().custom(maxDigits(2)).positive().max(100).empty('').required().label('Royalty percentage'),
+    royaltyPercentage: Joi.number().custom(maxDigits(2)).min(0).max(100).empty('').required().label('Royalty percentage'),
     useCustomRecipient: Joi.boolean().required(),
     customRecipient: _customRecipient.label('Address'),
     textType: Joi.valid('text/plain', 'text/markdown').required()

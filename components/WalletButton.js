@@ -65,16 +65,6 @@ export default function WalletButton() {
         setWalletProvider(newProvider);
     }
 
-    const disconnectWallet = async () => {
-        // Not every provider supports close()
-        if (walletProvider.provider.close) {
-            await walletProvider.provider.close()
-        }
-
-        setWalletProvider(null);
-        restoreDefaultReadProvider();
-    }
-
     return (
         <div className="buttons">
             <a className="button is-link" onClick={connectWallet}>{walletProvider ? 'Change Wallet' : 'Connect Wallet'}</a>

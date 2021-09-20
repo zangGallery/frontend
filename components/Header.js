@@ -6,7 +6,6 @@ export default function Header() {
     
     function toggleClass() {
         setActive(!isActive);
-        console.log(isActive);
     }
 
     return (
