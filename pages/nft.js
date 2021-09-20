@@ -23,16 +23,23 @@ export default function NFTPage() {
     const [royaltyInfo, setRoyaltyInfo] = useState(null)
     const [readProvider, setReadProvider] = useReadProvider()
 
+    const [contractError, setContractError] = useState(null);
+
     const contractAddress = config.contractAddresses.v1;
     const contractABI = v1Abi;
 
     const queryTokenURI = async () => {
         if (!id || !readProvider) return;
         
-        const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
-        const tURI = await contract.uri(id);
-  
-        setTokenURI(tURI);
+        try {
+            const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
+            const tURI = await contract.uri(id);
+      
+            setTokenURI(tURI);
+        }
+        catch (e) {
+            setContractError(e);
+        }
     }
 
     const queryTokenAuthor = async () => {
@@ -47,9 +54,14 @@ export default function NFTPage() {
     const queryTokenData = async () => {
         if (!tokenURI) return;
 
-        const tokenDataResponse = await fetch(tokenURI);
-        const newTokenData = await tokenDataResponse.json();
-        setTokenData(newTokenData);
+        try {
+            const tokenDataResponse = await fetch(tokenURI);
+            const newTokenData = await tokenDataResponse.json();
+            setTokenData(newTokenData);
+        }
+        catch (e) {
+            setContractError(e);
+        }
     }
 
     const queryTokenContent = async () => {
@@ -71,6 +83,12 @@ export default function NFTPage() {
         })
     }
 
+    useEffect(() => {
+        if (!id) {
+            router.push('/');
+        }
+    }, [id])
+
     useEffect(queryTokenURI, [id, readProvider])
     useEffect(queryTokenData, [tokenURI])
     useEffect(queryTokenContent, [tokenData])
@@ -83,20 +101,22 @@ export default function NFTPage() {
             <div className="columns m-4">
                 <div className="column is-half">
                     { readProvider ? (
-                        <div>
-                            <h1 className="title">{tokenData?.name || ''}</h1>
-                            <p className="subtitle">{tokenAuthor ? `by ${tokenAuthor}` : ''}</p>
-                            <p className="is-italic">{tokenData?.description || ''}</p>
-                            {tokenType && tokenContent ? (
-                                tokenType == 'text/markdown' ? (
-                                    <MDViewer source={tokenContent} rehypePlugins={[rehypeSanitize]} />
-                                ) : <p>{tokenContent}</p>
-                            ) : <></>}
-                            {royaltyInfo && tokenAuthor && royaltyInfo?.amount != 0 ? 
-                            <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
-                            : <></>
-                            }
-                        </div>
+                        contractError ? <p>Could not retrieve contract info : {contractError.message}.</p> : (
+                            <div>
+                                <h1 className="title">{tokenData?.name || ''}</h1>
+                                <p className="subtitle">{tokenAuthor ? `by ${tokenAuthor}` : ''}</p>
+                                <p className="is-italic">{tokenData?.description || ''}</p>
+                                {tokenType && tokenContent ? (
+                                    tokenType == 'text/markdown' ? (
+                                        <MDViewer source={tokenContent} rehypePlugins={[rehypeSanitize]} />
+                                    ) : <p>{tokenContent}</p>
+                                ) : <></>}
+                                {royaltyInfo && tokenAuthor && royaltyInfo?.amount != 0 ? 
+                                <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
+                                : <></>
+                                }
+                            </div>
+                        )
                     )
                     : <p>Connect a wallet to view this NFT</p>
                     }
