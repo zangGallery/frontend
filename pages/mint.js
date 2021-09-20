@@ -123,7 +123,7 @@ export default function Mint() {
   return (
     <div>
       <div className="columns m-4">
-        <div className="column is-half">
+        <div className="column">
           <h1 className="title">Mint your NFT</h1>
           <div className="field">
             <label className="label">Title</label>
@@ -145,11 +145,15 @@ export default function Mint() {
           </div>
           <div className="field">
             <label className="label">Content</label>
-            <select {...register('textType')}>
-              <option value='text/plain'>Plain Text</option>
-              <option value='text/markdown'>Markdown</option>
-            </select>
             <div className="control">
+              <div className="select">
+                <select {...register('textType')}>
+                  <option value='text/plain'>Plain Text</option>
+                  <option value='text/markdown'>Markdown</option>
+                </select>
+              </div>
+            </div>
+            <div className="control mt-3">
               <MultiEditor textType={watchTextType} value={text} setValue={setText} />
             </div>
           </div>
@@ -161,9 +165,9 @@ export default function Mint() {
             {errors.royaltyPercentage?.message || <></>}
           </div>
           <div className="field">
-          <label className="label">
-            <input className="checkbox" type="checkbox" {...register('useCustomRecipient')} />
-            Custom royalty recipient
+          <label className="checkbox label">
+            <input type="checkbox" {...register('useCustomRecipient')} className="mr-1" />
+              Custom royalty recipient
             </label>
             
           </div>

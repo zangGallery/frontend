@@ -44,7 +44,7 @@ export default function Home() {
     return (
         <div>
             <div className="columns m-4">
-              <div className="column is-half">
+              <div className="column">
                 <h1 className="title">Latest NFTs</h1>
                 <InfiniteScroll
                   dataLength={nfts.length} //This is important field to render the next data
@@ -57,7 +57,9 @@ export default function Home() {
                     </p>
                   }
                 >
+                  <div class="is-flex is-flex-direction-row is-flex-wrap-wrap">
                 {nfts.map((id) => <NFTCard id={id} key={id} />)}
+                </div>
                 </InfiniteScroll>
               </div>
             </div>
