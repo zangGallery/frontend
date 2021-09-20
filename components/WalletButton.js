@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { restoreDefaultReadProvider, useReadProvider, useWalletProvider } from "../common/provider";
+import config from "../config";
 
 export default function WalletButton() {
     const [readProvider, setReadProvider] = useReadProvider();
@@ -11,18 +12,18 @@ export default function WalletButton() {
     const providerOptions = {
         /* See Provider Options Section */
         walletconnect: {
-            package: WalletConnectProvider, // required
+            package: WalletConnectProvider,
             options: {
-            infuraId: "INFURA_ID" // required //TODO: Get true infura id
+            infuraId: config.api_keys.infura.project_id
             }
         }
     };
 
     const connectWallet = async () => {
         const web3Modal = new Web3Modal({
-            network: "mainnet", // optional
-            cacheProvider: false, // optional
-            providerOptions, // required
+            network: config.networks.external,
+            cacheProvider: false, 
+            providerOptions,
             disableInjectedProvider: false
         });
         // Force to prompt wallet selection
