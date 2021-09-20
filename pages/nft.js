@@ -84,23 +84,27 @@ export default function NFTPage() {
                 <div className="column is-half">
                     { readProvider ? (
                         <div>
-                            <h1 className="title">{tokenData?.name || ''}</h1>
-                            <p className="subtitle">{tokenAuthor ? `by ${tokenAuthor}` : ''}</p>
-                            <p className="is-italic">{tokenData?.description || ''}</p>
+                            <div class="box">
                             {tokenType && tokenContent ? (
                                 tokenType == 'text/markdown' ? (
                                     <MDViewer source={tokenContent} rehypePlugins={[rehypeSanitize]} />
                                 ) : <p>{tokenContent}</p>
                             ) : <></>}
-                            {royaltyInfo && tokenAuthor && royaltyInfo?.amount != 0 ? 
-                            <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
-                            : <></>
-                            }
+                            </div>
                         </div>
                     )
                     : <p>Connect a wallet to view this NFT</p>
                     }
                 </div>
+                <div className="column is-half">
+                <h1 className="title">{tokenData?.name || ''}</h1>
+                            <p className="subtitle">{tokenAuthor ? `by ${tokenAuthor}` : ''}</p>
+                            <p className="is-italic">{tokenData?.description || ''}</p>
+                            {royaltyInfo && tokenAuthor && royaltyInfo?.amount != 0 ? 
+                            <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
+                            : <></>
+                            }
+                    </div>
             </div>
         </div>
     )
