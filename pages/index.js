@@ -19,7 +19,6 @@ export default function Home() {
     const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
 
     const newLastNFTId = (await contract.lastTokenId());
-    console.log('NEW: ', newLastNFTId)
 
     setLastNFTId(newLastNFTId.toNumber());
   }, [])
@@ -33,8 +32,6 @@ export default function Home() {
         newNFTs.push(newId);
       }
     }
-
-    console.log('New: ', newNFTs)
 
     setNFTs(newNFTs);
   }
@@ -57,7 +54,7 @@ export default function Home() {
                     </p>
                   }
                 >
-                  <div class="is-flex is-flex-direction-row is-flex-wrap-wrap">
+                  <div className="is-flex is-flex-direction-row is-flex-wrap-wrap">
                 {nfts.map((id) => <NFTCard id={id} key={id} />)}
                 </div>
                 </InfiniteScroll>
