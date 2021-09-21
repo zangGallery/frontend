@@ -54,7 +54,7 @@ export default function Mint() {
     const uri = 'data:'
                 + data.textType
                 + (isUTF8() ? ';charset=UTF-8' : '')
-                + ',' + encodeURI(data.text)
+                + ',' + encodeURIComponent(data.text)
 
     setTransactionState({ status: 'getSigner' });
     const contractAddress = config.contractAddresses.v1;
