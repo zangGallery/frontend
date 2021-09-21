@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
-import { AlchemyProvider } from "ethers";
+import { getDefaultProvider } from "ethers";
 import config from "../config";
 
-var _defaultReadProvider = AlchemyProvider(config.networks.external, config.api_keys.alchemy);
+var _defaultReadProvider = getDefaultProvider(config.networks.external,
+    {
+        alchemy: config.api_keys.alchemy
+    }
+);
 
 var _readProvider = _defaultReadProvider;
 var _walletProvider = null;
