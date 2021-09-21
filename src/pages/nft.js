@@ -95,7 +95,7 @@ export default function NFTPage( { location }) {
     useEffect(() => queryTokenData(), [tokenURI])
     useEffect(() => queryTokenContent(), [tokenData])
 
-    useEffect(() => queryTokenAuthor, [id, readProvider])
+    useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryRoyaltyInfo(), [id, readProvider])
 
     return (
@@ -111,7 +111,7 @@ export default function NFTPage( { location }) {
                     { readProvider ? (
                         contractError ? <p>Could not retrieve contract info : {contractError.message}.</p> : (
                             <div>
-                                <div class="box">
+                                <div className="box">
                                 {tokenType && tokenContent ? (
                                     tokenType == 'text/markdown' ? (
                                         <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
