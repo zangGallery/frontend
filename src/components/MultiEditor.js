@@ -8,13 +8,12 @@ export default function MultiEditor({textType, value, setValue}) {
     const defaultCommands = getCommands().filter(command => command.name != 'image')
     return (
         <div>
-            { textType == 'text/plain' ? 
-              <textarea className="textarea" value={value} onChange={(event) => setValue(event.target.value)} placeholder="Content of your artwork"></textarea>
-              : <></>
+            { textType == 'text/markdown' ? 
+                <MDEditor value={value} onChange={setValue} highlightEnable={false} previewOptions={{ rehypePlugins : [rehypeSanitize] }} commands={defaultCommands} /> :
+                <textarea className="textarea" value={value} onChange={(event) => setValue(event.target.value)} placeholder="Content of your artwork"></textarea>
             }
-            <div style={{display : textType == 'text/markdown' ? 'block' : 'none'}}>
-                <MDEditor value={value} onChange={setValue} highlightEnable={false} previewOptions={{ rehypePlugins : [rehypeSanitize] }} commands={defaultCommands}  />
-            </div>
+                
+            
         </div>
     )
 }
