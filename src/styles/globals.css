@@ -19,6 +19,6 @@ a {
   cursor: pointer;
 }
 
-.line-break {
-  white-space: pre-wrap;
+.nft-plain {
+  background-color: inherit;
 }

@@ -31,6 +31,7 @@
     "ethers": "^5.4.6",
     "gatsby": "^3.14.0",
     "gatsby-plugin-mdx": "^2.14.0",
+    "gatsby-plugin-react-helmet": "^4.14.0",
     "gatsby-source-filesystem": "^3.14.0",
     "https-browserify": "^1.0.0",
     "joi": "^17.4.2",
@@ -38,13 +39,15 @@
     "query-string": "^7.0.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-helmet": "^6.1.0",
     "react-hook-form": "^7.15.3",
     "react-infinite-scroll-component": "^6.1.0",
     "react-modal": "^3.14.3",
     "rehype-sanitize": "^5.0.0",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
-    "web3modal": "^1.9.4"
+    "web3modal": "^1.9.4",
+    "ws": "^8.2.2"
   },
   "devDependencies": {
     "eslint-config-react-app": "^6.0.0",

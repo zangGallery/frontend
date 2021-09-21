@@ -6,6 +6,10 @@ import config from "../config";
 import { v1Abi } from "../common/abi";
 import { ethers } from "ethers";
 import { Header } from "../components";
+import { Helmet } from "react-helmet"
+
+import "bulma/css/bulma.min.css";
+import '../styles/globals.css'
 
 export default function Home() {
   const [readProvider, setReadProvider] = useReadProvider();
@@ -41,6 +45,11 @@ export default function Home() {
 
     return (
         <div>
+          <Helmet>
+            <meta charSet="utf-8" />
+            <title>zang</title>
+            <meta name="icon" href="/public/favicon.ico" />
+          </Helmet>
             <Header />
             <div className="columns m-4">
               <div className="column">

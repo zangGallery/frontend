@@ -12,6 +12,10 @@ import { schemas } from "../common";
 import { MintConfirmModal, MultiEditor } from "../components";
 import { Header } from "../components";
 import { navigate } from "gatsby-link";
+import { Helmet } from "react-helmet";
+
+import "bulma/css/bulma.min.css";
+import '../styles/globals.css'
 
 const defaultValues = {
   editionSize: 1,
@@ -73,8 +77,8 @@ export default function Mint() {
       }
 
       if (receipt && receipt.blockNumber) {
-        const matchingEvents = receipt.events.filter(event => event.event === 'TransferSingle' && event.args.from === 0)
-        if (matchingEvents.length === 1) {
+        const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)
+        if (matchingEvents.length == 1) {
           const tokenId = matchingEvents[0].args[3]
           navigate('/nft?id=' + tokenId);
         }
@@ -122,6 +126,11 @@ export default function Mint() {
 
   return (
     <div>
+      <Helmet>
+        <meta charSet="utf-8" />
+        <title>zang</title>
+        <meta name="icon" href="/public/favicon.ico" />
+      </Helmet>
       <Header />
       <div className="columns m-4">
         <div className="column">
@@ -183,7 +192,7 @@ export default function Mint() {
           }
           {
             walletProvider ? (
-              transactionState.status === 'noTransaction' || transactionState.status === 'error' ?
+              transactionState.status == 'noTransaction' || transactionState.status == 'error' ?
                 <button className="button is-primary" onClick={handleSubmit(executeTransaction(false))}>Mint</button> : <></>
             )
             : <p>Connect a wallet to mint</p>

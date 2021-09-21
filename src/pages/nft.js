@@ -9,6 +9,11 @@ import * as queryString from "query-string";
 
 import MDEditor from "@uiw/react-md-editor"
 import { navigate } from 'gatsby-link';
+import { Helmet } from 'react-helmet';
+import { Header } from '../components';
+
+import "bulma/css/bulma.min.css";
+import '../styles/globals.css'
 
 export default function NFTPage( { location }) {
     const { id } = queryString.parse(location.search);
@@ -95,6 +100,12 @@ export default function NFTPage( { location }) {
 
     return (
         <div>
+            <Helmet>
+                <meta charSet="utf-8" />
+                <title>zang</title>
+                <meta name="icon"href="/public/favicon.ico" />
+            </Helmet>
+            <Header />
             <div className="columns m-4">
                 <div className="column is-half">
                     { readProvider ? (
@@ -102,9 +113,9 @@ export default function NFTPage( { location }) {
                             <div>
                                 <div class="box">
                                 {tokenType && tokenContent ? (
-                                    tokenType === 'text/markdown' ? (
+                                    tokenType == 'text/markdown' ? (
                                         <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
-                                    ) : <p className='line-break'>{tokenContent}</p>
+                                    ) : <pre className="nft-plain">{tokenContent}</pre>
                                 ) : <></>}
                                 </div>
                             </div>
@@ -118,7 +129,7 @@ export default function NFTPage( { location }) {
                             <p className="subtitle">{tokenAuthor ? `by ${tokenAuthor}` : ''}</p>
                             <p className="is-italic">{tokenData?.description || ''}</p>
                             {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
-                            <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient === tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
+                            <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
                             : <></>
                             }
                     </div>
