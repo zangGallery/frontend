@@ -1,13 +1,11 @@
 import React from "react";
-import dynamic from "next/dynamic";
 import rehypeSanitize from "rehype-sanitize";
 
-const MDEditor = dynamic(
-    () => import("@uiw/react-md-editor").then((mod) => mod.default),
-    { ssr: false }
-  );
+import MDEditor from "@uiw/react-md-editor"
+import { getCommands } from "@uiw/react-md-editor"
 
 export default function MultiEditor({textType, value, setValue}) {
+    const defaultCommands = getCommands().filter(command => command.name != 'image')
     return (
         <div>
             { textType == 'text/plain' ? 
@@ -15,8 +13,9 @@ export default function MultiEditor({textType, value, setValue}) {
               : <></>
             }
             <div style={{display : textType == 'text/markdown' ? 'block' : 'none'}}>
-                <MDEditor value={value} onChange={setValue} highlightEnable={false} previewOptions={{ rehypePlugins : [rehypeSanitize] }}  />
+                <MDEditor value={value} onChange={setValue} highlightEnable={false} previewOptions={{ rehypePlugins : [rehypeSanitize] }} commands={defaultCommands}  />
             </div>
+            <getCommands />
         </div>
     )
 }

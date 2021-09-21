@@ -1,12 +1,10 @@
 import React from "react";
-import { useRouter } from "next/router";
+import { navigate } from "gatsby-link";
 
 export default function RoutingLink( {href, children, ...props}) {
-    const router = useRouter()
-
     const handleClick = (e) => {
         e.preventDefault()
-        router.push(href)
+        navigate(href)
     }
 
     return (

@@ -1,13 +1,12 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { useRouter } from 'next/router'
 import { ethers } from "ethers";
 import { useReadProvider } from "../common/provider";
 import config from "../config";
 import { v1Abi } from "../common/abi";
+import { navigate } from "gatsby-link";
 
 export default function NFTCard({id}) {
-    const router = useRouter();
     const [tokenURI, setTokenURI] = useState(null);
     const [tokenData, setTokenData] = useState(null);
     const [tokenType, setTokenType] = useState(null);
@@ -48,7 +47,7 @@ export default function NFTCard({id}) {
     useEffect(queryTokenAuthor, [id, readProvider])
 
     return (
-        <div className="card m-3 cursor-pointer" onClick={() => router.push('/nft?id=' + id)}>
+        <div className="card m-3 cursor-pointer" onClick={() => navigate('/nft?id=' + id)}>
             <div className="card-content">
                 <div className="media">
                 <div className="media-content">

@@ -1,20 +1,17 @@
-import { useRouter } from 'next/router'
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { useReadProvider } from '../common/provider';
 import config from '../config';
 import { ethers } from 'ethers';
 import { v1Abi } from '../common/abi';
-import dynamic from "next/dynamic";
 import rehypeSanitize from "rehype-sanitize";
+import * as queryString from "query-string";
 
-const MDViewer = dynamic(
-  () => import("@uiw/react-md-editor").then((mod) => mod.default.Markdown),
-  { ssr: false }
-);
+import MDEditor from "@uiw/react-md-editor"
+import { navigate } from 'gatsby-link';
 
-export default function NFTPage() {
-    const router = useRouter();
-    const { id } = router.query;
+export default function NFTPage( { location }) {
+    const { id } = queryString.parse(location.search);
     const [tokenURI, setTokenURI] = useState(null)
     const [tokenData, setTokenData] = useState(null)
     const [tokenType, setTokenType] = useState(null)
@@ -85,7 +82,7 @@ export default function NFTPage() {
 
     useEffect(() => {
         if (!id) {
-            router.push('/');
+            navigate('/');
         }
     }, [id])
 
@@ -106,7 +103,7 @@ export default function NFTPage() {
                                 <div class="box">
                                 {tokenType && tokenContent ? (
                                     tokenType == 'text/markdown' ? (
-                                        <MDViewer source={tokenContent} rehypePlugins={[rehypeSanitize]} />
+                                        <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
                                     ) : <p className='line-break'>{tokenContent}</p>
                                 ) : <></>}
                                 </div>

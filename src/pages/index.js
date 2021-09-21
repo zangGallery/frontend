@@ -5,6 +5,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import config from "../config";
 import { v1Abi } from "../common/abi";
 import { ethers } from "ethers";
+import { Header } from "../components";
 
 export default function Home() {
   const [readProvider, setReadProvider] = useReadProvider();
@@ -40,6 +41,7 @@ export default function Home() {
 
     return (
         <div>
+            <Header />
             <div className="columns m-4">
               <div className="column">
                 <h1 className="title">Latest NFTs</h1>

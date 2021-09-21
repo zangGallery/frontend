@@ -13,10 +13,13 @@ export default function MintConfirmModal ({ isOpen, setIsOpen, onClose }) {
         isOpen={isOpen}
         onRequestClose={() => closeModal(false)}
         contentLabel="Empty fields"
+        className="modal"
       >
-        <h2>Some fields are empty. Mint anyway?</h2>
-        <button onClick={() => closeModal(true)}>Yes</button>
-        <button onClick={() => closeModal(false)}>No</button>
+        <div className="modal-content">
+          <h2>Some fields are empty. Mint anyway?</h2>
+          <button className="" onClick={() => closeModal(true)}>Yes</button>
+          <button className="" onClick={() => closeModal(false)}>No</button>
+        </div>
       </Modal>
     </div>
   )

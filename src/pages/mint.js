@@ -5,12 +5,13 @@ import config from '../config'
 import { useWalletProvider } from "../common/provider";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
-import { useRouter } from "next/router";
 import Decimal from "decimal.js";
 import { useForm, Controller } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi"
 import { schemas } from "../common";
 import { MintConfirmModal, MultiEditor } from "../components";
+import { Header } from "../components";
+import { navigate } from "gatsby-link";
 
 const defaultValues = {
   editionSize: 1,
@@ -20,7 +21,6 @@ const defaultValues = {
 }
 
 export default function Mint() {
-  const router = useRouter();
   const { register, formState: { errors }, control, handleSubmit, watch } = useForm({ defaultValues: defaultValues, mode: 'onChange', resolver: joiResolver(schemas.mint)});
   const [text, setText] = useState('')
   const [walletProvider, setWalletProvider] = useWalletProvider()
@@ -43,13 +43,13 @@ export default function Mint() {
       return;
     }
 
-    const useUTF8 = () => {
+    const isUTF8 = () => {
       return [...data.text].some(char => char.charCodeAt(0) > 127)
     }
 
     const uri = 'data:'
                 + data.textType
-                + (useUTF8() ? ';charset=UTF-8' : '')
+                + (isUTF8() ? ';charset=UTF-8' : '')
                 + ',' + encodeURI(data.text)
 
     setTransactionState({ status: 'getSigner' });
@@ -76,7 +76,7 @@ export default function Mint() {
         const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)
         if (matchingEvents.length == 1) {
           const tokenId = matchingEvents[0].args[3]
-          router.push('/nft?id=' + tokenId);
+          navigate('/nft?id=' + tokenId);
         }
         else {
           throw new Error('Wrong number of events emitted.')
@@ -122,6 +122,7 @@ export default function Mint() {
 
   return (
     <div>
+      <Header />
       <div className="columns m-4">
         <div className="column">
           <h1 className="title">Mint your NFT</h1>

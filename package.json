@@ -1,31 +1,45 @@
 {
-  "name": "files",
-  "version": "0.1.0",
+  "name": "zang-frontend-4",
+  "version": "1.0.0",
   "private": true,
+  "description": "zang-frontend-4",
+  "author": "Samuele Marro",
+  "keywords": [
+    "gatsby"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "export": "next build && next export",
-    "start": "next start"
+    "develop": "gatsby develop",
+    "start": "gatsby develop",
+    "build": "gatsby build",
+    "serve": "gatsby serve",
+    "clean": "gatsby clean"
   },
   "dependencies": {
     "@hookform/resolvers": "^2.8.0",
-    "@uiw/react-md-editor": "3.6.0",
+    "@mdx-js/mdx": "^1.6.22",
+    "@mdx-js/react": "^1.6.22",
+    "@uiw/react-md-editor": "^3.6.4",
     "@walletconnect/web3-provider": "^1.6.5",
+    "assert": "^2.0.0",
+    "buffer": "^6.0.3",
     "bulma": "^0.9.3",
     "decimal.js": "^10.3.1",
     "ethers": "^5.4.6",
+    "gatsby": "^3.13.1",
+    "gatsby-plugin-mdx": "^2.14.0",
+    "gatsby-source-filesystem": "^3.14.0",
+    "https-browserify": "^1.0.0",
     "joi": "^17.4.2",
-    "next": "^11.0.0",
-    "next-remove-imports": "^1.0.5",
-    "react": "^16.14.0",
+    "os-browserify": "^0.3.0",
+    "query-string": "^7.0.1",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
     "react-hook-form": "^7.15.3",
     "react-infinite-scroll-component": "^6.1.0",
     "react-modal": "^3.14.3",
     "rehype-sanitize": "^5.0.0",
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
     "web3modal": "^1.9.4"
-  },
-  "devDependencies": {
-    "react-dom": "^17.0.2"
   }
 }
