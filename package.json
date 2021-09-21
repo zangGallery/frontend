@@ -1,9 +1,12 @@
 {
-  "name": "zang-frontend-4",
+  "name": "zang",
   "version": "1.0.0",
   "private": true,
-  "description": "zang-frontend-4",
-  "author": "Samuele Marro",
+  "description": "Text-focused NFT platform.",
+  "contributors": [
+    "Samuele Marro",
+    "Luca Donno"
+  ],
   "keywords": [
     "gatsby"
   ],
@@ -21,6 +24,7 @@
     "@uiw/react-md-editor": "^3.6.4",
     "@walletconnect/web3-provider": "^1.6.5",
     "assert": "^2.0.0",
+    "browserslist": "^4.16.5",
     "buffer": "^6.0.3",
     "bulma": "^0.9.3",
     "decimal.js": "^10.3.1",
