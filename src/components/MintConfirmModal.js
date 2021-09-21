@@ -1,5 +1,15 @@
 import React, { useEffect } from "react";
 
+const styles = {
+  modalCard: {
+    maxWidth: '80vw'
+  },
+  modalCardTitle: {
+    overflowWrap: 'break-word',
+    maxWidth: '70vw'
+  }
+}
+
 export default function MintConfirmModal ({ isOpen, setIsOpen, onClose }) {
   const closeModal = (confirmed) => {
     setIsOpen(false);
@@ -11,10 +21,9 @@ export default function MintConfirmModal ({ isOpen, setIsOpen, onClose }) {
   return (
     <div className="modal is-active">
       <div className="modal-background" onClick={() => closeModal(false)} />
-      <div className="modal-card">
+      <div className="modal-card" style={styles.modalCard}>
         <header className="modal-card-head">
-          <p className="modal-card-title">Some fields are empty. Mint anyway?</p>
-          <button className="delete" onClick={() => closeModal(false)} />
+          <p className="modal-card-title" style={styles.modalCardTitle}>Some fields are empty. Mint anyway?</p>
         </header>
         <footer className="modal-card-foot">
           <button className="button" onClick={() => closeModal(true)}>Yes</button>

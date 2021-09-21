@@ -9,6 +9,7 @@ import { navigate } from "gatsby-link";
 const styles = {
     card: {
         width: '52ch',
+        maxWidth: '80vw'
     },
     description: {
         display: '-webkit-box',
