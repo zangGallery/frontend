@@ -1,4 +1,4 @@
-export default {
+const config = {
     contractAddresses: {
         v1: '0xb44AB21a00421a982FF1e2868A819D0a1001076c'
     },
@@ -12,3 +12,5 @@ export default {
         }
     }
 }
+
+export default config;

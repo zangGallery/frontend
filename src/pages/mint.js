@@ -6,7 +6,7 @@ import { useWalletProvider } from "../common/provider";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import Decimal from "decimal.js";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi"
 import { schemas } from "../common";
 import { MintConfirmModal, MultiEditor } from "../components";
@@ -21,7 +21,7 @@ const defaultValues = {
 }
 
 export default function Mint() {
-  const { register, formState: { errors }, control, handleSubmit, watch } = useForm({ defaultValues: defaultValues, mode: 'onChange', resolver: joiResolver(schemas.mint)});
+  const { register, formState: { errors }, handleSubmit, watch } = useForm({ defaultValues: defaultValues, mode: 'onChange', resolver: joiResolver(schemas.mint)});
   const [text, setText] = useState('')
   const [walletProvider, setWalletProvider] = useWalletProvider()
   const [transactionState, setTransactionState] = useState({ status: 'noTransaction'})
@@ -73,8 +73,8 @@ export default function Mint() {
       }
 
       if (receipt && receipt.blockNumber) {
-        const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)
-        if (matchingEvents.length == 1) {
+        const matchingEvents = receipt.events.filter(event => event.event === 'TransferSingle' && event.args.from === 0)
+        if (matchingEvents.length === 1) {
           const tokenId = matchingEvents[0].args[3]
           navigate('/nft?id=' + tokenId);
         }
@@ -127,21 +127,21 @@ export default function Mint() {
         <div className="column">
           <h1 className="title">Mint your NFT</h1>
           <div className="field">
-            <label className="label">Title</label>
+            <label className="label" htmlFor="title">Title</label>
             <div className="control">
-              <input className="input" type="text" {...register('title')} placeholder="Title of your artwork" />
+              <input id="title" className="input" type="text" {...register('title')} placeholder="Title of your artwork" />
             </div>
           </div>
           <div className="field">
-            <label className="label">Description</label>
+            <label className="label" htmlFor="description">Description</label>
             <div className="control">
-              <input className="input" type="text" {...register('description')} placeholder="Description of your artwork" />
+              <input id="description" className="input" type="text" {...register('description')} placeholder="Description of your artwork" />
             </div>
           </div>
           <div className="field">
-            <label className="label">Edition size</label>
+            <label className="label" htmlFor="editionSize">Edition size</label>
             <div className="control">
-              <input className="input" type="number" {...register('editionSize')} defaultValue="1" min="1" />
+              <input id="editionSize" className="input" type="number" {...register('editionSize')} defaultValue="1" min="1" />
             </div>
           </div>
           <div className="field">
@@ -159,9 +159,9 @@ export default function Mint() {
             </div>
           </div>
           <div className="field">
-            <label className="label">Royalty percentage</label>
+            <label className="label" htmlFor="royaltyPercentage">Royalty percentage</label>
             <div className="control">
-              <input className="input" type="number" {...register('royaltyPercentage')} defaultValue="10" min="0" max="100" step="0.01" />
+              <input id="royaltyPercentage" className="input" type="number" {...register('royaltyPercentage')} defaultValue="10" min="0" max="100" step="0.01" />
             </div>
             {errors.royaltyPercentage?.message || <></>}
           </div>
@@ -175,15 +175,15 @@ export default function Mint() {
           {
             watchUseCustomRecipient ? (
               <div className="field">
-                <label className="label">Address</label>
-                <input className="input" type="text" {...register('customRecipient')} placeholder='0x... or ENS address' />
+                <label className="label" htmlFor="customRecipient">Address</label>
+                <input id="customRecipient" className="input" type="text" {...register('customRecipient')} placeholder='0x... or ENS address' />
                 {errors.customRecipient?.message || <></>}
               </div>
             ) : <></>
           }
           {
             walletProvider ? (
-              transactionState.status == 'noTransaction' || transactionState.status == 'error' ?
+              transactionState.status === 'noTransaction' || transactionState.status === 'error' ?
                 <button className="button is-primary" onClick={handleSubmit(executeTransaction(false))}>Mint</button> : <></>
             )
             : <p>Connect a wallet to mint</p>

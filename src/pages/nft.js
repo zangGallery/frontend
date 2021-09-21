@@ -86,12 +86,12 @@ export default function NFTPage( { location }) {
         }
     }, [id])
 
-    useEffect(queryTokenURI, [id, readProvider])
-    useEffect(queryTokenData, [tokenURI])
-    useEffect(queryTokenContent, [tokenData])
+    useEffect(() => queryTokenURI(), [id, readProvider])
+    useEffect(() => queryTokenData(), [tokenURI])
+    useEffect(() => queryTokenContent(), [tokenData])
 
-    useEffect(queryTokenAuthor, [id, readProvider])
-    useEffect(queryRoyaltyInfo, [id, readProvider])
+    useEffect(() => queryTokenAuthor, [id, readProvider])
+    useEffect(() => queryRoyaltyInfo(), [id, readProvider])
 
     return (
         <div>
@@ -102,7 +102,7 @@ export default function NFTPage( { location }) {
                             <div>
                                 <div class="box">
                                 {tokenType && tokenContent ? (
-                                    tokenType == 'text/markdown' ? (
+                                    tokenType === 'text/markdown' ? (
                                         <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
                                     ) : <p className='line-break'>{tokenContent}</p>
                                 ) : <></>}
@@ -117,8 +117,8 @@ export default function NFTPage( { location }) {
                 <h1 className="title">{tokenData?.name || ''}</h1>
                             <p className="subtitle">{tokenAuthor ? `by ${tokenAuthor}` : ''}</p>
                             <p className="is-italic">{tokenData?.description || ''}</p>
-                            {royaltyInfo && tokenAuthor && royaltyInfo?.amount != 0 ? 
-                            <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
+                            {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
+                            <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient === tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
                             : <></>
                             }
                     </div>

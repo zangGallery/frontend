@@ -9,7 +9,6 @@ import { navigate } from "gatsby-link";
 export default function NFTCard({id}) {
     const [tokenURI, setTokenURI] = useState(null);
     const [tokenData, setTokenData] = useState(null);
-    const [tokenType, setTokenType] = useState(null);
     const [tokenAuthor, setTokenAuthor] = useState(null);
     const [readProvider, setReadProvider] = useReadProvider();
 
@@ -42,9 +41,9 @@ export default function NFTCard({id}) {
         setTokenData(newTokenData);
     }
 
-    useEffect(queryTokenURI, [id, readProvider])
-    useEffect(queryTokenData, [tokenURI])
-    useEffect(queryTokenAuthor, [id, readProvider])
+    useEffect(() => queryTokenURI(), [id, readProvider])
+    useEffect(() => queryTokenData(), [tokenURI])
+    useEffect(() => queryTokenAuthor(), [id, readProvider])
 
     return (
         <div className="card m-3 cursor-pointer" onClick={() => navigate('/nft?id=' + id)}>
