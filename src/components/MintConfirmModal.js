@@ -6,10 +6,6 @@ export default function MintConfirmModal ({ isOpen, setIsOpen, onClose }) {
     onClose(confirmed);
   }
 
-  useEffect(() => {
-    console.log(isOpen)
-  })
-
   if (!isOpen) return <></>
 
   return (
