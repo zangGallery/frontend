@@ -53,7 +53,7 @@ export default function Mint() {
 
     const uri = 'data:'
                 + data.textType
-                + (isUTF8() ? ';charset=UTF-8' : '')
+                + (isUTF8() && data.textType == 'text/plain' ? ',charset=UTF-8' : '')
                 + ',' + encodeURIComponent(data.text)
 
     setTransactionState({ status: 'getSigner' });
