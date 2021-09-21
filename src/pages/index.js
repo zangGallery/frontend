@@ -59,7 +59,8 @@ export default function Home() {
                   next={() => getMoreIds(increment)}
                   hasMore={nfts.length < lastNFTId}
                   loader={<h4>Loading...</h4>}
-                  endMessage={
+                  endMessage={ lastNFTId === null ?
+                    <p style={{ textAlign: 'center' }}>Loading...</p> : 
                     <p style={{ textAlign: 'center' }}>
                       <b>That's all folks!</b>
                     </p>
