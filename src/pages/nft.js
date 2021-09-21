@@ -85,9 +85,10 @@ export default function NFTPage( { location }) {
 
     const queryTokenContent = async () => {
         if (!tokenData?.textURI) return;
-        const response = await fetch(tokenData.textURI);
+        var parsedTextURI = tokenData.textURI.replaceAll("#", "%23")
+        const response = await fetch(parsedTextURI);
         const parsedText = await response.text()
-        console.log("content: "+tokenData.textURI)
+        console.log("content: "+parsedTextURI)
         setTokenType(response.headers.get("content-type"))
         setTokenContent(parsedText)
     }
