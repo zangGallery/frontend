@@ -53,7 +53,7 @@ export default function Home() {
             <Header />
             <div className="columns m-4">
               <div className="column">
-                <h1 className="title">Latest NFTs</h1>
+                <h1 className="title has-text-centered">Latest NFTs</h1>
                 <InfiniteScroll
                   dataLength={nfts.length} //This is important field to render the next data
                   next={() => getMoreIds(increment)}
@@ -66,7 +66,7 @@ export default function Home() {
                     </p>
                   }
                 >
-                  <div className="is-flex is-flex-direction-row is-flex-wrap-wrap">
+                  <div className="is-flex is-flex-direction-row is-flex-wrap-wrap" style={{display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 {nfts.map((id) => <NFTCard id={id} key={id} />)}
                 </div>
                 </InfiniteScroll>
