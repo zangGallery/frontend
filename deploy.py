@@ -1,4 +1,3 @@
-import ftplib
 import os
 import pathlib
 
