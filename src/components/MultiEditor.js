@@ -2,10 +2,9 @@ import React from "react";
 import rehypeSanitize from "rehype-sanitize";
 
 import MDEditor from "@uiw/react-md-editor"
-import { getCommands } from "@uiw/react-md-editor"
+import { defaultCommands } from "../common/commands"
 
 export default function MultiEditor({textType, value, setValue}) {
-    const defaultCommands = getCommands().filter(command => command.name != 'image')
     return (
         <div>
             { textType == 'text/markdown' ? 
