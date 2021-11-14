@@ -9,7 +9,8 @@ exports.onCreateWebpackConfig = ({ stage, actions }) => {
                 "os": require.resolve("os-browserify/browser"),
                 "https": require.resolve("https-browserify"),
                 "stream": require.resolve("stream-browserify"),
-                "buffer": require.resolve("buffer")
+                "buffer": require.resolve("buffer"),
+                "path": require.resolve("path-browserify")
             } 
         },
         plugins: [
