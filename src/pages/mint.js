@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
-import { v1Abi } from '../common/abi';
+import { v1 } from '../common/abi';
 import config from '../config'
-import { useWalletProvider } from "../common/provider";
+import { mainnetProvider, useWalletProvider } from "../common/provider";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import Decimal from "decimal.js";
@@ -57,13 +57,33 @@ export default function Mint() {
                 + ',' + encodeURIComponent(data.text)
 
     setTransactionState({ status: 'getSigner' });
-    const contractAddress = config.contractAddresses.v1;
+    const contractAddress = config.contractAddresses.v1.zang;
 
-    const contract = new ethers.Contract(contractAddress, v1Abi, walletProvider);
+    const contract = new ethers.Contract(contractAddress, v1.zang, walletProvider);
     const contractWithSigner = contract.connect(walletProvider.getSigner())
 
     const effectiveRoyaltyPercentage = new Decimal(data.royaltyPercentage).mul('100').toNumber();
-    const effectiveRoyaltyRecipient = data.useCustomRecipient ? data.customRecipient : (await walletProvider.getSigner().getAddress());
+
+    let effectiveRoyaltyRecipient = null;
+
+    if (data.useCustomRecipient) {
+      effectiveRoyaltyRecipient = data.customRecipient;
+
+      if (effectiveRoyaltyRecipient.includes('.eth')) {
+        const resolvedAddress = await mainnetProvider.resolveName(effectiveRoyaltyRecipient);
+
+        if (resolvedAddress) {
+          effectiveRoyaltyRecipient = resolvedAddress;
+        }
+        else {
+          setTransactionState({ status: 'error', error: 'Could not resolve name. Check that user has ENS reverse lookup enabled.' });
+          return;
+        }
+      }
+    }
+    else {
+      effectiveRoyaltyRecipient = await walletProvider.getSigner().getAddress();
+    }
 
     try {
       setTransactionState({ status: 'signing'})
@@ -190,6 +210,9 @@ export default function Mint() {
               </div>
             ) : <></>
           }
+          <div className="notification is-danger">
+            <p><strong>Important</strong>: beta.zang.gallery currently uses <strong>Ropsten</strong>. Make sure that you're signing a transaction on the Ropsten network!</p>
+          </div>
           {
             walletProvider ? (
               transactionState.status == 'noTransaction' || transactionState.status == 'error' ?

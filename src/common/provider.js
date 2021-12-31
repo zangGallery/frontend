@@ -72,7 +72,14 @@ const restoreDefaultReadProvider = () => {
     }
 }
 
+const mainnetProvider = getDefaultProvider('mainnet',
+    {
+        alchemy: config.api_keys.alchemy
+    }
+);
+
 export {
+    mainnetProvider,
     restoreDefaultReadProvider,
     useReadProvider,
     useWalletProvider

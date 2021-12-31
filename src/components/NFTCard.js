@@ -1,9 +1,9 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
-import { useReadProvider } from "../common/provider";
+import { mainnetProvider, useReadProvider } from "../common/provider";
 import config from "../config";
-import { v1Abi } from "../common/abi";
+import { v1 } from "../common/abi";
 import { navigate } from "gatsby-link";
 import MDEditor from "@uiw/react-md-editor"
 import rehypeSanitize from "rehype-sanitize";
@@ -43,8 +43,8 @@ export default function NFTCard({ id }) {
     const [tokenType, setTokenType] = useState(null);
     const [tokenContent, setTokenContent] = useState(null);
 
-    const contractAddress = config.contractAddresses.v1;
-    const contractABI = v1Abi;
+    const contractAddress = config.contractAddresses.v1.zang;
+    const contractABI = v1.zang;
 
     const queryTokenURI = async () => {
         if (!id || !readProvider) return;
@@ -62,6 +62,14 @@ export default function NFTCard({ id }) {
         const author = await contract.authorOf(id);
 
         setTokenAuthor(author);
+
+        const ensAddress = await mainnetProvider.lookupAddress(author);
+
+        if (ensAddress) {
+            setTokenAuthor(ensAddress);
+        } else {
+            setTokenAuthor(author);
+        }
     }
 
     const queryTokenData = async () => {

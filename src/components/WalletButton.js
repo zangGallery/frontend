@@ -1,13 +1,26 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { restoreDefaultReadProvider, useReadProvider, useWalletProvider } from "../common/provider";
+import { mainnetProvider, restoreDefaultReadProvider, useReadProvider, useWalletProvider } from "../common/provider";
 import config from "../config";
+
+const styles = {
+    ensInfoContainer: {
+        display: 'flex',
+        alignItems: 'space-between',
+        justifyContent : 'center'
+    },
+    avatar: {
+        marginRight: '0.5em'
+    }
+}
 
 export default function WalletButton() {
     const [readProvider, setReadProvider] = useReadProvider();
     const [walletProvider, setWalletProvider] = useWalletProvider();
+    const [ensAddress, setEnsAddress] = useState(null);
+    const [ensAvatar, setEnsAvatar] = useState(null);
 
     const providerOptions = {
         /* See Provider Options Section */
@@ -63,11 +76,31 @@ export default function WalletButton() {
         const newProvider = new ethers.providers.Web3Provider(wallet);
         setReadProvider(newProvider);
         setWalletProvider(newProvider);
+
+        const walletAddress = await newProvider.getSigner().getAddress();
+        const _ensAddress = await mainnetProvider.lookupAddress(walletAddress);
+
+        setEnsAddress(_ensAddress);
+
+        const _ensAvatar = await mainnetProvider.getAvatar(_ensAddress);
+        setEnsAvatar(_ensAvatar);
     }
 
     return (
         <div className="buttons">
-            <a className="button is-link" onClick={connectWallet}>{walletProvider ? 'Change Wallet' : 'Connect Wallet'}</a>
+            
+            <a className="button is-link" style={styles.walletButton} onClick={connectWallet}>{
+            walletProvider ? (
+                <div style={styles.ensInfoContainer}>
+                    <div className="image" style={styles.avatar}>
+                        <img className="is-rounded is-1by1" src={ensAvatar || ''} />
+                    </div>
+                    <p>{ensAddress ? ensAddress : 'Change Wallet'}</p>
+                </div>
+                
+                ) : 'Connect Wallet'}
+            
+            </a>
         </div>
     )
 }
