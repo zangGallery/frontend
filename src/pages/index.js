@@ -3,7 +3,7 @@ import { useReadProvider } from "../common/provider";
 import { NFTCard } from "../components";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import config from "../config";
-import { v1Abi } from "../common/abi";
+import { v1 } from "../common/abi";
 import { ethers } from "ethers";
 import { Header } from "../components";
 import { Helmet } from "react-helmet"
@@ -19,8 +19,8 @@ export default function Home() {
   const increment = 5;
 
   useEffect(async () => {
-    const contractAddress = config.contractAddresses.v1;
-    const contractABI = v1Abi;
+    const contractAddress = config.contractAddresses.v1.zang;
+    const contractABI = v1.zang;
     const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
 
     const newLastNFTId = (await contract.lastTokenId());
