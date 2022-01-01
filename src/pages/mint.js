@@ -76,7 +76,7 @@ export default function Mint() {
           effectiveRoyaltyRecipient = resolvedAddress;
         }
         else {
-          setTransactionState({ status: 'error', error: 'Could not resolve name. Check that user has ENS reverse lookup enabled.' });
+          setTransactionState({ status: 'error', error: 'Could not resolve ENS name.' });
           return;
         }
       }
