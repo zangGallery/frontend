@@ -42,7 +42,14 @@ export default function WalletButton() {
         // Force to prompt wallet selection
         web3Modal.clearCachedProvider();
         
-        const wallet = await web3Modal.connect();
+        let wallet;
+        
+        try {
+            wallet = await web3Modal.connect();
+        } catch (e) {
+            console.log('Error connecting to wallet:', e);
+            return;
+        }
 
         // Remove any pre-existing event handlers
         delete wallet._events.accountsChanged;
