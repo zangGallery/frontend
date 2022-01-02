@@ -125,11 +125,16 @@ export default function NFTPage( { location }) {
         if (!id || !readProvider) return;
         
         const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
-        const [recipient, amount] = await contract.royaltyInfo(id, 10000);
-        setRoyaltyInfo({
-            recipient,
-            amount: amount.div(100).toNumber()
-        })
+
+        try {
+            const [recipient, amount] = await contract.royaltyInfo(id, 10000);
+            setRoyaltyInfo({
+                recipient,
+                amount: amount.div(100).toNumber()
+            })
+        } catch (e) {
+            setContractError(e);
+        }
     }
 
     const queryListings = async () => {
@@ -207,7 +212,6 @@ export default function NFTPage( { location }) {
         const zangContract = new ethers.Contract(zangAddress, zangABI, walletProvider);
 
         console.log('Contract prepared')
-        console.log(await zangContract.lastTokenId())
 
         const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
@@ -254,9 +258,12 @@ export default function NFTPage( { location }) {
 
         const zangContract = new ethers.Contract(zangAddress, zangABI, walletProvider);
 
-        const approved = await zangContract.isApprovedForAll(walletAddress, marketplaceAddress);
-
-        setIsApproved(approved);
+        try {
+            const approved = await zangContract.isApprovedForAll(walletAddress, marketplaceAddress);
+            setIsApproved(approved);
+        } catch (e) {
+            setContractError(e);
+        }
     }
 
     const formatError = (e) => {
@@ -282,10 +289,14 @@ export default function NFTPage( { location }) {
 
     useEffect(async () => {
         const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
-    
-        const newLastNFTId = (await contract.lastTokenId());
-    
-        setLastNFTId(newLastNFTId.toNumber());
+
+        try {
+            const newLastNFTId = (await contract.lastTokenId());
+            setLastNFTId(newLastNFTId.toNumber());
+        } catch (e) {
+            setContractError(e);
+        }
+
     }, [])
 
     useEffect(() => queryTokenURI(), [id, readProvider])
