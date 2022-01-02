@@ -132,6 +132,39 @@ export default function NFTPage( { location }) {
         })
     }
 
+    const queryListings = async () => {
+        if (!id || !readProvider) return;
+        
+        const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, readProvider);
+
+        const listingCount = (await contract.listingCount(id)).toNumber();
+
+        const newListings = [];
+        const promises = [];
+
+        for (let i = 0; i < listingCount; i++) {
+            promises.push(
+                contract.listings(id, i)
+                    .then((listing) => newListings.push({
+                        amount: listing.amount.toNumber(),
+                        price: listing.price.toNumber(),
+                        seller: listing.seller,
+                        id: i
+                    }))
+                    .catch((e) => console.log(e))
+            )
+        }
+
+        await Promise.all(promises);
+
+        // If a listing has seller 0x0000... it has been delisted
+        setListings(newListings);
+    }
+
+    const activeListings = () => {
+        return listings.filter(listing => parseInt(listing.seller, 16) != 0)
+    }
+
     const changeId = (right) => () => {
         if (right) {
             navigate('/nft?id=' + (parseInt(id) + 1));
@@ -141,14 +174,18 @@ export default function NFTPage( { location }) {
         }
     }
 
-    const buy = async (listingIndex, amount, price) => {
+    const buy = async (listingId, amount, price) => {
         if (!id || !readProvider) return;
         setListingError(null);
 
-        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+        const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, readProvider);
+        const contractWithSigner = contract.connect(walletProvider.getSigner());
+
         try {
             // TODO: Convert into the correct amount
-            await contract.buy(id, listingIndex, amount * price);
+            await contractWithSigner.buyToken(id, listingId, amount, { value: amount * price });
+
+            navigate('/vault')
         }
         catch (e) {
             setListingError(e);
@@ -196,20 +233,20 @@ export default function NFTPage( { location }) {
         const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
 
-        let transaction;
-
         try {
-            transaction = await contractWithSigner.setApprovalForAll(marketplaceAddress, true);
+            const transaction = await contractWithSigner.setApprovalForAll(marketplaceAddress, true);
+            
+            if (transaction) {
+                await transaction.wait(1);
+                setIsApproved(true);
+            }
         }
         catch (e) {
             console.log(e);
             setListingError(e);
         }
 
-        const receipt = await transaction.wait(1)
-
         // TODO: wait for confirmation
-        setIsApproved(true);
     }
 
     const checkApproval = async () => {
@@ -222,6 +259,16 @@ export default function NFTPage( { location }) {
         setIsApproved(approved);
     }
 
+    const formatError = (e) => {
+        let formatted = e.message
+        
+        if (e.data?.message) {
+            formatted += ' - ' + e.data.message
+        }
+
+        return formatted
+    }
+
     useEffect(() => {
         if (!id) {
             navigate('/');
@@ -230,6 +277,7 @@ export default function NFTPage( { location }) {
 
     useEffect(() => {
         setContractError(null);
+        queryListings();
     }, [id])
 
     useEffect(async () => {
@@ -293,29 +341,32 @@ export default function NFTPage( { location }) {
                     )
                 }
                 {
-                    isApproved ? (
-                        walletAddress && tokenAuthor && walletAddress == tokenAuthor ? (
+                    walletAddress && tokenAuthor && walletAddress == tokenAuthor ? (
+                        isApproved ? (
                             <button onClick={() => setListModalOpen(true)}>List</button>
-                        ) : <></> 
-                    ) : (
-                        <div>
-                            <p>Approve the marketplace contract to list</p>
-                                <button onClick={approveMarketplace}>Approve Marketplace</button>
-                        </div>
-                    )
+                        ) : (
+                            <div>
+                                <p>Approve the marketplace contract to list</p>
+                                    <button onClick={approveMarketplace}>Approve Marketplace</button>
+                            </div>
+                        )
+                    ) : <></>
                 }
-                {/*<div>
+                {<div>
                     <h2>Listings</h2>
-                    { listingError ? <p>listingError.message</p> : <></> }
-                    {listings.map((listing, index) => (
+                    { listingError ? <p>{formatError(listingError)}</p> : <></> }
+                    {activeListings().map((listing, index) => (
                         <div key={index} className="box">
                             <p>{listing.seller} {listing.amount} {listing.price}</p>
-                            <button onClick={() => buy(index, amount, price)}>Buy</button>
+                            { walletProvider ? (
+                                    <button onClick={() => buy(listing.id, listing.amount, listing.price)}>Buy</button>
+                                ) : <></>
+                            }
                         </div>
                     ))}
-                    </div>*/}
+                    </div>}
             </div>
-            <ListModal isOpen={listModalOpen} setIsOpen={setListModalOpen} onClose={list} />
+            {<ListModal isOpen={listModalOpen} setIsOpen={setListModalOpen} onClose={list} />}
         </div>
     )
 }
