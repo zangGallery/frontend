@@ -23,9 +23,14 @@ export default function Home() {
     const contractABI = v1.zang;
     const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
 
-    const newLastNFTId = (await contract.lastTokenId());
-
-    setLastNFTId(newLastNFTId.toNumber());
+    try {
+      const newLastNFTId = (await contract.lastTokenId());
+      setLastNFTId(newLastNFTId.toNumber());
+    } catch (e) {
+      // TODO: Set error
+      console.log(e)
+    }
+    
   }, [])
 
   const getMoreIds = (count) => {

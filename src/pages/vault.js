@@ -25,16 +25,22 @@ export default function Home() {
     if (!walletProvider) {
       return;
     }
-    const newWalletAddress = await walletProvider.getSigner().getAddress();
-    setWalletAddress(newWalletAddress);
+    try {
+      const newWalletAddress = await walletProvider.getSigner().getAddress();
+      setWalletAddress(newWalletAddress);
 
-    // Reset NFTs, since we don't know which ones we have
-    setNFTs([]);
+      // Reset NFTs, since we don't know which ones we have
+      setNFTs([]);
 
-    setNftToBalance({});
-    for (const nftId of Object.keys(nftToBalance)) {
-      updateNftToBalance(nftId, newWalletAddress);
+      setNftToBalance({});
+      for (const nftId of Object.keys(nftToBalance)) {
+        updateNftToBalance(nftId, newWalletAddress);
+      }
+    } catch (e) {
+      // TODO: Set error
+      console.log(e)
     }
+    
   }, [walletProvider]);
 
   useEffect(async () => {
@@ -42,9 +48,13 @@ export default function Home() {
     const contractABI = v1.zang;
     const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
 
-    const newLastNFTId = (await contract.lastTokenId());
-
-    setLastNFTId(newLastNFTId.toNumber());
+    try {
+      const newLastNFTId = (await contract.lastTokenId());
+      setLastNFTId(newLastNFTId.toNumber());
+    } catch (e) {
+      // TODO: Set error
+      console.log(e)
+    }
   }, [])
 
   const updateNftToBalance = async (nftId, address) => {
@@ -52,13 +62,19 @@ export default function Home() {
     const contractABI = v1.zang;
     const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
 
-    const hexBalance = await contract.balanceOf(address, nftId);
-    const balance = hexBalance.toNumber();
+    try {
+      const hexBalance = await contract.balanceOf(address, nftId);
+      const balance = hexBalance.toNumber();
 
-    setNftToBalance(currentNftToBalance => ({
-      ...currentNftToBalance,
-      [nftId]: balance
-    }));
+      setNftToBalance(currentNftToBalance => ({
+        ...currentNftToBalance,
+        [nftId]: balance
+      }));
+    } catch (e) {
+      // TODO: Set error
+      console.log(e);
+    }
+    
   }
 
   const getMoreIds = async (count, address) => {

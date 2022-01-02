@@ -50,46 +50,71 @@ export default function NFTCard({ id }) {
         if (!id || !readProvider) return;
 
         const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
-        const tURI = await contract.uri(id);
 
-        setTokenURI(tURI);
+        try {
+            const tURI = await contract.uri(id);
+            setTokenURI(tURI);
+        } catch (e) {
+            // TODO: Set error
+            console.log(e);
+        }
     }
 
     const queryTokenAuthor = async () => {
         if (!id || !readProvider) return;
 
         const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
-        const author = await contract.authorOf(id);
 
-        setTokenAuthor(author);
+        try {
+            const author = await contract.authorOf(id);
 
-        const ensAddress = await mainnetProvider.lookupAddress(author);
-
-        if (ensAddress) {
-            setTokenAuthor(ensAddress);
-        } else {
             setTokenAuthor(author);
+
+            const ensAddress = await mainnetProvider.lookupAddress(author);
+
+            if (ensAddress) {
+                setTokenAuthor(ensAddress);
+            } else {
+                setTokenAuthor(author);
+            }
+        } catch (e) {
+            // TODO: Set error
+            console.log(e);
         }
+        
     }
 
     const queryTokenData = async () => {
         if (!tokenURI) return;
 
-        const tokenDataResponse = await fetch(tokenURI);
-        const newTokenData = await tokenDataResponse.json();
-        console.log(newTokenData)
-        setTokenData(newTokenData);
+        try {
+            const tokenDataResponse = await fetch(tokenURI);
+            const newTokenData = await tokenDataResponse.json();
+            console.log(newTokenData)
+            setTokenData(newTokenData);
+        } catch (e) {
+            // TODO: Set error
+            console.log(e)
+        }
+        
     }
 
     const queryTokenContent = async () => {
         if (!tokenData?.textURI) return;
         var parsedTextURI = tokenData.textURI.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
         parsedTextURI = parsedTextURI.replace("text/markdown;charset=UTF-8", "text/markdown");
-        const response = await fetch(parsedTextURI);
-        const parsedText = await response.text()
-        console.log("content: " + parsedTextURI)
-        setTokenType(response.headers.get("content-type"))
-        setTokenContent(parsedText)
+
+        try {
+            const response = await fetch(parsedTextURI);
+            const parsedText = await response.text()
+            console.log("content: " + parsedTextURI)
+            setTokenType(response.headers.get("content-type"))
+            setTokenContent(parsedText)
+        } catch (e) {
+            // TODO: Set error
+            console.log(e)
+        }
+
     }
 
     const shorten = (text, maxLength) => {
