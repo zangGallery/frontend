@@ -58,6 +58,32 @@ export default function NFTPage( { location }) {
 
     const [isApproved, setIsApproved] = useState(false);
 
+    const [listingSellerBalances, setListingSellerBalances] = useState({});
+
+    const activeListings = () => {
+        return listings.filter(listing => parseInt(listing.seller, 16) != 0)
+    }
+
+    const fulfillableListings = async () => {
+        // TODO: fulfillability isn't a binary state: some listings might be partially fulfillable
+        const sortedListings = [...activeListings()].sort((a, b) => a.price - b.price);
+        const balances = {}
+
+        for (const listing of sortedListings) {
+            balances[listing.seller] += listing.price
+        }
+
+
+    }
+
+    const userListings = () => {
+        if (walletAddress) {
+            return listings.filter(listing => listing.owner === walletAddress)
+        }
+
+        return []
+    }
+
     const queryTokenURI = async () => {
         if (!id || !readProvider) return;
         
@@ -179,8 +205,26 @@ export default function NFTPage( { location }) {
         }
     }
 
-    const activeListings = () => {
-        return listings.filter(listing => parseInt(listing.seller, 16) != 0)
+    const queryListingSellerBalances = async () => {
+        if (!id || !listings) return;
+
+        console.log('Listings: ', activeListings())
+
+        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+
+        try {
+            for (const listing of activeListings()) {
+                if (!listingSellerBalances[listing.seller]) {
+                    contract.balanceOf(listing.seller, id).then((balance) => {
+                        console.log('Updating balance of ' + listing.seller + ' to ' + balance.toNumber())
+                        setListingSellerBalances((currentBalance) => ({...currentBalance, [listing.seller]: balance.toNumber()}));
+                    })
+                }
+            }
+
+        } catch (e) {
+            setContractError(e);
+        }
     }
 
     const changeId = (right) => () => {
@@ -200,11 +244,16 @@ export default function NFTPage( { location }) {
         const contractWithSigner = contract.connect(walletProvider.getSigner());
 
         // Convert to wei
+        console.log('Original price:', price)
         price = parseEther(price);
+        console.log('Converted:', price.toString())
 
         try {
-            // TODO: Convert into the correct amount
-            await contractWithSigner.buyToken(id, listingId, amount, { value: price.mul(amount) });
+            const transaction = contractWithSigner.buyToken(id, listingId, amount, { value: price.mul(amount) });
+
+            if (transaction) {
+                await transaction.wait(1);
+            }
 
             navigate('/vault')
         }
@@ -226,14 +275,46 @@ export default function NFTPage( { location }) {
         const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
         try {
+            console.log('Price:', price)
+            console.log('Parsed price:', parseEther(price).toString())
             await contractWithSigner.listToken(id, parseEther(price), amount);
 
             console.log('Listed')
 
             queryListings();
+            queryUserBalance();
         }
         catch (e) {
             console.log(e)
+            setListingError(e);
+        }
+    }
+
+    const delist = async (listingId) => {
+        if (!walletProvider) {
+            setListingError('No wallet provider.')
+            return;
+        }
+        if (!id) {
+            setListingError('No id specified.')
+            return;
+        }
+
+        const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
+        const contractWithSigner = contract.connect(walletProvider.getSigner());
+
+        try {
+            const transaction = await contractWithSigner.delistToken(id, listingId);
+            
+            if (transaction) {
+                await transaction.wait(1);
+            }
+
+            queryListings();
+            queryUserBalance();
+        }
+        catch (e) {
+            console.log(e);
             setListingError(e);
         }
     }
@@ -328,6 +409,7 @@ export default function NFTPage( { location }) {
     useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryRoyaltyInfo(), [id, readProvider])
     useEffect(queryUserBalance, [id, walletAddress])
+    useEffect(queryListingSellerBalances, [id, readProvider])
 
     useEffect(checkApproval, [id, walletAddress])
 
@@ -393,9 +475,18 @@ export default function NFTPage( { location }) {
                         <div key={index} className="box">
                             <p>{listing.seller} {listing.amount} {listing.price}</p>
                             { walletProvider ? (
+                                 listing.seller == walletAddress ? (
+                                     <div>
+
+                                        <button>Edit</button>
+                                        <button onClick={() => delist(listing.id)}>Delist</button>
+                                    </div>
+                                ) : (
                                     <button onClick={() => buy(listing.id, listing.amount, listing.price)}>Buy</button>
+                                )
                                 ) : <></>
                             }
+                            <p>{JSON.stringify(listingSellerBalances)}</p>
                         </div>
                     ))}
                     </div>}
