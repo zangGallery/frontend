@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { FixedNumber } from "@ethersproject/bignumber";
+import React, { useState } from "react";
 
 const styles = {
   modalCard: {
@@ -13,10 +14,52 @@ const styles = {
 export default function ListModal ({ isOpen, setIsOpen, onClose }) {
   const [amount, setAmount] = useState(0);
   const [price, setPrice] = useState(0);
+  const [previousPrice, setPreviousPrice] = useState('');
 
   const closeModal = (amount, price) => {
     setIsOpen(false);
     onClose(amount, price);
+  }
+
+  const formatPrice = (value) => {
+    const originalValue = value;
+
+    if (value === '') {
+      return '';
+    }
+    console.log('Original value:', value)
+
+    if (value.startsWith('-') || value.endsWith('-') || value.startsWith('+') || value.endsWith('+')) {
+      return previousPrice;
+    }
+
+    let trailingDot = false;
+
+    if (value.endsWith('.')) {
+      value = value.slice(0, -1);
+      trailingDot = true;
+    }
+    console.log('Corrected value:', value)
+
+    try {
+      
+      let newPrice = FixedNumber.from(value, 'ufixed').toString()
+
+      if (newPrice.endsWith('.0') && !originalValue.endsWith('.0')) {
+        if (trailingDot) {
+          newPrice = newPrice.slice(0, -1);
+        } else {
+          newPrice = newPrice.slice(0, -2);
+        }
+      }
+
+      setPreviousPrice(newPrice);
+
+      return newPrice;
+    } catch (e) {
+      console.log(e)
+      return previousPrice
+    }
   }
 
   if (!isOpen) return <></>
@@ -38,7 +81,7 @@ export default function ListModal ({ isOpen, setIsOpen, onClose }) {
           <div className="field">
             <label className="label">Price</label>
             <div className="control">
-              <input className="input" type="number" placeholder="Price" value={price} onChange={e => setPrice(e.target.value)} />
+              <input className="input" type="number" placeholder="Price" step='0.01' value={price} onChange={e => setPrice(formatPrice(e.target.value))} />
             </div>
           </div>
         </section>

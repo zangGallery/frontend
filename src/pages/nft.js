@@ -14,6 +14,7 @@ import { Header, ListModal } from '../components';
 
 import "bulma/css/bulma.min.css";
 import '../styles/globals.css'
+import { formatEther, parseEther, parseUnits } from '@ethersproject/units';
 
 const styles = {
     arrowContainer: {
@@ -38,6 +39,7 @@ export default function NFTPage( { location }) {
     const [readProvider, setReadProvider] = useReadProvider()
     const [walletProvider, setWalletProvider] = useWalletProvider()
     const [lastNFTId, setLastNFTId] = useState(null)
+    const [userBalance, setUserBalance] = useState(null)
 
     const [listings, setListings] = useState([])
 
@@ -55,12 +57,6 @@ export default function NFTPage( { location }) {
     const [listModalOpen, setListModalOpen] = useState(false)
 
     const [isApproved, setIsApproved] = useState(false);
-
-    useEffect(async () => {
-        if (walletProvider) {
-            setWalletAddress(await walletProvider.getSigner().getAddress())
-        }
-    }, [walletProvider])
 
     const queryTokenURI = async () => {
         if (!id || !readProvider) return;
@@ -137,33 +133,50 @@ export default function NFTPage( { location }) {
         }
     }
 
+    const queryUserBalance = async () => {
+        if (!id || !walletAddress) return;
+
+        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+
+        try {
+            const userBalance = await contract.balanceOf(walletAddress, id);
+            setUserBalance(userBalance.toNumber())
+        } catch (e) {
+            setContractError(e);
+        }
+    }
+
     const queryListings = async () => {
         if (!id || !readProvider) return;
         
         const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, readProvider);
 
-        const listingCount = (await contract.listingCount(id)).toNumber();
+        try {
+            const listingCount = (await contract.listingCount(id)).toNumber();
 
-        const newListings = [];
-        const promises = [];
+            const newListings = [];
+            const promises = [];
 
-        for (let i = 0; i < listingCount; i++) {
-            promises.push(
-                contract.listings(id, i)
-                    .then((listing) => newListings.push({
-                        amount: listing.amount.toNumber(),
-                        price: listing.price.toNumber(),
-                        seller: listing.seller,
-                        id: i
-                    }))
-                    .catch((e) => console.log(e))
-            )
+            for (let i = 0; i < listingCount; i++) {
+                promises.push(
+                    contract.listings(id, i)
+                        .then((listing) => newListings.push({
+                            amount: listing.amount.toNumber(),
+                            price: formatEther(parseUnits(listing.price.toString(), 'wei')),
+                            seller: listing.seller,
+                            id: i
+                        }))
+                        .catch((e) => console.log(e))
+                )
+            }
+
+            await Promise.all(promises);
+
+            // If a listing has seller 0x0000... it has been delisted
+            setListings(newListings);
+        } catch (e) {
+            setContractError(e);
         }
-
-        await Promise.all(promises);
-
-        // If a listing has seller 0x0000... it has been delisted
-        setListings(newListings);
     }
 
     const activeListings = () => {
@@ -183,12 +196,15 @@ export default function NFTPage( { location }) {
         if (!id || !readProvider) return;
         setListingError(null);
 
-        const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, readProvider);
+        const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
+
+        // Convert to wei
+        price = parseEther(price);
 
         try {
             // TODO: Convert into the correct amount
-            await contractWithSigner.buyToken(id, listingId, amount, { value: amount * price });
+            await contractWithSigner.buyToken(id, listingId, amount, { value: price.mul(amount) });
 
             navigate('/vault')
         }
@@ -207,21 +223,14 @@ export default function NFTPage( { location }) {
         if (!id || !walletProvider) return;
         // setListingError(null);
 
-        console.log('Preparing contract')
-
-        const zangContract = new ethers.Contract(zangAddress, zangABI, walletProvider);
-
-        console.log('Contract prepared')
-
         const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
         try {
-            // TODO: Convert to Gwei
-            console.log(await contractWithSigner.platformFeePercentage())
-            console.log(await contractWithSigner.ZangNFTAddress())
-            await contractWithSigner.listToken(id, price, amount);
+            await contractWithSigner.listToken(id, parseEther(price), amount);
 
             console.log('Listed')
+
+            queryListings();
         }
         catch (e) {
             console.log(e)
@@ -230,9 +239,14 @@ export default function NFTPage( { location }) {
     }
 
     const approveMarketplace = async () => {
-        if (!id || !walletProvider) {
-            setListingError('No wallet provider');
+        if (!walletProvider) {
+            setListingError('No wallet provider.');
+            return;
         };
+        if (!id) {
+            setListingError('No id specified.');
+            return;
+        }
 
         const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
@@ -249,8 +263,6 @@ export default function NFTPage( { location }) {
             console.log(e);
             setListingError(e);
         }
-
-        // TODO: wait for confirmation
     }
 
     const checkApproval = async () => {
@@ -282,6 +294,16 @@ export default function NFTPage( { location }) {
         }
     }, [id])
 
+    useEffect(async () => {
+        if (walletProvider) {
+            try {
+                setWalletAddress(await walletProvider.getSigner().getAddress());
+            } catch (e) {
+                setContractError(e);
+            }
+        }
+    }, [walletProvider])
+
     useEffect(() => {
         setContractError(null);
         queryListings();
@@ -305,6 +327,7 @@ export default function NFTPage( { location }) {
 
     useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryRoyaltyInfo(), [id, readProvider])
+    useEffect(queryUserBalance, [id, walletAddress])
 
     useEffect(checkApproval, [id, walletAddress])
 
@@ -352,7 +375,7 @@ export default function NFTPage( { location }) {
                     )
                 }
                 {
-                    walletAddress && tokenAuthor && walletAddress == tokenAuthor ? (
+                    walletAddress && userBalance ? (
                         isApproved ? (
                             <button onClick={() => setListModalOpen(true)}>List</button>
                         ) : (
