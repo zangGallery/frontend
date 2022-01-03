@@ -1,5 +1,8 @@
-import { FixedNumber } from "@ethersproject/bignumber";
-import React, { useState } from "react";
+import React from "react";
+import { useForm } from "react-hook-form";
+import Joi from "joi";
+import { joiResolver } from "@hookform/resolvers/joi"
+import ValidatedInput from "./ValidatedInput";
 
 const styles = {
   modalCard: {
@@ -11,55 +14,48 @@ const styles = {
   }
 }
 
-export default function ListModal ({ isOpen, setIsOpen, onClose }) {
-  const [amount, setAmount] = useState(0);
-  const [price, setPrice] = useState(0);
-  const [previousPrice, setPreviousPrice] = useState('');
+const defaultValues = {
+  amount: 1,
+  price: 0.1
+}
 
-  const closeModal = (amount, price) => {
-    setIsOpen(false);
-    onClose(amount, price);
+const etherValidator = (label) => (value, helpers) => {
+  const joiSchema = Joi.number().positive().unsafe(true).label(label);
+
+  try {
+    Joi.assert(value, joiSchema);
+  } catch (e) {
+    return helpers.message(e.details[0].message);
   }
 
-  const formatPrice = (value) => {
-    const originalValue = value;
-
-    if (value === '') {
-      return '';
+  // Check the precision
+  if (value.includes('.')) {
+    const digitCount = value.split('.')[1].length;
+    if (digitCount > 18) {
+      return helpers.message(`"${label}" must have at most 18 decimal places after the decimal point`);
     }
-    console.log('Original value:', value)
+  }
 
-    if (value.startsWith('-') || value.endsWith('-') || value.startsWith('+') || value.endsWith('+')) {
-      return previousPrice;
-    }
+  if (value.endsWith('.')) {
+    return value.splice(-1);
+  }
 
-    let trailingDot = false;
+  return value;
+}
 
-    if (value.endsWith('.')) {
-      value = value.slice(0, -1);
-      trailingDot = true;
-    }
-    console.log('Corrected value:', value)
+export default function ListModal ({ isOpen, setIsOpen, onClose, balance, availableAmount }) {
+  const schema = Joi.object().keys({
+    amount: Joi.number().required().min(1).max(availableAmount).label('Amount').messages({
+      "number.max": `"Amount" must be at most the available balance (${availableAmount})`
+    }),
+    price: Joi.string().custom(etherValidator('Price')).required().label('Price')
+  })
 
-    try {
-      
-      let newPrice = FixedNumber.from(value, 'ufixed').toString()
+  const { register, formState: { isDirty, isValid, errors }, handleSubmit } = useForm({ defaultValues, mode: 'onChange', resolver: joiResolver(schema)});
 
-      if (newPrice.endsWith('.0') && !originalValue.endsWith('.0')) {
-        if (trailingDot) {
-          newPrice = newPrice.slice(0, -1);
-        } else {
-          newPrice = newPrice.slice(0, -2);
-        }
-      }
-
-      setPreviousPrice(newPrice);
-
-      return newPrice;
-    } catch (e) {
-      console.log(e)
-      return previousPrice
-    }
+  const closeModal = ({amount, price}) => {
+    setIsOpen(false);
+    onClose(amount, price);
   }
 
   if (!isOpen) return <></>
@@ -72,21 +68,13 @@ export default function ListModal ({ isOpen, setIsOpen, onClose }) {
           <p className="modal-card-title" style={styles.modalCardTitle}>List</p>
         </header>
         <section className="modal-card-body">
-          <div className="field">
-            <label className="label">Amount</label>
-            <div className="control">
-              <input className="input" type="number" placeholder="Amount" value={amount} onChange={e => setAmount(e.target.value)} />
-            </div>
-          </div>
-          <div className="field">
-            <label className="label">Price</label>
-            <div className="control">
-              <input className="input" type="number" placeholder="Price" step='0.01' value={price} onChange={e => setPrice(formatPrice(e.target.value))} />
-            </div>
-          </div>
+          <p>Balance: {balance}</p>
+          { balance != availableAmount ? <p>Available (not listed) balance: {availableAmount}</p> : <></> }
+          <ValidatedInput label="Amount" name="amount" type="number" step="1" errors={errors} register={register} />
+          <ValidatedInput label="Price" name="price" type="number" step="0.1" errors={errors} register={register} />
         </section>
         <footer className="modal-card-foot">
-          <button className="button" onClick={() => closeModal(amount, price)}>List</button>
+          <button className="button" disabled={!isValid && isDirty} onClick={handleSubmit(closeModal)}>List</button>
         </footer>
       </div>
     </div>

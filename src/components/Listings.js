@@ -14,8 +14,6 @@ export default function Listings( { readProvider, walletProvider, id, walletAddr
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
-    const [userBalance, setUserBalance] = useState(null)
-
     const [listings, setListings] = useState([])
 
     const [listModalOpen, setListModalOpen] = useState(false)
@@ -28,6 +26,28 @@ export default function Listings( { readProvider, walletProvider, id, walletAddr
         return listings.filter(listing => parseInt(listing.seller, 16) != 0)
     }
 
+    const userBalance = () => {
+        return listingSellerBalances[walletAddress] || 0;
+    }
+
+    const userAvailableAmount = () => {
+        if (!id || !walletAddress) return 0;
+
+        let availableAmount = userBalance();
+
+        for (const listing of activeListings()) {
+            if (listing.seller == walletAddress) {
+                availableAmount -= listing.amount;
+            }
+        }
+
+        if (availableAmount < 0) {
+            availableAmount = 0;
+        }
+
+        return availableAmount;
+    }
+
     const fulfillableListings = async () => {
         // TODO: fulfillability isn't a binary state: some listings might be partially fulfillable
         const sortedListings = [...activeListings()].sort((a, b) => a.price - b.price);
@@ -37,7 +57,6 @@ export default function Listings( { readProvider, walletProvider, id, walletAddr
             balances[listing.seller] += listing.price
         }
 
-
     }
 
     const userListings = () => {
@@ -46,19 +65,6 @@ export default function Listings( { readProvider, walletProvider, id, walletAddr
         }
 
         return []
-    }
-
-    const queryUserBalance = async () => {
-        if (!id || !walletAddress) return;
-
-        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
-
-        try {
-            const userBalance = await contract.balanceOf(walletAddress, id);
-            setUserBalance(userBalance.toNumber())
-        } catch (e) {
-            onError(e);
-        }
     }
 
     const queryListings = async () => {
@@ -94,26 +100,45 @@ export default function Listings( { readProvider, walletProvider, id, walletAddr
         }
     }
 
+    const updateSellerBalance = (sellerAddress) => {
+        if (!sellerAddress || !readProvider || !id) return;
+
+        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+
+        try {
+            contract.balanceOf(sellerAddress, id).then((balance) => {
+                console.log('Updating balance of ' + sellerAddress + ' to ' + balance.toNumber())
+                setListingSellerBalances((currentBalance) => ({...currentBalance, [sellerAddress]: balance.toNumber()}));
+            })
+        }
+        catch (e) {
+            onError(e);
+        }
+    }
+
+    const queryUserBalance = () => {
+        updateSellerBalance(walletAddress);
+    }
+
     const queryListingSellerBalances = async () => {
         if (!id || !listings) return;
 
         console.log('Listings: ', activeListings())
 
-        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+        const promises = [];
 
         try {
             for (const listing of activeListings()) {
                 if (!listingSellerBalances[listing.seller]) {
-                    contract.balanceOf(listing.seller, id).then((balance) => {
-                        console.log('Updating balance of ' + listing.seller + ' to ' + balance.toNumber())
-                        setListingSellerBalances((currentBalance) => ({...currentBalance, [listing.seller]: balance.toNumber()}));
-                    })
+                    const promise = updateSellerBalance(listing.seller);
+                    promises.push(promise);
                 }
             }
-
         } catch (e) {
             onError(e);
         }
+
+        await Promise.all(promises);
     }
 
     const list = async (amount, price) => {
@@ -259,7 +284,7 @@ export default function Listings( { readProvider, walletProvider, id, walletAddr
     return (
         <div>
             {
-                walletAddress && userBalance ? (
+                userAvailableAmount() ? (
                     isApproved ? (
                         <button onClick={() => setListModalOpen(true)}>List</button>
                     ) : (
@@ -294,7 +319,7 @@ export default function Listings( { readProvider, walletProvider, id, walletAddr
                 }
             </div>
             
-            {<ListModal isOpen={listModalOpen} setIsOpen={setListModalOpen} onClose={list} />}
+            {<ListModal isOpen={listModalOpen} setIsOpen={setListModalOpen} onClose={list} balance={userBalance()} availableAmount={userAvailableAmount()} />}
         </div>
     )
 }
