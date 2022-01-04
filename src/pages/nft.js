@@ -49,6 +49,7 @@ export default function NFTPage( { location }) {
     const [tokenType, setTokenType] = useState(null)
     const [tokenContent, setTokenContent] = useState(null)
     const [tokenAuthor, setTokenAuthor] = useState(null)
+    const [tokenAuthorEnsAddress, setTokenAuthorEnsAddress] = useState(null)
     const [royaltyInfo, setRoyaltyInfo] = useState(null)
     const [lastNFTId, setLastNFTId] = useState(null)
 
@@ -80,9 +81,7 @@ export default function NFTPage( { location }) {
             const ensAddress = await mainnetProvider.lookupAddress(author);
 
             if (ensAddress) {
-                setTokenAuthor(ensAddress);
-            } else {
-                setTokenAuthor(author);
+                setTokenAuthorEnsAddress(ensAddress);
             }
         }
         catch (e) {
@@ -363,7 +362,7 @@ export default function NFTPage( { location }) {
                 { 
                     <div className="column">
                         <h1 className="title">{tokenData?.name || ''}</h1>
-                        <p className="subtitle">{tokenAuthor ? `by ${tokenAuthor}` : ''}</p>
+                        <p className="subtitle">{tokenAuthor ? `by ${tokenAuthorEnsAddress || tokenAuthor}` : ''}</p>
                         <p className="is-italic">{tokenData?.description || ''}</p>
                         {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
                         <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
@@ -371,26 +370,32 @@ export default function NFTPage( { location }) {
                         }
                     </div>
                 }
-                <Listings
-                    readProvider={readProvider}
-                    walletProvider={walletProvider}
-                    id={id}
-                    walletAddress={walletAddress}
-                    onError={setContractError}
-                    onUpdate={onUpdate}
-                    userBalance={userBalance()}
-                    userAvailableAmount={userAvailableAmount()}
-                    listingGroups={listingGroups()}
-                />
-                {
-                    readProvider && walletProvider && userBalance() ? (
-                        <div>
-                            <p>Owned: {userBalance()}</p>
-                            { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
-                            <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
-                        </div>
-                    ) : <></>
-                }
+                
+            </div>
+
+            <div className="columns">
+                <div className="column">
+                    <Listings
+                        readProvider={readProvider}
+                        walletProvider={walletProvider}
+                        id={id}
+                        walletAddress={walletAddress}
+                        onError={setContractError}
+                        onUpdate={onUpdate}
+                        userBalance={userBalance()}
+                        userAvailableAmount={userAvailableAmount()}
+                        listingGroups={listingGroups()}
+                    />
+                    {
+                        readProvider && walletProvider && userBalance() ? (
+                            <div>
+                                <p>Owned: {userBalance()}</p>
+                                { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
+                                <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
+                            </div>
+                        ) : <></>
+                    }
+                </div>
             </div>
         </div>
     )
