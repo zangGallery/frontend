@@ -202,7 +202,6 @@ export default function NFTPage( { location }) {
                     }
                 </div>
                 { 
-                    contractError ? <></> : (
                     <div className="column">
                         <h1 className="title">{tokenData?.name || ''}</h1>
                         <p className="subtitle">{tokenAuthor ? `by ${tokenAuthor}` : ''}</p>
@@ -212,7 +211,6 @@ export default function NFTPage( { location }) {
                         : <></>
                         }
                     </div>
-                    )
                 }
                 <Listings readProvider={readProvider} walletProvider={walletProvider} id={id} walletAddress={walletAddress} onError={setContractError} />
             </div>
