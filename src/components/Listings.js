@@ -179,7 +179,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                                                     <p>{listing.amount} {listing.token} @ {listing.price}</p>
 
                                                     { walletProvider ? (
-                                                        <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onError={onError} />
+                                                        <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onError={onError} onUpdate={onUpdate} />
                                                     ) : <></>
                                                     }
                                                 </div>
