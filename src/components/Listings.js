@@ -26,45 +26,59 @@ export default function Listings( { readProvider, walletProvider, id, walletAddr
         return listings.filter(listing => parseInt(listing.seller, 16) != 0)
     }
 
-    const userBalance = () => {
-        return listingSellerBalances[walletAddress] || 0;
+    const sortedListings = () => {
+        return [...activeListings()].sort((a, b) => a.price - b.price)
     }
 
-    const userAvailableAmount = () => {
+    const addressBalance = (address) => {
+        return listingSellerBalances[address] || 0; 
+    }
+
+    const userBalance = () => {
+        return addressBalance(walletAddress);
+    }
+
+    const addressAvailableAmount = (address) => {
         if (!id || !walletAddress) return 0;
 
-        let availableAmount = userBalance();
+        let _availableAmount = addressBalance(address);
 
         for (const listing of activeListings()) {
-            if (listing.seller == walletAddress) {
-                availableAmount -= listing.amount;
+            if (listing.seller == address) {
+                _availableAmount -= listing.amount;
             }
         }
 
-        if (availableAmount < 0) {
-            availableAmount = 0;
+        if (_availableAmount < 0) {
+            _availableAmount = 0;
         }
 
-        return availableAmount;
+        return _availableAmount;
     }
 
-    const fulfillableListings = async () => {
-        // TODO: fulfillability isn't a binary state: some listings might be partially fulfillable
-        const sortedListings = [...activeListings()].sort((a, b) => a.price - b.price);
-        const balances = {}
-
-        for (const listing of sortedListings) {
-            balances[listing.seller] += listing.price
-        }
-
+    const userAvailableAmount = () => {
+        return addressAvailableAmount(walletAddress);
     }
 
-    const userListings = () => {
-        if (walletAddress) {
-            return listings.filter(listing => listing.owner === walletAddress)
+    const listingsWithFulfillability = () => {
+        const balances = {...listingSellerBalances};
+
+        const newListings = [];
+
+        for (const listing of sortedListings()) {
+            const balance = balances[listing.seller] || 0;
+            const fulfillability = Math.max(Math.min(listing.amount, balance), 0);
+            balances[listing.seller] -= listing.amount;
+
+            const newListing = {
+                ...listing,
+                fulfillability
+            }
+
+            newListings.push(newListing);
         }
 
-        return []
+        return newListings;
     }
 
     const queryListings = async () => {
@@ -298,9 +312,9 @@ export default function Listings( { readProvider, walletProvider, id, walletAddr
             <div>
                 <h2>Listings</h2>
                 {
-                    activeListings().map((listing, index) => (
+                    listingsWithFulfillability().map((listing, index) => (
                         <div key={index} className="box">
-                            <p>{listing.seller} {listing.amount} {listing.price}</p>
+                            <p>{listing.seller} {listing.amount} {listing.price} {listing.fulfillability}</p>
                             { walletProvider ? (
                                 listing.seller == walletAddress ? (
                                     <div>

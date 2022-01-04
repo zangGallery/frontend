@@ -16,7 +16,7 @@ const styles = {
 
 const defaultValues = {
   amount: 1,
-  price: 0.1
+  price: '0.1' // Important: this is a string, not a number. That's because Ether prices are strings
 }
 
 const etherValidator = (label) => (value, helpers) => {
