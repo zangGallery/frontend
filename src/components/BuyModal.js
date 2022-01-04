@@ -19,7 +19,7 @@ const defaultValues = {
     amount: 1
 }
 
-export default function TransferModal ({ isOpen, setIsOpen, onClose, maxAmount, fulfillability, price }) {
+export default function BuyModal ({ isOpen, setIsOpen, onClose, maxAmount, fulfillability, price }) {
     const buySchema = schemas.buy(Math.min(maxAmount, fulfillability)).messages({
         "number.max": `"Amount" must be at most the ${fulfillability == maxAmount ? 'listed' : 'fulfillable'} amount (${maxAmount})`
     })
@@ -49,10 +49,10 @@ export default function TransferModal ({ isOpen, setIsOpen, onClose, maxAmount, 
             { fulfillability != maxAmount ? <p>Fulfillable quantity: {fulfillability}</p> : <></>}
             <p>Price: {price}</p>
             <ValidatedInput label="Amount" name="amount" type="number" step="1" errors={errors} register={register} />
-            <p>Total: { FixedNumber.from(watchAmount).mulUnsafe(FixedNumber.from(price)).toString() } ETH</p>
+            <p>Total: { watchAmount && price && price > 0 ? FixedNumber.from(watchAmount).mulUnsafe(FixedNumber.from(price)).toString() : '0' } ETH</p>
             </section>
             <footer className="modal-card-foot">
-            <button className="button" disabled={!isValid && isDirty} onClick={handleSubmit(closeModal)}>List</button>
+            <button className="button" disabled={!isValid && isDirty} onClick={handleSubmit(closeModal)}>Buy</button>
             </footer>
         </div>
         </div>
