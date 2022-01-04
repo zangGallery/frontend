@@ -41,9 +41,9 @@ export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerB
 
             if (transaction) {
                 await transaction.wait(1);
+                navigate('/vault')
             }
 
-            navigate('/vault')
         }
         catch (e) {
             onError(e);
