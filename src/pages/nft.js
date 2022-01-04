@@ -10,11 +10,14 @@ import * as queryString from "query-string";
 import MDEditor from "@uiw/react-md-editor"
 import { navigate } from 'gatsby-link';
 import { Helmet } from 'react-helmet';
-import { Header, ListModal } from '../components';
+import { Header, ListModal, WalletButton } from '../components';
+
+import { formatEther, parseUnits } from '@ethersproject/units';
 
 import "bulma/css/bulma.min.css";
 import '../styles/globals.css'
 import Listings from '../components/Listings';
+import TransferButton from '../components/TransferButton';
 
 const styles = {
     arrowContainer: {
@@ -32,15 +35,21 @@ export default function NFTPage( { location }) {
     const zangAddress = config.contractAddresses.v1.zang;
     const zangABI = v1.zang;
 
+    const marketplaceAddress = config.contractAddresses.v1.marketplace;
+    const marketplaceABI = v1.marketplace;
+
     const { id } = queryString.parse(location.search);
+    const [readProvider, setReadProvider] = useReadProvider()
+    const [walletProvider, setWalletProvider] = useWalletProvider()
+
+    // === NFT Info ===
+
     const [tokenURI, setTokenURI] = useState(null)
     const [tokenData, setTokenData] = useState(null)
     const [tokenType, setTokenType] = useState(null)
     const [tokenContent, setTokenContent] = useState(null)
     const [tokenAuthor, setTokenAuthor] = useState(null)
     const [royaltyInfo, setRoyaltyInfo] = useState(null)
-    const [readProvider, setReadProvider] = useReadProvider()
-    const [walletProvider, setWalletProvider] = useWalletProvider()
     const [lastNFTId, setLastNFTId] = useState(null)
 
     const [contractError, setContractError] = useState(null);
@@ -171,6 +180,154 @@ export default function NFTPage( { location }) {
     useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryRoyaltyInfo(), [id, readProvider])
 
+
+    // === Listing info ===
+    const [listings, setListings] = useState([])
+    const [listingSellerBalances, setListingSellerBalances] = useState({});
+
+    const activeListings = () => {
+        return listings.filter(listing => parseInt(listing.seller, 16) != 0)
+    }
+
+    const sortedListings = () => {
+        return [...activeListings()].sort((a, b) => a.price - b.price)
+    }
+
+    const addressBalance = (address) => {
+        return listingSellerBalances[address] || 0; 
+    }
+
+    const userBalance = () => {
+        return addressBalance(walletAddress);
+    }
+
+    const addressAvailableAmount = (address) => {
+        if (!id || !walletAddress) return 0;
+
+        let _availableAmount = addressBalance(address);
+
+        for (const listing of activeListings()) {
+            if (listing.seller == address) {
+                _availableAmount -= listing.amount;
+            }
+        }
+
+        if (_availableAmount < 0) {
+            _availableAmount = 0;
+        }
+
+        return _availableAmount;
+    }
+
+    const userAvailableAmount = () => {
+        return addressAvailableAmount(walletAddress);
+    }
+
+    const listingsWithFulfillability = () => {
+        const balances = {...listingSellerBalances};
+
+        const newListings = [];
+
+        for (const listing of sortedListings()) {
+            const balance = balances[listing.seller] || 0;
+            const fulfillability = Math.max(Math.min(listing.amount, balance), 0);
+            balances[listing.seller] -= listing.amount;
+
+            const newListing = {
+                ...listing,
+                fulfillability
+            }
+
+            newListings.push(newListing);
+        }
+
+        return newListings;
+    }
+
+    const queryListings = async () => {
+        if (!id || !readProvider) return;
+        
+        const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, readProvider);
+
+        try {
+            const listingCount = (await contract.listingCount(id)).toNumber();
+
+            const newListings = [];
+            const promises = [];
+
+            for (let i = 0; i < listingCount; i++) {
+                promises.push(
+                    contract.listings(id, i)
+                        .then((listing) => newListings.push({
+                            amount: listing.amount.toNumber(),
+                            price: formatEther(parseUnits(listing.price.toString(), 'wei')),
+                            seller: listing.seller,
+                            id: i
+                        }))
+                        .catch((e) => console.log(e))
+                )
+            }
+
+            await Promise.all(promises);
+
+            // If a listing has seller 0x0000... it has been delisted
+            setListings(newListings);
+        } catch (e) {
+            setContractError(e);
+        }
+    }
+
+    const updateSellerBalance = (sellerAddress) => {
+        if (!sellerAddress || !readProvider || !id) return;
+
+        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+
+        try {
+            contract.balanceOf(sellerAddress, id).then((balance) => {
+                console.log('Updating balance of ' + sellerAddress + ' to ' + balance.toNumber())
+                setListingSellerBalances((currentBalance) => ({...currentBalance, [sellerAddress]: balance.toNumber()}));
+            })
+        }
+        catch (e) {
+            setContractError(e);
+        }
+    }
+
+    const queryUserBalance = () => {
+        updateSellerBalance(walletAddress);
+    }
+
+    const queryListingSellerBalances = async () => {
+        if (!id || !listings) return;
+
+        console.log('Listings: ', activeListings())
+
+        const promises = [];
+
+        try {
+            for (const listing of activeListings()) {
+                if (!listingSellerBalances[listing.seller]) {
+                    const promise = updateSellerBalance(listing.seller);
+                    promises.push(promise);
+                }
+            }
+        } catch (e) {
+            setContractError(e);
+        }
+
+        await Promise.all(promises);
+    }
+
+    const onUpdate = () => {
+        queryListingSellerBalances();
+        queryListings();
+        queryUserBalance();
+    }
+
+    useEffect(queryListings, [id, walletAddress])
+    useEffect(queryUserBalance, [id, walletAddress])
+    useEffect(queryListingSellerBalances, [id, readProvider])
+
     return (
         <div>
             <Helmet>
@@ -212,7 +369,17 @@ export default function NFTPage( { location }) {
                         }
                     </div>
                 }
-                <Listings readProvider={readProvider} walletProvider={walletProvider} id={id} walletAddress={walletAddress} onError={setContractError} />
+                <Listings
+                    readProvider={readProvider}
+                    walletProvider={walletProvider}
+                    id={id}
+                    walletAddress={walletAddress}
+                    onError={setContractError}
+                    onUpdate={onUpdate}
+                    userBalance={userBalance()}
+                    userAvailableAmount={userAvailableAmount()}
+                    listingsWithFulfillability={listingsWithFulfillability()}
+                />
             </div>
         </div>
     )
