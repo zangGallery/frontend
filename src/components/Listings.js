@@ -37,12 +37,15 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
         try {
             console.log('Price:', price)
             console.log('Parsed price:', parseEther(price).toString())
-            await contractWithSigner.listToken(id, parseEther(price), amount);
+            const transaction = await contractWithSigner.listToken(id, parseEther(price), amount);
 
-            console.log('Listed')
+            if (transaction) {
+                await transaction.wait(1);
+                console.log('Listed')
 
-            if (onUpdate) {
-                onUpdate();
+                if (onUpdate) {
+                    onUpdate();
+                }
             }
         }
         catch (e) {
