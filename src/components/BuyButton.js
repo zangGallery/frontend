@@ -6,15 +6,13 @@ import { v1 } from '../common/abi';
 import rehypeSanitize from "rehype-sanitize";
 import * as queryString from "query-string";
 
-import { navigate } from 'gatsby-link';
-
 import { parseEther } from '@ethersproject/units';
 
 import { useReadProvider, useWalletProvider } from '../common/provider';
 
 import BuyModal from './BuyModal';
 
-export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerBalance, onError }) {
+export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerBalance, onError, onUpdate }) {
     sellerBalance = sellerBalance || 0;
 
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
@@ -37,11 +35,13 @@ export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerB
         console.log('Converted:', price.toString())
 
         try {
-            const transaction = contractWithSigner.buyToken(nftId, listingId, amount, { value: price.mul(amount) });
+            const transaction = await contractWithSigner.buyToken(nftId, listingId, amount, { value: price.mul(amount) });
 
             if (transaction) {
                 await transaction.wait(1);
-                navigate('/vault')
+                if (onUpdate) {
+                    onUpdate();
+                }
             }
 
         }
