@@ -6,6 +6,7 @@ import { parseEther } from '@ethersproject/units';
 import config from '../config';
 
 import BuyButton from "./BuyButton";
+import FulfillabilityInfo from "./FulfillabilityInfo";
 
 export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onError, onUpdate }) {
     const zangAddress = config.contractAddresses.v1.zang;
@@ -20,8 +21,6 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
 
     const userListingGroup = () => (listingGroups || []).find(group => group.seller === walletAddress);
     const otherListingGroups = () => (listingGroups || []).filter(group => group.seller !== walletAddress);
-
-    const totalListedAmount = (group) => group.listings.reduce((acc, listing) => acc + listing.amount, 0);
 
     const list = async (amount, price) => {
         console.log('Amount: ' + amount + ' Price: ' + price)
@@ -148,6 +147,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                         <div>
                             <h2>Your Listings</h2>
                             <div>
+                                <FulfillabilityInfo group={userListingGroup()} />
                                 {
                                     userListingGroup().listings.map(listing => (
                                         <div key={listing.id}>
@@ -165,33 +165,30 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                 }
                 <h2>{userListingGroup() ? 'Other Listings' : 'Listings'}</h2>
                 {
-                    otherListingGroups().map((group, index) => (
-                        <div key={'group' + index} className="box">
-                            <p>{group.seller}</p>
-                            { 
-                                group.sellerBalance !== undefined && group.sellerBalance < totalListedAmount(group) ? (
-                                    <p>{ group.sellerBalance == 0 ? 'Unfulfillable' : `Partially fulfillable (${group.sellerBalance} available)` }</p>
-                                ) : <></>
-                            }
+                    otherListingGroups().length > 0 ?
+                        otherListingGroups().map((group, index) => (
+                            <div key={'group' + index} className="box">
+                                <p>{group.seller}</p>
+                                <FulfillabilityInfo group={group} />
 
-                            <div>
-                                {
-                                    group.listings.map(listing => (
-                                        <div key={listing.id}>
-                                            <div>
-                                                <p>{listing.amount} {listing.token} @ {listing.price}</p>
+                                <div>
+                                    {
+                                        group.listings.map(listing => (
+                                            <div key={listing.id}>
+                                                <div>
+                                                    <p>{listing.amount} {listing.token} @ {listing.price}</p>
 
-                                                { walletProvider ? (
-                                                    <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onError={onError} />
-                                                ) : <></>
-                                                }
+                                                    { walletProvider ? (
+                                                        <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onError={onError} />
+                                                    ) : <></>
+                                                    }
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))
-                                }
+                                        ))
+                                    }
+                                </div>
                             </div>
-                        </div>
-                    ))
+                        )) : <></>
                 }
             </div>
             
