@@ -40,6 +40,20 @@ export default function EditModal ({ isOpen, setIsOpen, onClose, balance, availa
     }
   }
 
+  const warningMessage = () => {
+    let message = '';
+    if (effectiveAvailableAmount == 0) {
+        message += 'You don\'t have any "free" (not tied to listings) tokens. ';
+    } else {
+      message += `You only have ${effectiveAvailableAmount} "free" (not tied to listings) token${effectiveAvailableAmount == 1 ? '' : 's'}. `;
+    }
+
+    message += `Proceeding will use ${watchAmount - effectiveAvailableAmount} token${watchAmount - effectiveAvailableAmount == 1 ? '' : 's'} `
+    message += 'tied to existing listings, making some listings unfulfillable.';
+
+    return message;
+  }
+
   const validCheckboxes = () => (editAmount || editPrice) && !(editAmount && watchAmount === '') && !(editPrice && watchPrice === '');
 
   if (!isOpen) return <></>
@@ -89,10 +103,7 @@ export default function EditModal ({ isOpen, setIsOpen, onClose, balance, availa
           { editAmount && watchAmount > Math.min(balance, effectiveAvailableAmount) ? (
               <p>
               { watchAmount <= balance ? (
-                  `Warning: You only have ${effectiveAvailableAmount} "free" (not tied to listings) token${effectiveAvailableAmount == 1 ? '' : 's'}.
-                  Proceeding will use ${watchAmount - effectiveAvailableAmount} token${watchAmount - effectiveAvailableAmount == 1 ? '' : 's'} tied to existing listings,
-                  making some listings unfulfillable.`
-                
+                  'Warning: ' + warningMessage()
               ) : (
                 `Error: Cannot list more tokens than you own (${balance}).`
               )}
