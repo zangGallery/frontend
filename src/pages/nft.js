@@ -380,6 +380,15 @@ export default function NFTPage( { location }) {
                     userAvailableAmount={userAvailableAmount()}
                     listingsWithFulfillability={listingsWithFulfillability()}
                 />
+                {
+                    readProvider && walletProvider && userBalance() ? (
+                        <div>
+                            <p>Owned: {userBalance()}</p>
+                            { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
+                            <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} />
+                        </div>
+                    ) : <></>
+                }
             </div>
         </div>
     )
