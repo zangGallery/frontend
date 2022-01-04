@@ -43,7 +43,7 @@ export default function TransferModal ({ isOpen, setIsOpen, onClose, balance, av
             <section className="modal-card-body">
                 <p>Balance: {balance}</p>
                 { balance != availableAmount ? <p>Available (not listed) balance: {availableAmount}</p> : <></> }
-                <ValidatedInput label="Amount" name="amount" type="number" step="1" errors={errors} register={register} />
+                <ValidatedInput label="Amount" name="amount" type="number" step="1" min="1" errors={errors} register={register} />
                 <ValidatedInput label="To" name="to" type="string" errors={errors} register={register} />
                 { watchAmount > availableAmount && watchAmount <= balance ? (
                     <p>

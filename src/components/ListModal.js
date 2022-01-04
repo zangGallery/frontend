@@ -72,8 +72,8 @@ export default function ListModal ({ isOpen, setIsOpen, onClose, balance, availa
         <section className="modal-card-body">
           <p>Balance: {balance}</p>
           { balance != availableAmount ? <p>Available (not listed) balance: {availableAmount}</p> : <></> }
-          <ValidatedInput label="Amount" name="amount" type="number" step="1" errors={errors} register={register} />
-          <ValidatedInput label="Price" name="price" type="number" step="0.1" errors={errors} register={register} />
+          <ValidatedInput label="Amount" name="amount" type="number" step="1" min="1" errors={errors} register={register} />
+          <ValidatedInput label="Price" name="price" type="number" step="0.1" min="0" errors={errors} register={register} />
         </section>
         <footer className="modal-card-foot">
           <button className="button" disabled={!isValid && isDirty} onClick={handleSubmit(closeModal)}>List</button>
