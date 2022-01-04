@@ -7,6 +7,7 @@ import config from '../config';
 
 import BuyButton from "./BuyButton";
 import FulfillabilityInfo from "./FulfillabilityInfo";
+import EditButton from "./EditButton";
 
 export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onError, onUpdate }) {
     const zangAddress = config.contractAddresses.v1.zang;
@@ -154,7 +155,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                                             <div>
                                                 <p>{listing.amount} {listing.token} @ {listing.price}</p>
                                                 <button onClick={() => delist(listing.id)}>Delist</button>
-                                                <button>Edit</button>
+                                                <EditButton nftId={id} listingId={listing.id} balance={userBalance} onError={onError} onUpdate={onUpdate} oldAmount={listing.amount} availableAmount={userAvailableAmount} />
                                             </div>
                                         </div>
                                     ))

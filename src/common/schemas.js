@@ -22,6 +22,30 @@ const maxDigits = (max) => (value, helpers) => {
     return value;
 }
 
+const etherValidator = (label) => (value, helpers) => {
+    const joiSchema = Joi.number().positive().unsafe(true).label(label);
+  
+    try {
+        Joi.assert(value, joiSchema);
+    } catch (e) {
+        return helpers.message(e.details[0].message);
+    }
+  
+    // Check the precision
+    if (value.includes('.')) {
+        const digitCount = value.split('.')[1].length;
+        if (digitCount > 18) {
+            return helpers.message(`"${label}" must have at most 18 decimal places after the decimal point`);
+        }
+    }
+  
+    if (value.endsWith('.')) {
+        return value.splice(-1);
+    }
+  
+    return value;
+}
+
 const mint = Joi.object().keys({
     title: Joi.string().allow('').label('Title'),
     description: Joi.string().allow('').label('Description'),
@@ -41,8 +65,14 @@ const buy = Joi.object().keys({
     amount: Joi.number().integer().min(1).empty('').required().label('Amount')
 })
 
+const edit = Joi.object().keys({
+    amount: Joi.number().min(1).empty('').label('Amount'),
+    price: Joi.string().custom(etherValidator('Price')).empty('').label('Price')
+})
+
 export default {
     buy,
+    edit,
     mint,
     transfer
 }
