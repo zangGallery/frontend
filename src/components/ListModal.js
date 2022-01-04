@@ -53,9 +53,11 @@ export default function ListModal ({ isOpen, setIsOpen, onClose, balance, availa
 
   const { register, formState: { isDirty, isValid, errors }, handleSubmit } = useForm({ defaultValues, mode: 'onChange', resolver: joiResolver(schema)});
 
-  const closeModal = ({amount, price}) => {
+  const closeModal = (data) => {
     setIsOpen(false);
-    onClose(amount, price);
+    if (data) {
+      onClose(data.amount, data.price);
+    }
   }
 
   if (!isOpen) return <></>
