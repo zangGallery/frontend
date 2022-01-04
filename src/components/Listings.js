@@ -131,13 +131,13 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
     return (
         <div>
             {
-                userAvailableAmount ? (
+                userBalance ? (
                     isApproved ? (
-                        <button onClick={() => setListModalOpen(true)}>List</button>
+                        <button className="button is-info" onClick={() => setListModalOpen(true)}>List</button>
                     ) : (
                         <div>
                             <p>Approve the marketplace contract to list</p>
-                                <button onClick={approveMarketplace}>Approve Marketplace</button>
+                                <button className="button is-warning" onClick={approveMarketplace}>Approve Marketplace</button>
                         </div>
                     )
                 ) : <></>
@@ -154,7 +154,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                                         <div key={listing.id}>
                                             <div>
                                                 <p>{listing.amount} {listing.token} @ {listing.price}</p>
-                                                <button onClick={() => delist(listing.id)}>Delist</button>
+                                                <button className="button is-danger" onClick={() => delist(listing.id)}>Delist</button>
                                                 <EditButton nftId={id} listingId={listing.id} balance={userBalance} onError={onError} onUpdate={onUpdate} oldAmount={listing.amount} availableAmount={userAvailableAmount} />
                                             </div>
                                         </div>

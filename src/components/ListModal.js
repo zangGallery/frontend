@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import Joi from "joi";
 import { joiResolver } from "@hookform/resolvers/joi"
 import ValidatedInput from "./ValidatedInput";
+import { schemas } from "../common";
 
 const styles = {
   modalCard: {
@@ -44,20 +45,29 @@ const etherValidator = (label) => (value, helpers) => {
 }
 
 export default function ListModal ({ isOpen, setIsOpen, onClose, balance, availableAmount }) {
-  const schema = Joi.object().keys({
-    amount: Joi.number().required().min(1).max(availableAmount).label('Amount').messages({
-      "number.max": `"Amount" must be at most the available balance (${availableAmount})`
-    }),
-    price: Joi.string().custom(etherValidator('Price')).required().label('Price')
-  })
+  const { register, formState: { isDirty, isValid, errors }, handleSubmit, watch } = useForm({ defaultValues, mode: 'onChange', resolver: joiResolver(schemas.list)});
 
-  const { register, formState: { isDirty, isValid, errors }, handleSubmit } = useForm({ defaultValues, mode: 'onChange', resolver: joiResolver(schema)});
+  const watchAmount = watch('amount');
 
   const closeModal = (data) => {
     setIsOpen(false);
     if (data) {
       onClose(data.amount, data.price);
     }
+  }
+
+  const warningMessage = () => {
+    let message = '';
+    if (availableAmount == 0) {
+      message += 'You don\'t have any "free" (not tied to listings) tokens. ';
+    } else {
+      message += `You only have ${availableAmount} "free" (not tied to listings) token${availableAmount == 1 ? '' : 's'}. `;
+    }
+
+    message += `Proceeding will use ${watchAmount - availableAmount} token${watchAmount - availableAmount == 1 ? '' : 's'} `
+    message += 'tied to existing listings, making some listings unfulfillable.';
+
+    return message;
   }
 
   if (!isOpen) return <></>
@@ -74,9 +84,19 @@ export default function ListModal ({ isOpen, setIsOpen, onClose, balance, availa
           { balance != availableAmount ? <p>Available (not listed) balance: {availableAmount}</p> : <></> }
           <ValidatedInput label="Amount" name="amount" type="number" step="1" min="1" errors={errors} register={register} />
           <ValidatedInput label="Price" name="price" type="number" step="0.1" min="0" errors={errors} register={register} />
+
+          { watchAmount > Math.min(balance, availableAmount) ? (
+            <p>
+              { watchAmount <= balance ? (
+                  'Warning: ' + warningMessage()
+              ) : (
+                `Error: Cannot list more tokens than you own (${balance}).`
+              )}
+            </p>) : <></>
+          }
         </section>
         <footer className="modal-card-foot">
-          <button className="button" disabled={!isValid && isDirty} onClick={handleSubmit(closeModal)}>List</button>
+          <button className="button" disabled={(!isValid && isDirty) || watchAmount > balance} onClick={handleSubmit(closeModal)}>List</button>
         </footer>
       </div>
     </div>
