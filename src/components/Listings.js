@@ -6,6 +6,7 @@ import { parseEther } from '@ethersproject/units';
 import config from '../config';
 
 import { navigate } from 'gatsby-link';
+import BuyButton from "./BuyButton";
 
 export default function Listings( { readProvider, walletProvider, id, listingsWithFulfillability, walletAddress, userBalance, userAvailableAmount, onError, onUpdate }) {
     const zangAddress = config.contractAddresses.v1.zang;
@@ -78,32 +79,6 @@ export default function Listings( { readProvider, walletProvider, id, listingsWi
         }
         catch (e) {
             console.log(e);
-            onError(e);
-        }
-    }
-
-    const buy = async (listingId, amount, price) => {
-        if (!id || !readProvider) return;
-        onError(null);
-
-        const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
-        const contractWithSigner = contract.connect(walletProvider.getSigner());
-
-        // Convert to wei
-        console.log('Original price:', price)
-        price = parseEther(price);
-        console.log('Converted:', price.toString())
-
-        try {
-            const transaction = contractWithSigner.buyToken(id, listingId, amount, { value: price.mul(amount) });
-
-            if (transaction) {
-                await transaction.wait(1);
-            }
-
-            navigate('/vault')
-        }
-        catch (e) {
             onError(e);
         }
     }
@@ -188,7 +163,7 @@ export default function Listings( { readProvider, walletProvider, id, listingsWi
                                         <button onClick={() => delist(listing.id)}>Delist</button>
                                     </div>
                                 ) : (
-                                    <button onClick={() => buy(listing.id, listing.amount, listing.price)}>Buy</button>
+                                    <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} fulfillability={listing.fulfillability} onError={onError} />
                                 )
                                 ) : <></>
                             }
