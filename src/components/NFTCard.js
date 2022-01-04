@@ -96,7 +96,6 @@ export default function NFTCard({ id }) {
             // TODO: Set error
             console.log(e)
         }
-        
     }
 
     const queryTokenContent = async () => {
@@ -114,7 +113,6 @@ export default function NFTCard({ id }) {
             // TODO: Set error
             console.log(e)
         }
-
     }
 
     const shorten = (text, maxLength) => {
