@@ -135,8 +135,6 @@ export default function NFTPage( { location }) {
         }
     }
 
-    
-
     const changeId = (right) => () => {
         if (right) {
             navigate('/nft?id=' + (parseInt(id) + 1));
@@ -312,10 +310,8 @@ export default function NFTPage( { location }) {
 
         try {
             for (const listing of activeListings()) {
-                if (!listingSellerBalances[listing.seller]) {
-                    const promise = updateSellerBalance(listing.seller);
-                    promises.push(promise);
-                }
+                const promise = updateSellerBalance(listing.seller);
+                promises.push(promise);
             }
             
             await Promise.all(promises);
@@ -332,7 +328,7 @@ export default function NFTPage( { location }) {
 
     useEffect(queryListings, [id, walletAddress])
     useEffect(queryUserBalance, [id, walletAddress])
-    useEffect(queryListingSellerBalances, [id, readProvider])
+    useEffect(queryListingSellerBalances, [id, readProvider, listings])
 
     return (
         <div>
@@ -391,7 +387,7 @@ export default function NFTPage( { location }) {
                         <div>
                             <p>Owned: {userBalance()}</p>
                             { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
-                            <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} />
+                            <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
                         </div>
                     ) : <></>
                 }
