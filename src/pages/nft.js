@@ -180,8 +180,8 @@ export default function NFTPage( { location }) {
     useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryRoyaltyInfo(), [id, readProvider])
 
-
     // === Listing info ===
+
     const [listings, setListings] = useState([])
     const [listingSellerBalances, setListingSellerBalances] = useState({});
 
@@ -189,8 +189,30 @@ export default function NFTPage( { location }) {
         return listings.filter(listing => parseInt(listing.seller, 16) != 0)
     }
 
-    const sortedListings = () => {
-        return [...activeListings()].sort((a, b) => a.price - b.price)
+    const listingGroups = () => {
+        const groups = {};
+
+        for (const listing of activeListings()) {
+            const seller = listing.seller;
+            if (!groups[seller]) {
+                groups[seller] = [];
+            }
+            groups[seller].push(listing);
+        }
+
+        const newGroups = []
+
+        for (const [seller, _listings] of Object.entries(groups)) {
+            _listings.sort((a, b) => a.price - b.price)
+
+            newGroups.push({
+                seller,
+                listings: _listings,
+                sellerBalance: listingSellerBalances[seller] // undefined means that it's not available yet
+            })
+        }
+
+        return newGroups;
     }
 
     const addressBalance = (address) => {
@@ -221,27 +243,6 @@ export default function NFTPage( { location }) {
 
     const userAvailableAmount = () => {
         return addressAvailableAmount(walletAddress);
-    }
-
-    const listingsWithFulfillability = () => {
-        const balances = {...listingSellerBalances};
-
-        const newListings = [];
-
-        for (const listing of sortedListings()) {
-            const balance = balances[listing.seller] || 0;
-            const fulfillability = Math.max(Math.min(listing.amount, balance), 0);
-            balances[listing.seller] -= listing.amount;
-
-            const newListing = {
-                ...listing,
-                fulfillability
-            }
-
-            newListings.push(newListing);
-        }
-
-        return newListings;
     }
 
     const queryListings = async () => {
@@ -378,7 +379,7 @@ export default function NFTPage( { location }) {
                     onUpdate={onUpdate}
                     userBalance={userBalance()}
                     userAvailableAmount={userAvailableAmount()}
-                    listingsWithFulfillability={listingsWithFulfillability()}
+                    listingGroups={listingGroups()}
                 />
                 {
                     readProvider && walletProvider && userBalance() ? (

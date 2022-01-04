@@ -14,7 +14,9 @@ import { useReadProvider, useWalletProvider } from '../common/provider';
 
 import BuyModal from './BuyModal';
 
-export default function BuyButton ({ nftId, listingId, price, maxAmount, fulfillability, onError }) {
+export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerBalance, onError }) {
+    sellerBalance = sellerBalance || 0;
+
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
@@ -51,7 +53,7 @@ export default function BuyButton ({ nftId, listingId, price, maxAmount, fulfill
     return (
         <div>
             <button onClick={() => setBuyModalOpen(true)}>Buy</button>
-            <BuyModal isOpen={buyModalOpen} setIsOpen={setBuyModalOpen} onClose={buy} maxAmount={maxAmount} fulfillability={fulfillability} price={price} />
+            <BuyModal isOpen={buyModalOpen} setIsOpen={setBuyModalOpen} onClose={buy} maxAmount={maxAmount} sellerBalance={sellerBalance} price={price} />
         </div>
         
     )

@@ -19,14 +19,14 @@ const defaultValues = {
     amount: 1
 }
 
-export default function BuyModal ({ isOpen, setIsOpen, onClose, maxAmount, fulfillability, price }) {
-    const buySchema = schemas.buy(Math.min(maxAmount, fulfillability)).messages({
-        "number.max": `"Amount" must be at most the ${fulfillability == maxAmount ? 'listed' : 'fulfillable'} amount (${maxAmount})`
-    })
+export default function BuyModal ({ isOpen, setIsOpen, onClose, maxAmount, sellerBalance, price }) {
+    console.log('Seller balance: ', sellerBalance);
 
-    const { register, formState: { isDirty, isValid, errors }, handleSubmit, watch } = useForm({ defaultValues, mode: 'onChange', resolver: joiResolver(buySchema)});
+    const { register, formState: { isDirty, isValid, errors }, handleSubmit, watch } = useForm({ defaultValues, mode: 'onChange', resolver: joiResolver(schemas.buy)});
 
     const watchAmount = watch('amount', defaultValues.amount);
+
+    const validAmount = () => watchAmount <= Math.min(maxAmount, sellerBalance);
 
     const closeModal = (data) => {
         if (data) {
@@ -46,13 +46,21 @@ export default function BuyModal ({ isOpen, setIsOpen, onClose, maxAmount, fulfi
             </header>
             <section className="modal-card-body">
             <p>Listed quantity: {maxAmount}</p>
-            { fulfillability != maxAmount ? <p>Fulfillable quantity: {fulfillability}</p> : <></>}
+            { sellerBalance < maxAmount ? <p>Seller's balance: {sellerBalance}</p> : <></>}
             <p>Price: {price}</p>
             <ValidatedInput label="Amount" name="amount" type="number" step="1" errors={errors} register={register} />
             <p>Total: { watchAmount && price && price > 0 ? FixedNumber.from(watchAmount).mulUnsafe(FixedNumber.from(price)).toString() : '0' } ETH</p>
+            { validAmount() ? <></> : <p>
+                Error:
+                { watchAmount < maxAmount ? 
+                    `Cannot buy more tokens than the seller's balance (${sellerBalance})` : 
+                    `Cannot buy more tokens than the listed amount (${maxAmount})`
+                }
+                </p>
+            }
             </section>
             <footer className="modal-card-foot">
-            <button className="button" disabled={!isValid && isDirty} onClick={handleSubmit(closeModal)}>Buy</button>
+            <button className="button" disabled={!isValid && isDirty && validAmount()} onClick={handleSubmit(closeModal)}>Buy</button>
             </footer>
         </div>
         </div>

@@ -5,20 +5,23 @@ import { ListModal } from '.';
 import { parseEther } from '@ethersproject/units';
 import config from '../config';
 
-import { navigate } from 'gatsby-link';
 import BuyButton from "./BuyButton";
 
-export default function Listings( { readProvider, walletProvider, id, listingsWithFulfillability, walletAddress, userBalance, userAvailableAmount, onError, onUpdate }) {
+export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onError, onUpdate }) {
     const zangAddress = config.contractAddresses.v1.zang;
     const zangABI = v1.zang;
 
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
-
     const [listModalOpen, setListModalOpen] = useState(false)
 
     const [isApproved, setIsApproved] = useState(false);
+
+    const userListingGroup = () => (listingGroups || []).find(group => group.seller === walletAddress);
+    const otherListingGroups = () => (listingGroups || []).filter(group => group.seller !== walletAddress);
+
+    const totalListedAmount = (group) => group.listings.reduce((acc, listing) => acc + listing.amount, 0);
 
     const list = async (amount, price) => {
         console.log('Amount: ' + amount + ' Price: ' + price)
@@ -28,7 +31,6 @@ export default function Listings( { readProvider, walletProvider, id, listingsWi
         }
 
         if (!id || !walletProvider) return;
-        // setError(null);
 
         const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
@@ -39,8 +41,6 @@ export default function Listings( { readProvider, walletProvider, id, listingsWi
 
             console.log('Listed')
 
-            // queryListings();
-            // queryUserBalance();
             if (onUpdate) {
                 onUpdate();
             }
@@ -123,16 +123,6 @@ export default function Listings( { readProvider, walletProvider, id, listingsWi
         }
     }
 
-    const formatError = (e) => {
-        let formatted = e.message
-        
-        if (e.data?.message) {
-            formatted += ' - ' + e.data.message
-        }
-
-        return formatted
-    }
-
     useEffect(checkApproval, [id, walletAddress])
 
     return (
@@ -150,23 +140,53 @@ export default function Listings( { readProvider, walletProvider, id, listingsWi
                 ) : <></>
             }
             <div>
-                <h2>Listings</h2>
                 {
-                    listingsWithFulfillability.map((listing, index) => (
-                        <div key={index} className="box">
-                            <p>{listing.seller} {listing.amount} {listing.price} {listing.fulfillability}</p>
-                            { walletProvider ? (
-                                listing.seller == walletAddress ? (
-                                    <div>
-
-                                        <button>Edit</button>
-                                        <button onClick={() => delist(listing.id)}>Delist</button>
-                                    </div>
-                                ) : (
-                                    <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} fulfillability={listing.fulfillability} onError={onError} />
-                                )
+                    userListingGroup() ? (
+                        <div>
+                            <h2>Your Listings</h2>
+                            <div>
+                                {
+                                    userListingGroup().listings.map(listing => (
+                                        <div key={listing.id}>
+                                            <div>
+                                                <p>{listing.amount} {listing.token} @ {listing.price}</p>
+                                                <button onClick={() => delist(listing.id)}>Delist</button>
+                                                <button>Edit</button>
+                                            </div>
+                                        </div>
+                                    ))
+                                }
+                            </div>
+                        </div>
+                    ) : <></>
+                }
+                <h2>{userListingGroup() ? 'Other Listings' : 'Listings'}</h2>
+                {
+                    otherListingGroups().map((group, index) => (
+                        <div key={'group' + index} className="box">
+                            <p>{group.seller}</p>
+                            { 
+                                group.sellerBalance !== undefined && group.sellerBalance < totalListedAmount(group) ? (
+                                    <p>{ group.sellerBalance == 0 ? 'Unfulfillable' : `Partially fulfillable (${group.sellerBalance} available)` }</p>
                                 ) : <></>
                             }
+
+                            <div>
+                                {
+                                    group.listings.map(listing => (
+                                        <div key={listing.id}>
+                                            <div>
+                                                <p>{listing.amount} {listing.token} @ {listing.price}</p>
+
+                                                { walletProvider ? (
+                                                    <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onError={onError} />
+                                                ) : <></>
+                                                }
+                                            </div>
+                                        </div>
+                                    ))
+                                }
+                            </div>
                         </div>
                     ))
                 }

@@ -32,13 +32,13 @@ const mint = Joi.object().keys({
     textType: Joi.valid('text/plain', 'text/markdown').required()
 })
 
-const transfer = (max) => Joi.object().keys({
+const transfer = Joi.object().keys({
     to: _customRecipient.label('Address'),
-    amount: Joi.number().integer().min(1).max(max).empty('').required().label('Amount')
+    amount: Joi.number().integer().min(1).empty('').required().label('Amount')
 })
 
-const buy = (max) => Joi.object().keys({
-    amount: Joi.number().integer().min(1).max(max).empty('').required().label('Amount')
+const buy = Joi.object().keys({
+    amount: Joi.number().integer().min(1).empty('').required().label('Amount')
 })
 
 export default {

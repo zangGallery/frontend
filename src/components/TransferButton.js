@@ -45,7 +45,6 @@ export default function TransferButton ( { id, walletAddress, balance, available
 
     return (
         <div>
-            <p>Balance: {}</p>
             <button onClick={() => setTransferModalOpen(true)}>Gift</button>
             <TransferModal isOpen={transferModalOpen} setIsOpen={setTransferModalOpen} onClose={transfer} balance={balance} availableAmount={availableAmount} />
         </div>

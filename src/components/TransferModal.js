@@ -20,10 +20,7 @@ const defaultValues = {
 }
 
 export default function TransferModal ({ isOpen, setIsOpen, onClose, balance, availableAmount }) {
-    const transferSchema = schemas.transfer(balance).messages({
-        "number.max": `"Amount" must be at most the available balance (${availableAmount})`
-    });
-    const { register, formState: { isDirty, isValid, errors }, handleSubmit, watch } = useForm({ defaultValues, mode: 'onChange', resolver: joiResolver(transferSchema)});
+    const { register, formState: { isDirty, isValid, errors }, handleSubmit, watch } = useForm({ defaultValues, mode: 'onChange', resolver: joiResolver(schemas.transfer)});
     const watchAmount = watch('amount');
 
     const closeModal = (data) => {
@@ -50,14 +47,19 @@ export default function TransferModal ({ isOpen, setIsOpen, onClose, balance, av
                 <ValidatedInput label="To" name="to" type="string" errors={errors} register={register} />
                 { watchAmount > availableAmount && watchAmount <= balance ? (
                     <p>
-                        Warning: You only have {availableAmount} "free" (not tied to listings) token{availableAmount > 1 ? 's' : ''} to gift.
-                        Proceeding will use {watchAmount - availableAmount} token{watchAmount - availableAmount > 1 ? 's' : ''} tied to existing listings,
+                        Warning: You only have {availableAmount} "free" (not tied to listings) token{availableAmount == 1 ? '' : 's'}.
+                        Proceeding will use {watchAmount - availableAmount} token{watchAmount - availableAmount == 1 ? '' : 's'} tied to existing listings,
                         making some listings unfulfillable.
                     </p>
                 ) : <></>}
+                {
+                    watchAmount > balance ? (
+                        <p>Error: Cannot gift more tokens than you own ({balance})</p>
+                    ) : <></>
+                }
             </section>
             <footer className="modal-card-foot">
-            <button className="button" disabled={!isValid && isDirty} onClick={handleSubmit(closeModal)}>Gift</button>
+            <button className="button" disabled={(!isValid && isDirty) || watchAmount > balance} onClick={handleSubmit(closeModal)}>Gift</button>
             </footer>
         </div>
         </div>
