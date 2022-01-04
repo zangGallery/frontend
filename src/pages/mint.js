@@ -70,19 +70,31 @@ export default function Mint() {
       effectiveRoyaltyRecipient = data.customRecipient;
 
       if (effectiveRoyaltyRecipient.includes('.eth')) {
-        const resolvedAddress = await mainnetProvider.resolveName(effectiveRoyaltyRecipient);
+        let resolvedAddress = null;
+        try {
+          resolvedAddress = await mainnetProvider.resolveName(effectiveRoyaltyRecipient);
+        } catch (e) {
+          setTransactionState({ status: 'error', error: e });
+          return;
+        }
 
         if (resolvedAddress) {
           effectiveRoyaltyRecipient = resolvedAddress;
         }
         else {
-          setTransactionState({ status: 'error', error: 'Could not resolve ENS name.' });
+          setTransactionState({ status: 'error', error: { message: 'Could not resolve ENS name.' } });
           return;
         }
       }
     }
     else {
-      effectiveRoyaltyRecipient = await walletProvider.getSigner().getAddress();
+      try {
+        effectiveRoyaltyRecipient = await walletProvider.getSigner().getAddress();
+      }
+      catch (e) {
+        setTransactionState({ status: 'error', error: e });
+        return;
+      }
     }
 
     try {

@@ -107,11 +107,16 @@ export default function NFTPage( { location }) {
         if (!tokenData?.textURI) return;
         var parsedTextURI = tokenData.textURI.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
         parsedTextURI = parsedTextURI.replace("text/markdown;charset=UTF-8", "text/markdown");
-        const response = await fetch(parsedTextURI);
-        const parsedText = await response.text()
-        console.log("content: "+parsedTextURI)
-        setTokenType(response.headers.get("content-type"))
-        setTokenContent(parsedText)
+        try {
+            const response = await fetch(parsedTextURI);
+            const parsedText = await response.text()
+            console.log("content: "+parsedTextURI)
+            setTokenType(response.headers.get("content-type"))
+            setTokenContent(parsedText)
+        } catch (e) {
+            setContractError(e);
+        }
+        
     }
 
     const queryRoyaltyInfo = async () => {
@@ -312,11 +317,11 @@ export default function NFTPage( { location }) {
                     promises.push(promise);
                 }
             }
+            
+            await Promise.all(promises);
         } catch (e) {
             setContractError(e);
         }
-
-        await Promise.all(promises);
     }
 
     const onUpdate = () => {
