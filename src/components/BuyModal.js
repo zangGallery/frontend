@@ -35,6 +35,18 @@ export default function BuyModal ({ isOpen, setIsOpen, onClose, maxAmount, selle
         setIsOpen(false);
     }
 
+    const total = () => {
+        if (!watchAmount || price <= 0) {
+            return undefined;
+        }
+        try {
+            return FixedNumber.from(watchAmount).mulUnsafe(FixedNumber.from(price)).toString()
+        } catch (e) {
+            console.log('Error: ', e);
+            return undefined;
+        }
+    }
+
     if (!isOpen) return <></>
 
     return (
@@ -48,8 +60,8 @@ export default function BuyModal ({ isOpen, setIsOpen, onClose, maxAmount, selle
             <p>Listed quantity: {maxAmount}</p>
             { sellerBalance < maxAmount ? <p>Seller's balance: {sellerBalance}</p> : <></>}
             <p>Price: {price}</p>
-            <ValidatedInput label="Amount" name="amount" type="number" step="1" errors={errors} register={register} />
-            <p>Total: { watchAmount && price && price > 0 ? FixedNumber.from(watchAmount).mulUnsafe(FixedNumber.from(price)).toString() : '0' } ETH</p>
+            <ValidatedInput label="Amount" name="amount" type="number" step="1" min="1" errors={errors} register={register} />
+            <p>Total: {total() ? `${total()} ETH` : ''}</p>
             { validAmount() ? <></> : <p>
                 Error:
                 { watchAmount < maxAmount ? 
