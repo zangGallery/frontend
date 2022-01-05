@@ -61,7 +61,7 @@ export default function EditButton ({ nftId, listingId, availableAmount, balance
 
     return (
         <div>
-            <p className="has-text-info is-clickable"><FontAwesomeIcon icon={editIcon} prefix onClick={() => setBuyModalOpen(true)}/></p>
+            <p className="has-text-info is-clickable"><FontAwesomeIcon icon={editIcon} onClick={() => setBuyModalOpen(true)}/></p>
             <EditModal isOpen={buyModalOpen} setIsOpen={setBuyModalOpen} onClose={edit} balance={balance} availableAmount={availableAmount} oldAmount={oldAmount} />
         </div>
 
