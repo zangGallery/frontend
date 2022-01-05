@@ -71,8 +71,8 @@ export default function Home() {
                     </p>
                   }
                 >
-                  <div className="is-flex is-flex-direction-row is-flex-wrap-wrap" style={{display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                {nfts.map((id) => <NFTCard id={id} key={id} />)}
+                <div className="is-flex is-flex-direction-row is-flex-wrap-wrap" style={{display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  {nfts.map((id) => <NFTCard id={id} key={id} />)}
                 </div>
                 </InfiniteScroll>
               </div>

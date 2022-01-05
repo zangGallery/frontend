@@ -34,7 +34,7 @@ export default function TransferButton ( { id, walletAddress, balance, available
                 if (onUpdate) {
                     onUpdate()
                 }
-                console.log('Listed')
+                console.log('Transferred')
             }
         }
         catch (e) {
@@ -45,7 +45,7 @@ export default function TransferButton ( { id, walletAddress, balance, available
 
     return (
         <div>
-            <button onClick={() => setTransferModalOpen(true)}>Gift</button>
+            <button className="button is-success" onClick={() => setTransferModalOpen(true)}>Gift</button>
             <TransferModal isOpen={transferModalOpen} setIsOpen={setTransferModalOpen} onClose={transfer} balance={balance} availableAmount={availableAmount} />
         </div>
     )

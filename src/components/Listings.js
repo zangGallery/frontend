@@ -9,6 +9,9 @@ import BuyButton from "./BuyButton";
 import FulfillabilityInfo from "./FulfillabilityInfo";
 import EditButton from "./EditButton";
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+
 export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onError, onUpdate }) {
     const zangAddress = config.contractAddresses.v1.zang;
     const zangABI = v1.zang;
@@ -146,17 +149,15 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                 {
                     userListingGroup() ? (
                         <div>
-                            <h2>Your Listings</h2>
+                            <h4 className="title is-4 m-0 mt-2">Your Listings</h4>
                             <div>
                                 <FulfillabilityInfo group={userListingGroup()} />
                                 {
                                     userListingGroup().listings.map(listing => (
-                                        <div key={listing.id}>
-                                            <div>
-                                                <p>{listing.amount} {listing.token} @ {listing.price}</p>
-                                                <button className="button is-danger" onClick={() => delist(listing.id)}>Delist</button>
-                                                <EditButton nftId={id} listingId={listing.id} balance={userBalance} onError={onError} onUpdate={onUpdate} oldAmount={listing.amount} availableAmount={userAvailableAmount} />
-                                            </div>
+                                        <div key={listing.id} className="is-flex" >
+                                            <p style={{width: '6em'}}>{listing.amount} {listing.token} @ {listing.price}Ξ</p>
+                                            <EditButton nftId={id} listingId={listing.id} balance={userBalance} onError={onError} onUpdate={onUpdate} oldAmount={listing.amount} availableAmount={userAvailableAmount} />
+                                            <p className="has-text-danger is-clickable"><FontAwesomeIcon icon={faTrashAlt} onClick={() => delist(listing.id)}/></p>
                                         </div>
                                     ))
                                 }
@@ -164,20 +165,22 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                         </div>
                     ) : <></>
                 }
-                <h2>{userListingGroup() ? 'Other Listings' : 'Listings'}</h2>
+                <h4 className="title is-4 mt-2">{userListingGroup() ? 'Other Listings' : 'Listings'}</h4>
                 {
                     otherListingGroups().length > 0 ?
                         otherListingGroups().map((group, index) => (
                             <div key={'group' + index} className="box">
-                                <p>{group.seller}</p>
+                                <p>Seller: {group.seller}</p>
                                 <FulfillabilityInfo group={group} />
 
                                 <div>
                                     {
                                         group.listings.map(listing => (
                                             <div key={listing.id}>
-                                                <div>
-                                                    <p>{listing.amount} {listing.token} @ {listing.price}</p>
+                                                <div className="mt-4">
+                                                    <div style={{width: '5em'}}>
+                                                        <p>{listing.amount} {listing.token} @ {listing.price}Ξ</p>
+                                                    </div>
 
                                                     { walletProvider ? (
                                                         <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onError={onError} onUpdate={onUpdate} />

@@ -6,15 +6,17 @@ import { v1 } from '../common/abi';
 
 import { parseEther } from '@ethersproject/units';
 
-import { useReadProvider, useWalletProvider } from '../common/provider';
+import { useWalletProvider } from '../common/provider';
 
 import EditModal from './EditModal';
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit as editIcon } from '@fortawesome/free-solid-svg-icons';
 
 export default function EditButton ({ nftId, listingId, availableAmount, balance, onError, onUpdate, oldAmount }) {
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
-    const [readProvider, setReadProvider] = useReadProvider()
     const [walletProvider, setWalletProvider] = useWalletProvider()
 
     const [buyModalOpen, setBuyModalOpen] = useState(false);
@@ -59,7 +61,7 @@ export default function EditButton ({ nftId, listingId, availableAmount, balance
 
     return (
         <div>
-            <button onClick={() => setBuyModalOpen(true)}>Edit</button>
+            <p className="has-text-info is-clickable"><FontAwesomeIcon icon={editIcon} prefix onClick={() => setBuyModalOpen(true)}/></p>
             <EditModal isOpen={buyModalOpen} setIsOpen={setBuyModalOpen} onClose={edit} balance={balance} availableAmount={availableAmount} oldAmount={oldAmount} />
         </div>
 

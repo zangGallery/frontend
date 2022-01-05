@@ -342,16 +342,16 @@ export default function NFTPage( { location }) {
                 { lastNFTId && id == lastNFTId ? <></> : <a style={styles.arrow} className="icon" role="button" onClick={changeId(true)}>{'\u25b6'}</a> }
             </div>
             <div className="columns m-4">
-                <div className="column">
+                <div className="column" style={{overflow: 'hidden'}}>
                     { readProvider ? (
                         contractError ? <p>Could not retrieve contract info : {contractError.message}.</p> : (
                             <div>
                                 <div className="box">
-                                {tokenType && tokenContent ? (
-                                    tokenType == 'text/markdown' ? (
-                                        <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
-                                    ) : <pre className="nft-plain">{tokenContent}</pre>
-                                ) : <></>}
+                                    {tokenType && tokenContent ? (
+                                        tokenType == 'text/markdown' ? (
+                                            <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
+                                        ) : <pre className="nft-plain">{tokenContent}</pre>
+                                    ) : <></>}
                                 </div>
                             </div>
                         )
@@ -373,7 +373,7 @@ export default function NFTPage( { location }) {
                 
             </div>
 
-            <div className="columns">
+            <div className="columns ml-2">
                 <div className="column">
                     <Listings
                         readProvider={readProvider}

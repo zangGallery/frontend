@@ -47,6 +47,7 @@ export default function WalletButton() {
         try {
             wallet = await web3Modal.connect();
         } catch (e) {
+            // TODO: Set error
             console.log('Error connecting to wallet:', e);
             return;
         }
@@ -55,6 +56,7 @@ export default function WalletButton() {
         delete wallet._events.accountsChanged;
         delete wallet._events.chainChanged;
         delete wallet._events.disconnect;
+        delete wallet._events.network;
 
         // The only remaining one is the default connect eventHandler
         wallet._eventsCount = 1;
@@ -80,17 +82,31 @@ export default function WalletButton() {
         wallet.on('accountsChanged', handleChange)
         wallet.on('chainChanged', handleChange)
 
+        // ethers.js recommends refreshing the page when a user changes network
+        wallet.on("network", (newNetwork, oldNetwork) => {
+            // When a Provider makes its initial connection, it emits a "network"
+            // event with a null oldNetwork along with the newNetwork. So, if the
+            // oldNetwork exists, it represents a changing network
+            if (oldNetwork) {
+                window.location.reload();
+            }
+        });
+
         const newProvider = new ethers.providers.Web3Provider(wallet);
         setReadProvider(newProvider);
         setWalletProvider(newProvider);
 
-        const walletAddress = await newProvider.getSigner().getAddress();
-        const _ensAddress = await mainnetProvider.lookupAddress(walletAddress);
-
-        setEnsAddress(_ensAddress);
-
-        const _ensAvatar = await mainnetProvider.getAvatar(_ensAddress);
-        setEnsAvatar(_ensAvatar);
+        try {
+            const walletAddress = await newProvider.getSigner().getAddress();
+            const _ensAddress = await mainnetProvider.lookupAddress(walletAddress);
+            setEnsAddress(_ensAddress);
+            
+            const _ensAvatar = await mainnetProvider.getAvatar(_ensAddress);
+            setEnsAvatar(_ensAvatar);
+        } catch (e) {
+            // TODO: Set error
+            console.log(e);
+        }
     }
 
     return (
@@ -99,9 +115,13 @@ export default function WalletButton() {
             <a className="button is-link" style={styles.walletButton} onClick={connectWallet}>{
             walletProvider ? (
                 <div style={styles.ensInfoContainer}>
-                    <div className="image" style={styles.avatar}>
-                        <img className="is-rounded is-1by1" src={ensAvatar || ''} />
-                    </div>
+                    {
+                        ensAvatar ? (
+                            <div className="image" style={styles.avatar}>
+                                <img className="is-rounded is-1by1" src={ensAvatar || ''} />
+                            </div>
+                        ) : <></>
+                    }
                     <p>{ensAddress ? ensAddress : 'Change Wallet'}</p>
                 </div>
                 

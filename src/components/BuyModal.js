@@ -54,7 +54,7 @@ export default function BuyModal ({ isOpen, setIsOpen, onClose, maxAmount, selle
         <div className="modal-background" onClick={() => closeModal(null, null)} />
         <div className="modal-card" style={styles.modalCard}>
             <header className="modal-card-head">
-            <p className="modal-card-title" style={styles.modalCardTitle}>Buy</p>
+            <p className="modal-card-title" style={styles.modalCardTitle}>Buy NFT</p>
             </header>
             <section className="modal-card-body">
             <p>Listed quantity: {maxAmount}</p>

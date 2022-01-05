@@ -11,7 +11,7 @@ import rehypeSanitize from "rehype-sanitize";
 const styles = {
     card: {
         width: '52ch',
-        maxWidth: '52ch'
+        maxWidth: '90%'
     },
     description: {
         display: '-webkit-box',
@@ -131,7 +131,7 @@ export default function NFTCard({ id }) {
                 {tokenType && tokenContent ? (
                     tokenType == 'text/markdown' ? (
                         <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
-                    ) : <pre className="nft-plain">{tokenContent}</pre>
+                    ) : <pre className="nft-plain" style={{overflow: 'hidden'}}>{tokenContent}</pre>
                 ) : <></>}
             </div>
             <div style={styles.cardShadow}></div>
