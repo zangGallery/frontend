@@ -70,9 +70,15 @@ const edit = Joi.object().keys({
     price: Joi.string().custom(etherValidator('Price')).empty('').label('Price')
 })
 
+const list = Joi.object().keys({
+    amount: Joi.number().min(1).empty('').required().label('Amount'),
+    price: Joi.string().custom(etherValidator('Price')).empty('').required().label('Price')
+})
+
 export default {
     buy,
     edit,
+    list,
     mint,
     transfer
 }
