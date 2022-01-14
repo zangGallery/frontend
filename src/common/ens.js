@@ -45,7 +45,7 @@ const useEns = () => {
         }));
     }
 
-    const getEns = (address) => {
+    const lookupEns = (address) => {
         if (!address) return address;
 
         const update = addressShouldBeUpdated(address);
@@ -61,7 +61,7 @@ const useEns = () => {
         return ensInfo[address]?.value;
     }
 
-    const getEnsAsync = async (address, forceUpdate) => {
+    const lookupEnsAsync = async (address, forceUpdate) => {
         if (!address) return address;
 
         if (forceUpdate) {
@@ -83,7 +83,7 @@ const useEns = () => {
         return ensAddress;
     }
 
-    return { getEns, getEnsAsync, invalidateEns };
+    return { lookupEns, lookupEnsAsync, invalidateEns };
 }
 
 export {

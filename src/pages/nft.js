@@ -42,7 +42,7 @@ export default function NFTPage( { location }) {
     const { id } = queryString.parse(location.search);
     const [readProvider, setReadProvider] = useReadProvider()
     const [walletProvider, setWalletProvider] = useWalletProvider()
-    const { getEns } = useEns()
+    const { lookupEns } = useEns()
 
     // === NFT Info ===
 
@@ -355,7 +355,7 @@ export default function NFTPage( { location }) {
                 { 
                     <div className="column">
                         <h1 className="title">{tokenData?.name || ''}</h1>
-                        <p className="subtitle">{tokenAuthor ? `by ${getEns(tokenAuthor) || tokenAuthor}` : ''}</p>
+                        <p className="subtitle">{tokenAuthor ? `by ${lookupEns(tokenAuthor) || tokenAuthor}` : ''}</p>
                         <p className="is-italic">{tokenData?.description || ''}</p>
                         {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
                         <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>

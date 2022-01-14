@@ -37,7 +37,7 @@ const styles = {
 }
 
 export default function NFTCard({ id }) {
-    const { getEns } = useEns();
+    const { lookupEns } = useEns();
     const [tokenURI, setTokenURI] = useState(null);
     const [tokenData, setTokenData] = useState(null);
     const [tokenAuthor, setTokenAuthor] = useState(null);
@@ -117,7 +117,7 @@ export default function NFTCard({ id }) {
     useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryTokenContent(), [tokenData])
 
-    const effectiveTokenAuthor = getEns(tokenAuthor) || tokenAuthor || '...';
+    const effectiveTokenAuthor = lookupEns(tokenAuthor) || tokenAuthor || '...';
 
     return (
         <div className="card m-3 cursor-pointer" style={styles.card} onClick={() => navigate('/nft?id=' + id)}>
