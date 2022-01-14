@@ -1,6 +1,6 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
-import { mainnetProvider, useReadProvider, useWalletProvider } from '../common/provider';
+import { useReadProvider, useWalletProvider } from '../common/provider';
 import config from '../config';
 import { ethers } from 'ethers';
 import { v1 } from '../common/abi';
@@ -10,7 +10,7 @@ import * as queryString from "query-string";
 import MDEditor from "@uiw/react-md-editor"
 import { navigate } from 'gatsby-link';
 import { Helmet } from 'react-helmet';
-import { Header, ListModal, WalletButton } from '../components';
+import { Header } from '../components';
 
 import { formatEther, parseUnits } from '@ethersproject/units';
 
@@ -18,6 +18,7 @@ import "bulma/css/bulma.min.css";
 import '../styles/globals.css'
 import Listings from '../components/Listings';
 import TransferButton from '../components/TransferButton';
+import { useEns } from '../common/ens';
 
 const styles = {
     arrowContainer: {
@@ -41,6 +42,7 @@ export default function NFTPage( { location }) {
     const { id } = queryString.parse(location.search);
     const [readProvider, setReadProvider] = useReadProvider()
     const [walletProvider, setWalletProvider] = useWalletProvider()
+    const { getEns } = useEns()
 
     // === NFT Info ===
 
@@ -49,7 +51,6 @@ export default function NFTPage( { location }) {
     const [tokenType, setTokenType] = useState(null)
     const [tokenContent, setTokenContent] = useState(null)
     const [tokenAuthor, setTokenAuthor] = useState(null)
-    const [tokenAuthorEnsAddress, setTokenAuthorEnsAddress] = useState(null)
     const [royaltyInfo, setRoyaltyInfo] = useState(null)
     const [lastNFTId, setLastNFTId] = useState(null)
 
@@ -77,12 +78,6 @@ export default function NFTPage( { location }) {
         try {
             const author = await contract.authorOf(id);
             setTokenAuthor(author);
-
-            const ensAddress = await mainnetProvider.lookupAddress(author);
-
-            if (ensAddress) {
-                setTokenAuthorEnsAddress(ensAddress);
-            }
         }
         catch (e) {
             setContractError(e);
@@ -362,7 +357,7 @@ export default function NFTPage( { location }) {
                 { 
                     <div className="column">
                         <h1 className="title">{tokenData?.name || ''}</h1>
-                        <p className="subtitle">{tokenAuthor ? `by ${tokenAuthorEnsAddress || tokenAuthor}` : ''}</p>
+                        <p className="subtitle">{tokenAuthor ? `by ${getEns(tokenAuthor) || tokenAuthor}` : ''}</p>
                         <p className="is-italic">{tokenData?.description || ''}</p>
                         {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
                         <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>

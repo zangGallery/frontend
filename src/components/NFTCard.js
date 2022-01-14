@@ -1,12 +1,13 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
-import { mainnetProvider, useReadProvider } from "../common/provider";
+import { useReadProvider } from "../common/provider";
 import config from "../config";
 import { v1 } from "../common/abi";
 import { navigate } from "gatsby-link";
 import MDEditor from "@uiw/react-md-editor"
 import rehypeSanitize from "rehype-sanitize";
+import { useEns } from "../common/ens";
 
 const styles = {
     card: {
@@ -36,6 +37,7 @@ const styles = {
 }
 
 export default function NFTCard({ id }) {
+    const { getEns } = useEns();
     const [tokenURI, setTokenURI] = useState(null);
     const [tokenData, setTokenData] = useState(null);
     const [tokenAuthor, setTokenAuthor] = useState(null);
@@ -69,19 +71,10 @@ export default function NFTCard({ id }) {
             const author = await contract.authorOf(id);
 
             setTokenAuthor(author);
-
-            const ensAddress = await mainnetProvider.lookupAddress(author);
-
-            if (ensAddress) {
-                setTokenAuthor(ensAddress);
-            } else {
-                setTokenAuthor(author);
-            }
         } catch (e) {
             // TODO: Set error
             console.log(e);
         }
-        
     }
 
     const queryTokenData = async () => {
@@ -124,6 +117,8 @@ export default function NFTCard({ id }) {
     useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryTokenContent(), [tokenData])
 
+    const effectiveTokenAuthor = getEns(tokenAuthor) || tokenAuthor || '...';
+
     return (
         <div className="card m-3 cursor-pointer" style={styles.card} onClick={() => navigate('/nft?id=' + id)}>
             
@@ -139,7 +134,7 @@ export default function NFTCard({ id }) {
                 <div className="media">
                     <div className="media-content">
                         <p className="title is-4">{tokenData?.name || '...'}</p>
-                        <p className="subtitle is-6"> by {tokenAuthor || '...'}</p>
+                        <p className="subtitle is-6"> by {effectiveTokenAuthor}</p>
                     </div>
                 </div>
 
