@@ -1,16 +1,25 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { RoutingLink, WalletButton } from ".";
 import { useWalletProvider } from "../common/provider";
 
 export default function Header() {
-    const [isActive, setActive] = React.useState(false)
+    const [isActive, setActive] = useState(false)
     const [walletProvider, setWalletProvider] = useWalletProvider();
-    const [chainId, setChainId] = React.useState(null);
+    const [chainId, setChainId] = useState(null);
 
     useEffect(async () => {
         if (walletProvider) {
             const network = await walletProvider.getNetwork();
-            setChainId(network.chainId);
+
+            const newChainId = network.chainId;
+
+            if (chainId !== null && newChainId !== chainId) {
+                // Chain ID changed. Following ethers.js recommednations, we
+                // should reload the page
+                window.location.reload();
+            }
+
+            setChainId(newChainId);
         }
     }, [walletProvider]);
     
