@@ -275,24 +275,22 @@ export default function NFTPage( { location }) {
         }
     }
 
-    const updateSellerBalance = (sellerAddress) => {
+    const updateSellerBalance = async (sellerAddress) => {
         if (!sellerAddress || !readProvider || !id) return;
 
         const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
 
         try {
-            contract.balanceOf(sellerAddress, id).then((balance) => {
-                console.log('Updating balance of ' + sellerAddress + ' to ' + balance.toNumber())
-                setListingSellerBalances((currentBalance) => ({...currentBalance, [sellerAddress]: balance.toNumber()}));
-            })
+            const balance = await contract.balanceOf(sellerAddress, id)
+            setListingSellerBalances((currentBalance) => ({...currentBalance, [sellerAddress]: balance.toNumber()}));
         }
         catch (e) {
             setContractError(e);
         }
     }
 
-    const queryUserBalance = () => {
-        updateSellerBalance(walletAddress);
+    const queryUserBalance = async () => {
+        await updateSellerBalance(walletAddress);
     }
 
     const queryListingSellerBalances = async () => {
