@@ -11,6 +11,7 @@ import EditButton from "./EditButton";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { useEns } from "../common/ens";
 
 export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onError, onUpdate }) {
     const zangAddress = config.contractAddresses.v1.zang;
@@ -18,6 +19,8 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
 
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
+
+    const { lookupEns } = useEns();
 
     const [listModalOpen, setListModalOpen] = useState(false)
 
@@ -170,7 +173,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                     otherListingGroups().length > 0 ?
                         otherListingGroups().map((group, index) => (
                             <div key={'group' + index} className="box">
-                                <p>Seller: {group.seller}</p>
+                                <p>Seller: { lookupEns(group.seller) || group.seller}</p>
                                 <FulfillabilityInfo group={group} />
 
                                 <div>
