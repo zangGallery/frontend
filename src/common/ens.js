@@ -19,7 +19,6 @@ const useEns = () => {
         setQueries([...queries, address]);
 
         const ensAddress = await mainnetProvider.lookupAddress(address);
-        console.log('Found ENS address:', ensAddress);
 
         setEnsInfo((currentEnsInfo) => ({
             ...currentEnsInfo,
@@ -52,10 +51,7 @@ const useEns = () => {
 
         if (update) {
             // Note: this doesn't block the function's execution
-            console.log('Updating ENS info for', address);
             updateEns(address);
-        } else {
-            console.log('Using cached ENS info for', address);
         }
 
         return ensInfo[address]?.value;
@@ -65,7 +61,6 @@ const useEns = () => {
         if (!address) return address;
 
         if (forceUpdate) {
-            console.log('Forcing update of ENS address for:', address);
             invalidateEns(address);
         }
 
@@ -73,10 +68,8 @@ const useEns = () => {
         const update = addressShouldBeUpdated(address) || forceUpdate;
         let ensAddress = undefined;
         if (update) {
-            console.log('Updating ENS address (async) for:', address);
             ensAddress = await updateEns(address);
         } else {
-            console.log('Using cached ENS address (async) for:', address);
             ensAddress = ensInfo[address]?.value;
         }
 
