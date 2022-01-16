@@ -2398,10 +2398,10 @@
     rehype-slug "5.0.1"
     remark-gfm "3.0.1"
 
-"@uiw/react-md-editor@^3.6.4":
-  version "3.9.2"
-  resolved "https://registry.yarnpkg.com/@uiw/react-md-editor/-/react-md-editor-3.9.2.tgz#d634c42955ee808d5fc76e7d8456551371978b3d"
-  integrity sha512-MA7K/BTTY+ThnKlmqSG55rcKyx3oq1cPIVTiXopC9Y2I/IuUuWyZTWzX/qr4SSIclbkwIYq+HAiKWSqv/ZIOWA==
+"@uiw/react-md-editor@^3.9.3":
+  version "3.9.3"
+  resolved "https://registry.yarnpkg.com/@uiw/react-md-editor/-/react-md-editor-3.9.3.tgz#41c740024fbe3af30496889b1b9d93150f62bd4b"
+  integrity sha512-Us0A4TS8yhWy7tuuxfj0cyfEjAcjvA9+gS/7812teI3WDWsGXHg202Znp9G9mY04cYqrA9W7+8Slijn7BdiOqA==
   dependencies:
     "@babel/runtime" "^7.14.6"
     "@uiw/react-markdown-preview" "3.4.6"
@@ -7251,6 +7251,11 @@ gzip-size@5.1.1:
     duplexer "^0.1.1"
     pify "^4.0.1"
 
+hamt_plus@1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/hamt_plus/-/hamt_plus-1.0.2.tgz#e21c252968c7e33b20f6a1b094cd85787a265601"
+  integrity sha1-4hwlKWjH4zsg9qGwlM2FeHomVgE=
+
 har-schema@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/har-schema/-/har-schema-2.0.0.tgz#a94c2224ebcac04782a0d9035521f24735b7ec92"
@@ -11785,6 +11790,13 @@ readme-badger@^0.3.0:
   integrity sha512-+sMOLSs1imZUISZ2Rhz7qqVd77QtpcAPbGeIraFdgJmijb04YtdlPjGNBvDChTNtLbeQ6JNGQy3pOgslWfaP3g==
   dependencies:
     balanced-match "^1.0.0"
+
+recoil@^0.5.2:
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/recoil/-/recoil-0.5.2.tgz#61fecce3b4dc91127a595586cf7369e2811ba024"
+  integrity sha512-Edibzpu3dbUMLy6QRg73WL8dvMl9Xqhp+kU+f2sJtXxsaXvAlxU/GcnDE8HXPkprXrhHF2e6SZozptNvjNF5fw==
+  dependencies:
+    hamt_plus "1.0.2"
 
 recursive-readdir@2.2.2:
   version "2.2.2"

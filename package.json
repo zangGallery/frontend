@@ -24,7 +24,7 @@
     "@hookform/resolvers": "^2.8.0",
     "@mdx-js/mdx": "^1.6.22",
     "@mdx-js/react": "^1.6.22",
-    "@uiw/react-md-editor": "^3.6.4",
+    "@uiw/react-md-editor": "^3.9.3",
     "@walletconnect/web3-provider": "^1.6.5",
     "assert": "^2.0.0",
     "browserslist": "^4.17.0",
