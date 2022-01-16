@@ -111,6 +111,7 @@ export default function Home() {
             <meta charSet="utf-8" />
             <title>zang</title>
             <meta name="icon" href="/public/favicon.ico" />
+            <meta http-equiv="Content-Security-Policy" content="script-src 'self'"/>
           </Helmet>
             <Header />
             <div className="columns m-4">
