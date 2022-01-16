@@ -34,7 +34,7 @@ const smartItalic = whitespaceSafeCommand(italic, '*', '*');
 const smartStrikethrough = whitespaceSafeCommand(strikethrough, '~~', '~~');
 // Note: Code block words correctly without further intervention
 
-const defaultCommands = getCommands().filter(command => command.name != 'image');
+const defaultCommands = getCommands()
 
 defaultCommands[defaultCommands.findIndex((x) => x.name == 'bold')] = smartBold;
 defaultCommands[defaultCommands.findIndex((x) => x.name == 'italic')] = smartItalic;
