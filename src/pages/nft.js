@@ -335,10 +335,20 @@ export default function NFTPage( { location }) {
                 { id == 1 ? <></> : <a style={styles.arrow} className="icon" role="button" onClick={changeId(false)}>{'\u25c0'}</a>}
                 { lastNFTId && id == lastNFTId ? <></> : <a style={styles.arrow} className="icon" role="button" onClick={changeId(true)}>{'\u25b6'}</a> }
             </div>
+            {
+                contractError ?
+                    (
+                        <article class="message is-danger">
+                            <div class="message-body">
+                                <strong>Error:</strong> {contractError?.message}.
+                            </div>
+                        </article>
+                    ) : <></>
+            }
             <div className="columns m-4">
                 <div className="column" style={{overflow: 'hidden'}}>
                     { readProvider ? (
-                        contractError ? <p>Could not retrieve contract info : {contractError.message}.</p> : (
+                         (
                             <div>
                                 <div className="box">
                                     {tokenType && tokenContent ? (
