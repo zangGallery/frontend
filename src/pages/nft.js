@@ -325,10 +325,7 @@ export default function NFTPage( { location }) {
     return (
         <div>
             <Helmet>
-                <meta charSet="utf-8" />
-                <title>zang</title>
-                <meta name="icon" href="/public/favicon.ico" />
-                <meta http-equiv="Content-Security-Policy" content="script-src 'self'"/>
+                <title>{id !== undefined && id !== null ? `#${id} - zang` : 'zang'}</title>
             </Helmet>
             <Header />
             <div style={styles.arrowContainer}>

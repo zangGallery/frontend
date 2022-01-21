@@ -159,10 +159,7 @@ export default function Mint() {
   return (
     <div>
       <Helmet>
-        <meta charSet="utf-8" />
-        <title>zang</title>
-        <meta name="icon" href="/public/favicon.ico" />
-        <meta http-equiv="Content-Security-Policy" content="script-src 'self'"/>
+        <title>Mint - zang</title>
       </Helmet>
       <Header />
       <div className="columns m-4">

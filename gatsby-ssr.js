@@ -1,6 +1,5 @@
-import React from "react";
-import { RecoilRoot } from "recoil";
+import { wrapPageElement } from "./src/common/preprocess";
 
-export const wrapPageElement = ({ element, props }) => {
-    return <RecoilRoot {...props}>{element}</RecoilRoot>;
+export {
+    wrapPageElement
 }
