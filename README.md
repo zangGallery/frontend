@@ -4,6 +4,6 @@
 
 ## Running a local instance
 
-`git clone https://github.com/zangGallery/frontend`
-`cd frontend`
-`yarn dev`
+1. `git clone https://github.com/zangGallery/frontend`
+2. `cd frontend`
+3. `yarn dev`
