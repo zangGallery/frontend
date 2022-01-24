@@ -6,7 +6,7 @@ export default function TypeTag ({ type, isUri }) {
     }
 
     if (isUri) {
-        type = type.split(';')[0].split(':')[1];
+        type = type.split(',')[0].split(':')[1];
     }
 
     if (type == 'text/plain') {
