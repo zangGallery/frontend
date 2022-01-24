@@ -75,8 +75,6 @@ export default function EditModal ({ isOpen, setIsOpen, onClose, balance, availa
               Amount
             </label>
 
-            { editAmount ? <p> Test</p> : <p>Test 2</p>}
-
             { editAmount ? (
 
               <div className="control">
