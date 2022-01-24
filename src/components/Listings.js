@@ -12,6 +12,7 @@ import EditButton from "./EditButton";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { useEns } from "../common/ens";
+import ListButton from "./ListButton";
 
 export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onError, onUpdate }) {
     const zangAddress = config.contractAddresses.v1.zang;
@@ -22,43 +23,10 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
 
     const { lookupEns } = useEns();
 
-    const [listModalOpen, setListModalOpen] = useState(false)
-
     const [isApproved, setIsApproved] = useState(false);
 
     const userListingGroup = () => (listingGroups || []).find(group => group.seller === walletAddress);
     const otherListingGroups = () => (listingGroups || []).filter(group => group.seller !== walletAddress);
-
-    const list = async (amount, price) => {
-        console.log('Amount: ' + amount + ' Price: ' + price)
-        console.log('ID: ' + id, 'Wallet: ' + walletAddress)
-        if (amount === null || price === null) {
-            return;
-        }
-
-        if (!id || !walletProvider) return;
-
-        const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
-        const contractWithSigner = contract.connect(walletProvider.getSigner());
-        try {
-            console.log('Price:', price)
-            console.log('Parsed price:', parseEther(price).toString())
-            const transaction = await contractWithSigner.listToken(id, parseEther(price), amount);
-
-            if (transaction) {
-                await transaction.wait(1);
-                console.log('Listed')
-
-                if (onUpdate) {
-                    onUpdate();
-                }
-            }
-        }
-        catch (e) {
-            console.log(e)
-            onError(e);
-        }
-    }
 
     const delist = async (listingId) => {
         if (!walletProvider) {
@@ -139,7 +107,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
             {
                 userBalance ? (
                     isApproved ? (
-                        <button className="button is-info" onClick={() => setListModalOpen(true)}>List</button>
+                        <ListButton id={id} userBalance={userBalance} userAvailableAmount={userAvailableAmount} onError={onError} onUpdate={onUpdate} />
                     ) : (
                         <div>
                             <p>Approve the marketplace contract to list</p>
@@ -198,8 +166,6 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                         )) : <></>
                 }
             </div>
-            
-            {<ListModal isOpen={listModalOpen} setIsOpen={setListModalOpen} onClose={list} balance={userBalance} availableAmount={userAvailableAmount} />}
         </div>
     )
 }
