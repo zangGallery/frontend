@@ -1,25 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from 'ethers';
 import { v1 } from '../common/abi';
-import { ListModal } from '.';
-import { parseEther } from '@ethersproject/units';
 import config from '../config';
 
 import BuyButton from "./BuyButton";
 import FulfillabilityInfo from "./FulfillabilityInfo";
 import EditButton from "./EditButton";
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { useEns } from "../common/ens";
 import ListButton from "./ListButton";
+import DelistButton from "./DelistButton";
 
 export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onError, onUpdate }) {
     const zangAddress = config.contractAddresses.v1.zang;
     const zangABI = v1.zang;
 
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
-    const marketplaceABI = v1.marketplace;
 
     const { lookupEns } = useEns();
 
@@ -27,38 +23,6 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
 
     const userListingGroup = () => (listingGroups || []).find(group => group.seller === walletAddress);
     const otherListingGroups = () => (listingGroups || []).filter(group => group.seller !== walletAddress);
-
-    const delist = async (listingId) => {
-        if (!walletProvider) {
-            onError('No wallet provider.')
-            return;
-        }
-        if (!id) {
-            onError('No id specified.')
-            return;
-        }
-
-        const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
-        const contractWithSigner = contract.connect(walletProvider.getSigner());
-
-        try {
-            const transaction = await contractWithSigner.delistToken(id, listingId);
-            
-            if (transaction) {
-                await transaction.wait(1);
-            }
-
-            // queryListings();
-            // queryUserBalance();
-            if (onUpdate) {
-                onUpdate();
-            }
-        }
-        catch (e) {
-            console.log(e);
-            onError(e);
-        }
-    }
 
     const approveMarketplace = async () => {
         if (!walletProvider) {
@@ -128,7 +92,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                                         <div key={listing.id} className="is-flex" >
                                             <p style={{width: '6em'}}>{listing.amount} {listing.token} @ {listing.price}Ξ</p>
                                             <EditButton nftId={id} listingId={listing.id} balance={userBalance} onError={onError} onUpdate={onUpdate} oldAmount={listing.amount} availableAmount={userAvailableAmount} />
-                                            <p className="has-text-danger is-clickable"><FontAwesomeIcon icon={faTrashAlt} onClick={() => delist(listing.id)}/></p>
+                                            <DelistButton nftId={id} listingId={listing.id} onError={onError} onUpdate={onUpdate} />
                                         </div>
                                     ))
                                 }
