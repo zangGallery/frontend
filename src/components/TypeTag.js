@@ -1,6 +1,10 @@
 import React from "react";
 
 export default function TypeTag ({ type, isUri }) {
+    if (!type) {
+        return <></>;
+    }
+
     if (isUri) {
         type = type.split(';')[0].split(':')[1];
     }
@@ -10,6 +14,6 @@ export default function TypeTag ({ type, isUri }) {
     } else if (type == 'text/markdown') {
         return <span class="tag is-link">markdown</span>;
     } else {
-        return <></>;
+        return <span class="tag is-danger">unknown</span>;
     }
 }
