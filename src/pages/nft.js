@@ -19,6 +19,7 @@ import '../styles/globals.css'
 import Listings from '../components/Listings';
 import TransferButton from '../components/TransferButton';
 import { useEns } from '../common/ens';
+import TypeTag from '../components/TypeTag';
 
 const styles = {
     arrowContainer: {
@@ -365,7 +366,7 @@ export default function NFTPage( { location }) {
                         <h1 className="title">{tokenData?.name || ''}</h1>
                         <p className="subtitle mb-1">{tokenAuthor ? `by ${lookupEns(tokenAuthor) || tokenAuthor}` : ''}</p>
                         <div className="has-text-left m-0">
-                            {(tokenData?.textURI.split(';')[0] == "data:text/plain" || (tokenData?.textURI.split(',')[0]) == "data:text/plain") ? <span class="tag is-info">plaintext</span> : <span class="tag is-link">markdown</span>}
+                            <TypeTag type={tokenType} />
                         </div>
                         <p className="is-italic">{tokenData?.description || ''}</p>
                         {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 

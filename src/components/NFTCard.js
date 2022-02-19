@@ -8,6 +8,7 @@ import { navigate } from "gatsby-link";
 import MDEditor from "@uiw/react-md-editor"
 import rehypeSanitize from "rehype-sanitize";
 import { useEns } from "../common/ens";
+import TypeTag from "./TypeTag";
 
 const styles = {
     card: {
@@ -142,7 +143,7 @@ export default function NFTCard({ id }) {
                     {tokenData?.description || '...'}
                 </div>
                 <div className="has-text-right">
-                    {(tokenData?.textURI.split(';')[0] == "data:text/plain" || (tokenData?.textURI.split(',')[0]) == "data:text/plain") ? <span class="tag is-info">plaintext</span> : <span class="tag is-link">markdown</span>}
+                    <TypeTag type={tokenData?.textURI} isUri={true} />
                 </div>
             </div>
         </div>
