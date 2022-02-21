@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ethers } from "ethers";
 import { v1 } from '../common/abi';
 import config from '../config'
-import { mainnetProvider, useWalletProvider } from "../common/provider";
+import { mainnetProvider, useReadProvider, useWalletProvider } from "../common/provider";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import Decimal from "decimal.js";
@@ -32,6 +32,7 @@ export default function Mint() {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false)
   const watchUseCustomRecipient = watch('useCustomRecipient', defaultValues.useCustomRecipient);
   const watchTextType = watch('textType', defaultValues.textType)
+  const [readProvider, setReadProvider] = useReadProvider()
 
   const numConfirmations = 5;
 
@@ -99,8 +100,19 @@ export default function Mint() {
 
     try {
       setTransactionState({ status: 'signing'})
-      const transaction = await contractWithSigner.mint(uri, data.title, data.description, data.editionSize, effectiveRoyaltyPercentage, effectiveRoyaltyRecipient, 0);
+      var options = { gasLimit: 1000000};
 
+      console.log(uri, data.title, data.description, data.editionSize, effectiveRoyaltyPercentage, effectiveRoyaltyRecipient, 0, options)
+      let transaction;
+      try {
+        transaction = await contractWithSigner.mint(uri, data.title, data.description, data.editionSize, effectiveRoyaltyPercentage, effectiveRoyaltyRecipient, 0, options);
+      }
+      catch (err) {
+        const code = err.data.replace('Reverted ','');
+        console.log({err});
+        let reason = ethers.utils.toUtf8String('0x' + code.substr(138));
+        console.log('revert reason:', reason);
+      }
       let receipt = null;
 
       for (let i = 0; i < numConfirmations; i++) {

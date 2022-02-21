@@ -64,6 +64,8 @@ export default function NFTPage( { location }) {
         try {
             const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
             const tURI = await contract.uri(id);
+
+            console.log('URI:', tURI);
       
             setTokenURI(tURI);
         }
@@ -99,8 +101,8 @@ export default function NFTPage( { location }) {
     }
 
     const queryTokenContent = async () => {
-        if (!tokenData?.textURI) return;
-        var parsedTextURI = tokenData.textURI.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
+        if (!tokenData?.text_uri) return;
+        var parsedTextURI = tokenData.text_uri.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
         parsedTextURI = parsedTextURI.replace("text/markdown;charset=UTF-8", "text/markdown");
         try {
             const response = await fetch(parsedTextURI);
