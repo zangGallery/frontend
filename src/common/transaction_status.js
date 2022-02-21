@@ -57,7 +57,7 @@ const useTransactionHelper = () => {
         return transactionCount;
     }
 
-    const handleTransaction = async (transactionFunction, transactionName) => {
+    const handleTransaction = async (transactionFunction, transactionName, rethrow) => {
         const transactionId = newId();
         let transaction;
         try {
@@ -72,22 +72,37 @@ const useTransactionHelper = () => {
                 'hash': transaction.hash
             });
 
-            await transaction.wait(1);
+            const receipt = await transaction.wait(1);
 
             updateTransactionStatus(transactionId, {
                 'status': 'success',
                 'name': transactionName,
                 'hash': transaction.hash
             });
+
+            return {
+                transaction,
+                receipt,
+                success: true
+            };
         }
         catch (e) {
             console.log(e);
             updateTransactionStatus(transactionId, {
                 'status': 'error',
                 'name': transactionName,
-                'hash': transaction.hash,
+                'hash': transaction?.hash,
                 'errorMessage': e.message
             });
+            
+            if (rethrow) {
+                throw e;
+            }
+
+            return {
+                error: e,
+                success: false
+            }
         }
     }
     return handleTransaction;
