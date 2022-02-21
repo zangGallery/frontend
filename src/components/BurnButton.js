@@ -26,8 +26,7 @@ export default function BurnButton ( { id, walletAddress, balance, availableAmou
         const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
         try {
-            // TODO: Update
-            const transaction = await contractWithSigner.burn(walletAddress, id, amount, []);
+            const transaction = await contractWithSigner.burn(walletAddress, id, amount);
 
             if (transaction) {
                 await transaction.wait(1);
