@@ -56,6 +56,7 @@ export default function NFTPage( { location }) {
     const [tokenContent, setTokenContent] = useState(null)
     const [tokenAuthor, setTokenAuthor] = useState(null)
     const [royaltyInfo, setRoyaltyInfo] = useState(null)
+    const [totalSupply, setTotalSupply] = useState(null)
     const [lastNFTId, setLastNFTId] = useState(null)
 
     const [contractError, setContractError] = useState(null);
@@ -136,6 +137,18 @@ export default function NFTPage( { location }) {
         }
     }
 
+    const queryTotalSupply = async () => {
+        if (!id || !readProvider) return;
+        
+        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+
+        try {
+            setTotalSupply(await contract.totalSupply(id));
+        } catch (e) {
+            setContractError(e);
+        }
+    }
+
     const changeId = (right) => () => {
         if (right) {
             navigate('/nft?id=' + (parseInt(id) + 1));
@@ -183,6 +196,7 @@ export default function NFTPage( { location }) {
 
     useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryRoyaltyInfo(), [id, readProvider])
+    useEffect(() => queryTotalSupply(), [id, readProvider])
 
     // === Listing info ===
 
@@ -375,6 +389,7 @@ export default function NFTPage( { location }) {
                             <TypeTag type={tokenType} />
                         </div>
                         <p className="is-italic">{tokenData?.description || ''}</p>
+                        <p>{totalSupply ? `${totalSupply} editions` : ''}</p>
                         {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
                         <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
                         : <></>
