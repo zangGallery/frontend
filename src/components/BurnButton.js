@@ -6,8 +6,10 @@ import config from '../config';
 import { useWalletProvider } from '../common/provider';
 
 import BurnModal from "./BurnModal";
+import { useTransactionHelper } from "../common/transaction_status";
 
 export default function BurnButton ( { id, walletAddress, balance, availableAmount, onUpdate, onError } ) {
+    const handleTransaction = useTransactionHelper();
     const zangAddress = config.contractAddresses.v1.zang;
     const zangABI = v1.zang;
 
@@ -25,20 +27,10 @@ export default function BurnButton ( { id, walletAddress, balance, availableAmou
 
         const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
-        try {
-            const transaction = await contractWithSigner.burn(walletAddress, id, amount);
-
-            if (transaction) {
-                await transaction.wait(1);
-                if (onUpdate) {
-                    onUpdate()
-                }
-                console.log('Burned')
-            }
-        }
-        catch (e) {
-            console.log(e)
-            onError(e);
+        const transactionFunction = async () => await contractWithSigner.burn(walletAddress, id, amount);
+        const { success } = await handleTransaction(transactionFunction, `Burn #${id}`);
+        if (success && onUpdate) {
+            onUpdate();
         }
     }
 

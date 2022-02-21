@@ -10,6 +10,7 @@ import EditButton from "./EditButton";
 import { useEns } from "../common/ens";
 import ListButton from "./ListButton";
 import DelistButton from "./DelistButton";
+import { useTransactionHelper } from "../common/transaction_status";
 
 export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onError, onUpdate }) {
     const zangAddress = config.contractAddresses.v1.zang;
@@ -24,6 +25,8 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
     const userListingGroup = () => (listingGroups || []).find(group => group.seller === walletAddress);
     const otherListingGroups = () => (listingGroups || []).filter(group => group.seller !== walletAddress);
 
+    const handleTransaction = useTransactionHelper();
+
     const approveMarketplace = async () => {
         if (!walletProvider) {
             onError('No wallet provider.');
@@ -36,18 +39,15 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
 
         const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
+        const transactionFunction = async () => await contractWithSigner.setApprovalForAll(marketplaceAddress, true);
 
-        try {
-            const transaction = await contractWithSigner.setApprovalForAll(marketplaceAddress, true);
-            
-            if (transaction) {
-                await transaction.wait(1);
-                setIsApproved(true);
+        const { success } = await handleTransaction(transactionFunction, 'Approve Marketplace');
+
+        if (success) {
+            setIsApproved(true);
+            if (onUpdate) {
+                onUpdate();
             }
-        }
-        catch (e) {
-            console.log(e);
-            onError(e);
         }
     }
 

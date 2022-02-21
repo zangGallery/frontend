@@ -11,6 +11,7 @@ import { parseEther } from '@ethersproject/units';
 import { useReadProvider, useWalletProvider } from '../common/provider';
 
 import BuyModal from './BuyModal';
+import { useTransactionHelper } from '../common/transaction_status';
 
 export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerBalance, onError, onUpdate }) {
     sellerBalance = sellerBalance || 0;
@@ -20,6 +21,8 @@ export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerB
 
     const [readProvider, setReadProvider] = useReadProvider()
     const [walletProvider, setWalletProvider] = useWalletProvider()
+
+    const handleTransaction = useTransactionHelper();
 
     const [buyModalOpen, setBuyModalOpen] = useState(false);
 
@@ -34,19 +37,10 @@ export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerB
         price = parseEther(price);
         console.log('Converted:', price.toString())
 
-        try {
-            const transaction = await contractWithSigner.buyToken(nftId, listingId, amount, { value: price.mul(amount) });
-
-            if (transaction) {
-                await transaction.wait(1);
-                if (onUpdate) {
-                    onUpdate();
-                }
-            }
-
-        }
-        catch (e) {
-            onError(e);
+        const transactionFunction = async () => await contractWithSigner.buyToken(nftId, listingId, amount, { value: price.mul(amount) });
+        const { success } = await handleTransaction(transactionFunction, `Buy #${nftId}`);
+        if (success && onUpdate) {
+            onUpdate();
         }
     }
 

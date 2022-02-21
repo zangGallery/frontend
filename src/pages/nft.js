@@ -337,6 +337,7 @@ export default function NFTPage( { location }) {
         queryListingSellerBalances();
         queryListings();
         queryUserBalance();
+        queryTotalSupply();
     }
 
     useEffect(queryListings, [id, walletAddress])
@@ -427,7 +428,7 @@ export default function NFTPage( { location }) {
                                 }
                                 { 
                                     tokenAuthor == walletAddress ? (
-                                        <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo.amount} onError={setContractError} onUpdate={queryRoyaltyInfo} />
+                                        <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo?.amount} onError={setContractError} onUpdate={queryRoyaltyInfo} />
                                     ) : <></>
                                 }
                             </div>

@@ -16,6 +16,7 @@ import { Helmet } from "react-helmet";
 
 import "bulma/css/bulma.min.css";
 import '../styles/globals.css'
+import { useTransactionHelper } from "../common/transaction_status";
 
 const defaultValues = {
   editionSize: 1,
@@ -33,6 +34,7 @@ export default function Mint() {
   const watchUseCustomRecipient = watch('useCustomRecipient', defaultValues.useCustomRecipient);
   const watchTextType = watch('textType', defaultValues.textType)
   const [readProvider, setReadProvider] = useReadProvider()
+  const handleTransaction = useTransactionHelper()
 
   const numConfirmations = 5;
 
@@ -98,41 +100,19 @@ export default function Mint() {
       }
     }
 
-    try {
-      setTransactionState({ status: 'signing'})
-      var options = { gasLimit: 1000000};
+    const transactionFunction = async () => 
+      await contractWithSigner.mint(uri, data.title, data.description, data.editionSize, effectiveRoyaltyPercentage, effectiveRoyaltyRecipient, 0);
 
-      console.log(uri, data.title, data.description, data.editionSize, effectiveRoyaltyPercentage, effectiveRoyaltyRecipient, 0, options)
-      let transaction;
-      try {
-        transaction = await contractWithSigner.mint(uri, data.title, data.description, data.editionSize, effectiveRoyaltyPercentage, effectiveRoyaltyRecipient, 0, options);
+    const { success, receipt } = await handleTransaction(transactionFunction, `Mint`);
+    if (success && receipt && receipt.blockNumber) {
+      const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)
+      if (matchingEvents.length == 1) {
+        const tokenId = matchingEvents[0].args[3]
+        navigate('/nft?id=' + tokenId);
       }
-      catch (err) {
-        const code = err.data.replace('Reverted ','');
-        console.log({err});
-        let reason = ethers.utils.toUtf8String('0x' + code.substr(138));
-        console.log('revert reason:', reason);
+      else {
+        throw new Error('Wrong number of events emitted.')
       }
-      let receipt = null;
-
-      for (let i = 0; i < numConfirmations; i++) {
-        setTransactionState({ status: 'confirmations', total: numConfirmations, done: i})
-        receipt = await transaction.wait(1)
-      }
-
-      if (receipt && receipt.blockNumber) {
-        const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)
-        if (matchingEvents.length == 1) {
-          const tokenId = matchingEvents[0].args[3]
-          navigate('/nft?id=' + tokenId);
-        }
-        else {
-          throw new Error('Wrong number of events emitted.')
-        }
-      }
-    }
-    catch (e) {
-      setTransactionState({ status: 'error', error: e})
     }
   }
 

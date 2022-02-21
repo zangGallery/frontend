@@ -6,12 +6,15 @@ import config from '../config';
 import { useWalletProvider } from '../common/provider';
 
 import TransferModal from "./TransferModal";
+import { useTransactionHelper } from "../common/transaction_status";
 
 export default function TransferButton ( { id, walletAddress, balance, availableAmount, onUpdate, onError } ) {
     const zangAddress = config.contractAddresses.v1.zang;
     const zangABI = v1.zang;
 
     const [walletProvider, setWalletProvider] = useWalletProvider()
+
+    const handleTransaction = useTransactionHelper()
 
     const [transferModalOpen, setTransferModalOpen] = useState(false);
 
@@ -26,20 +29,11 @@ export default function TransferButton ( { id, walletAddress, balance, available
 
         const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
-        try {
-            const transaction = await contractWithSigner.safeTransferFrom(walletAddress, to, id, amount, []);
 
-            if (transaction) {
-                await transaction.wait(1);
-                if (onUpdate) {
-                    onUpdate()
-                }
-                console.log('Transferred')
-            }
-        }
-        catch (e) {
-            console.log(e)
-            onError(e);
+        const transactionFunction = async () => await contractWithSigner.safeTransferFrom(walletAddress, to, id, amount, []);
+        const { success } = await handleTransaction(transactionFunction, `Transfer #${id}`);
+        if (success && onUpdate) {
+            onUpdate();
         }
     }
 

@@ -7,6 +7,7 @@ import Decimal from "decimal.js";
 import { useWalletProvider } from '../common/provider';
 
 import EditRoyaltyModal from "./EditRoyaltyModal";
+import { useTransactionHelper } from "../common/transaction_status";
 
 export default function EditRoyaltyButton ( { id, walletAddress, currentRoyaltyPercentage, onUpdate, onError } ) {
     const zangAddress = config.contractAddresses.v1.zang;
@@ -14,7 +15,13 @@ export default function EditRoyaltyButton ( { id, walletAddress, currentRoyaltyP
 
     const [walletProvider, setWalletProvider] = useWalletProvider()
 
+    const handleTransaction = useTransactionHelper()
+
     const [editModalOpen, setEditModalOpen] = useState(false);
+
+    if (currentRoyaltyPercentage === null || currentRoyaltyPercentage === undefined) {
+        return <></>;
+    }
 
     const editRoyalty = async (royaltyPercentage) => {
         if (royaltyPercentage === null) {
@@ -28,20 +35,11 @@ export default function EditRoyaltyButton ( { id, walletAddress, currentRoyaltyP
 
         const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
-        try {
-            const transaction = await contractWithSigner.decreaseRoyaltyNumerator(id, effectiveRoyaltyPercentage);
+        const transactionFunction = async () => await contractWithSigner.decreaseRoyaltyNumerator(id, effectiveRoyaltyPercentage);
 
-            if (transaction) {
-                await transaction.wait(1);
-                if (onUpdate) {
-                    onUpdate()
-                }
-                console.log('Royalty numerator decreased')
-            }
-        }
-        catch (e) {
-            console.log(e)
-            onError(e);
+        const { success } = await handleTransaction(transactionFunction, `Edit royalty for #${id}`);
+        if (success && onUpdate) {
+            onUpdate();
         }
     }
 
