@@ -79,10 +79,15 @@ const burn = Joi.object().keys({
     amount: Joi.number().integer().min(1).empty('').required().label('Amount')
 })
 
+const editRoyalty = Joi.object().keys({
+    royaltyPercentage: Joi.number().custom(maxDigits(2)).min(0).max(100).empty('').required().label('Royalty percentage'),
+})
+
 export default {
     burn,
     buy,
     edit,
+    editRoyalty,
     list,
     mint,
     transfer

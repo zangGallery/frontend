@@ -21,6 +21,8 @@ import TransferButton from '../components/TransferButton';
 import { useEns } from '../common/ens';
 import TypeTag from '../components/TypeTag';
 import BurnButton from '../components/BurnButton';
+import EditRoyaltyButton from '../components/EditRoyaltyButton';
+import Decimal from 'decimal.js';
 
 const styles = {
     arrowContainer: {
@@ -123,7 +125,8 @@ export default function NFTPage( { location }) {
         const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
 
         try {
-            const [recipient, amount] = await contract.royaltyInfo(id, 10000);
+            let [recipient, amount] = await contract.royaltyInfo(id, 10000);
+            amount = new Decimal(amount.toString());
             setRoyaltyInfo({
                 recipient,
                 amount: amount.div(100).toNumber()
@@ -395,12 +398,23 @@ export default function NFTPage( { location }) {
                         listingGroups={listingGroups()}
                     />
                     {
-                        readProvider && walletProvider && userBalance() ? (
+                        readProvider && walletProvider ? (
                             <div>
-                                <p>Owned: {userBalance()}</p>
-                                { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
-                                <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
-                                <BurnButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
+                                {
+                                    userBalance() ? (
+                                        <div>
+                                            <p>Owned: {userBalance()}</p>
+                                            { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
+                                            <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
+                                            <BurnButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
+                                        </div>
+                                    ) : <></>
+                                }
+                                { 
+                                    tokenAuthor == walletAddress ? (
+                                        <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo.amount} onError={setContractError} onUpdate={queryRoyaltyInfo} />
+                                    ) : <></>
+                                }
                             </div>
                         ) : <></>
                     }
