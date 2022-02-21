@@ -19,6 +19,7 @@ export default function Wrapper ({ children, props }) {
                 ) : <></>
             }
             {children}
+            <p>{JSON.stringify(transactions)}</p>
         </div>
     )
 }
