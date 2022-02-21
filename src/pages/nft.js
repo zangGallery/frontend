@@ -20,6 +20,7 @@ import Listings from '../components/Listings';
 import TransferButton from '../components/TransferButton';
 import { useEns } from '../common/ens';
 import TypeTag from '../components/TypeTag';
+import BurnButton from '../components/BurnButton';
 
 const styles = {
     arrowContainer: {
@@ -399,6 +400,7 @@ export default function NFTPage( { location }) {
                                 <p>Owned: {userBalance()}</p>
                                 { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
                                 <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
+                                <BurnButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
                             </div>
                         ) : <></>
                     }

@@ -75,7 +75,12 @@ const list = Joi.object().keys({
     price: Joi.string().custom(etherValidator('Price')).empty('').required().label('Price')
 })
 
+const burn = Joi.object().keys({
+    amount: Joi.number().integer().min(1).empty('').required().label('Amount')
+})
+
 export default {
+    burn,
     buy,
     edit,
     list,
