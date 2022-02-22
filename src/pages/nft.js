@@ -113,7 +113,7 @@ export default function NFTPage( { location }) {
 
     const queryTokenContent = async () => {
         if (!tokenData?.text_uri) return;
-        var parsedTextURI = tokenData.text_uri.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
+        var parsedTextURI = tokenData.text_uri
         parsedTextURI = parsedTextURI.replace("text/markdown;charset=UTF-8", "text/markdown");
         try {
             const response = await fetch(parsedTextURI);
