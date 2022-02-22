@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
+import { atom, useRecoilState } from 'recoil'
 import { useReadProvider, useWalletProvider } from '../common/provider';
 import config from '../config';
 import { ethers } from 'ethers';
@@ -24,6 +25,11 @@ import BurnButton from '../components/BurnButton';
 import EditRoyaltyButton from '../components/EditRoyaltyButton';
 import Decimal from 'decimal.js';
 
+const burnedIdsState = atom({
+    key: 'burnedIds',
+    default: []
+});
+
 const styles = {
     arrowContainer: {
         display: 'flex',
@@ -43,10 +49,16 @@ export default function NFTPage( { location }) {
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
-    const { id } = queryString.parse(location.search);
+    const parsedQuery = queryString.parse(location.search);
+    const id = parsedQuery ? parseInt(parsedQuery.id) : null;
+
     const [readProvider, setReadProvider] = useReadProvider()
     const [walletProvider, setWalletProvider] = useWalletProvider()
     const { lookupEns } = useEns()
+
+    const [burnedIds, setBurnedIds] = useRecoilState(burnedIdsState);
+    const [prevValidId, setPrevValidId] = useState(null);
+    const [nextValidId, setNextValidId] = useState(null);
 
     // === NFT Info ===
 
@@ -62,6 +74,75 @@ export default function NFTPage( { location }) {
 
     const [contractError, setContractError] = useState(null);
     const [walletAddress, setWalletAddress] = useState(null);
+
+    const queryPrevValidId = async () => {
+        if (!id || !readProvider) return;
+
+        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+
+        let prevId = id - 1;
+        let isValid = false;
+        while(prevId >= 1 && !isValid) {
+            if (burnedIds.includes(prevId)) {
+                prevId--;
+            } else {
+                try {
+                    isValid = await contract.exists(prevId);
+                } catch (e) {
+                    setContractError(e);
+                    break;
+                }
+
+                if (isValid) {
+                    break;
+                } else {
+                    setBurnedIds((burnedIds) => [...burnedIds, prevId]);
+                    prevId--;
+                }
+            }
+        }
+
+        if (isValid) {
+            setPrevValidId(prevId);
+        } else {
+            setPrevValidId(null);
+        }
+    }
+
+    const queryNextValidId = async () => {
+        if (!id || !readProvider) return;
+
+        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+
+        let nextId = id + 1;
+        let isValid = false;
+
+        while(nextId <= lastNFTId && !isValid) {
+            if (burnedIds.includes(nextId)) {
+                nextId++;
+            } else {
+                try {
+                    isValid = await contract.exists(nextId);
+                } catch (e) {
+                    setContractError(e);
+                    break;
+                }
+
+                if (isValid) {
+                    break;
+                } else {
+                    setBurnedIds((burnedIds) => [...burnedIds, nextId]);
+                    nextId++;
+                }
+            }
+        }
+
+        if (isValid) {
+            setNextValidId(nextId);
+        } else {
+            setNextValidId(null);
+        }
+    }
 
     const queryTokenURI = async () => {
         if (!id || !readProvider) return;
@@ -157,10 +238,10 @@ export default function NFTPage( { location }) {
 
     const changeId = (right) => () => {
         if (right) {
-            navigate('/nft?id=' + (parseInt(id) + 1));
+            navigate('/nft?id=' + nextValidId);
         }
         else {
-            navigate('/nft?id=' + (parseInt(id) - 1));
+            navigate('/nft?id=' + prevValidId);
         }
     }
 
@@ -180,7 +261,7 @@ export default function NFTPage( { location }) {
             setContractError(e);
         }
 
-    }, [])
+    }, []) // TODO: Fix
 
     useEffect(async () => {
         if (walletProvider) {
@@ -205,11 +286,16 @@ export default function NFTPage( { location }) {
         setTokenAuthor(null);
         setRoyaltyInfo(null);
         setTotalSupply(null);
+        setPrevValidId(null);
+        setNextValidId(null);
 
         queryTokenURI();
         queryTokenAuthor();
         queryRoyaltyInfo();
         queryTotalSupply();
+
+        queryPrevValidId();
+        queryNextValidId();
     }, [id, readProvider])
     useEffect(() => queryTokenData(), [tokenURI])
     useEffect(() => queryTokenContent(), [tokenData])
@@ -371,9 +457,11 @@ export default function NFTPage( { location }) {
                 <title>{id !== undefined && id !== null ? `#${id} - zang` : 'zang'}</title>
             </Helmet>
             <Header />
+            <p>{prevValidId} - {nextValidId}</p>
+            <p>Last: {lastNFTId}</p>
             <div style={styles.arrowContainer}>
-                { id == 1 ? <></> : <a style={styles.arrow} className="icon" role="button" onClick={changeId(false)}>{'\u25c0'}</a>}
-                { lastNFTId && id == lastNFTId ? <></> : <a style={styles.arrow} className="icon" role="button" onClick={changeId(true)}>{'\u25b6'}</a> }
+                { prevValidId ? <a style={styles.arrow} className="icon" role="button" onClick={changeId(false)}>{'\u25c0'}</a> : <></>}
+                { nextValidId ? <a style={styles.arrow} className="icon" role="button" onClick={changeId(true)}>{'\u25b6'}</a> : <></>}
             </div>
             
                 {
