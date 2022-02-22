@@ -109,6 +109,18 @@ export default function NFTPage( { location }) {
         }
     }
 
+    const queryLastNFTId = async () => {
+        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+
+        try {
+            const newLastNFTId = (await contract.lastTokenId());
+            setLastNFTId(newLastNFTId.toNumber());
+            newLastNFTId.toNumber();
+        } catch (e) {
+            setContractError(e);
+        }
+    }
+
     const queryNextValidId = async () => {
         if (!id || !readProvider) return;
 
@@ -118,6 +130,9 @@ export default function NFTPage( { location }) {
         let isValid = false;
 
         while(nextId <= lastNFTId && !isValid) {
+            if (nextId == lastNFTId) {
+                await queryLastNFTId();
+            }
             if (burnedIds.includes(nextId)) {
                 nextId++;
             } else {
@@ -252,18 +267,6 @@ export default function NFTPage( { location }) {
     }, [id])
 
     useEffect(async () => {
-        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
-
-        try {
-            const newLastNFTId = (await contract.lastTokenId());
-            setLastNFTId(newLastNFTId.toNumber());
-        } catch (e) {
-            setContractError(e);
-        }
-
-    }, []) // TODO: Fix
-
-    useEffect(async () => {
         if (walletProvider) {
             try {
                 setWalletAddress(await walletProvider.getSigner().getAddress());
@@ -304,6 +307,7 @@ export default function NFTPage( { location }) {
     useEffect(() => queryRoyaltyInfo(), [id, readProvider])
     useEffect(() => queryTotalSupply(), [id, readProvider])
     useEffect(() => setExists(true), [id, readProvider])
+    useEffect(queryLastNFTId, [])
 
     // === Listing info ===
 
