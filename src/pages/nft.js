@@ -467,7 +467,6 @@ export default function NFTPage( { location }) {
                 { prevValidId ? <a style={styles.arrow} className="icon" role="button" onClick={changeId(false)}>{'\u25c0'}</a> : <></>}
                 { nextValidId ? <a style={styles.arrow} className="icon" role="button" onClick={changeId(true)}>{'\u25b6'}</a> : <></>}
             </div>
-            
                 {
                     contractError ?
                         (
@@ -479,82 +478,85 @@ export default function NFTPage( { location }) {
                         ) : <></>
                 }
                 {
-                    exists ? (
-                    <div>
-                        <div className="columns m-4">
-                            <div className="column" style={{overflow: 'hidden'}}>
-                                { readProvider ? (
-                                    (
-                                        <div>
-                                            <div className="box">
-                                                {tokenType && tokenContent ? (
-                                                    tokenType == 'text/markdown' ? (
-                                                        <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
-                                                    ) : <pre className="nft-plain">{tokenContent}</pre>
-                                                ) : <></>}
-                                            </div>
-                                        </div>
-                                    )
-                                )
-                                : <p>Connect a wallet to view this NFT</p>
-                                }
-                            </div>
-                            { 
-                                <div className="column">
-                                    <h1 className="title">{tokenData?.name || ''}</h1>
-                                    <p className="subtitle mb-1">{tokenAuthor ? `by ${lookupEns(tokenAuthor) || tokenAuthor}` : ''}</p>
-                                    <div className="has-text-left m-0">
-                                        <TypeTag type={tokenType} />
-                                    </div>
-                                    <p className="is-italic">{tokenData?.description || ''}</p>
-                                    <p>{totalSupply ? `${totalSupply} editions` : ''}</p>
-                                    {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
-                                    <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
-                                    : <></>
-                                    }
-                                </div>
-                            }
-                            
-                        </div>
-
-                        <div className="columns ml-2">
-                            <div className="column">
-                                <Listings
-                                    readProvider={readProvider}
-                                    walletProvider={walletProvider}
-                                    id={id}
-                                    walletAddress={walletAddress}
-                                    onError={setContractError}
-                                    onUpdate={onUpdate}
-                                    userBalance={userBalance()}
-                                    userAvailableAmount={userAvailableAmount()}
-                                    listingGroups={listingGroups()}
-                                />
-                                {
-                                    readProvider && walletProvider ? (
-                                        <div>
-                                            {
-                                                userBalance() ? (
-                                                    <div>
-                                                        <p>Owned: {userBalance()}</p>
-                                                        { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
-                                                        <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
-                                                        <BurnButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
+                    exists ?
+                        totalSupply == 0 ? (
+                            <p>This NFT has been successfully burned. <a href='/'>Go to Home Page</a>.</p>
+                        ) : (
+                            <div>
+                                <div className="columns m-4">
+                                    <div className="column" style={{overflow: 'hidden'}}>
+                                        { readProvider ? (
+                                            (
+                                                <div>
+                                                    <div className="box">
+                                                        {tokenType && tokenContent ? (
+                                                            tokenType == 'text/markdown' ? (
+                                                                <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
+                                                            ) : <pre className="nft-plain">{tokenContent}</pre>
+                                                        ) : <></>}
                                                     </div>
-                                                ) : <></>
-                                            }
-                                            { 
-                                                tokenAuthor == walletAddress ? (
-                                                    <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo?.amount} onError={setContractError} onUpdate={queryRoyaltyInfo} />
-                                                ) : <></>
+                                                </div>
+                                            )
+                                        )
+                                        : <p>Connect a wallet to view this NFT</p>
+                                        }
+                                    </div>
+                                    { 
+                                        <div className="column">
+                                            <h1 className="title">{tokenData?.name || ''}</h1>
+                                            <p className="subtitle mb-1">{tokenAuthor ? `by ${lookupEns(tokenAuthor) || tokenAuthor}` : ''}</p>
+                                            <div className="has-text-left m-0">
+                                                <TypeTag type={tokenType} />
+                                            </div>
+                                            <p className="is-italic">{tokenData?.description || ''}</p>
+                                            <p>{totalSupply ? `${totalSupply} editions` : ''}</p>
+                                            {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
+                                            <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
+                                            : <></>
                                             }
                                         </div>
-                                    ) : <></>
-                                }
+                                    }
+                                    
+                                </div>
+
+                                <div className="columns ml-2">
+                                    <div className="column">
+                                        <Listings
+                                            readProvider={readProvider}
+                                            walletProvider={walletProvider}
+                                            id={id}
+                                            walletAddress={walletAddress}
+                                            onError={setContractError}
+                                            onUpdate={onUpdate}
+                                            userBalance={userBalance()}
+                                            userAvailableAmount={userAvailableAmount()}
+                                            listingGroups={listingGroups()}
+                                        />
+                                        {
+                                            readProvider && walletProvider ? (
+                                                <div>
+                                                    {
+                                                        userBalance() ? (
+                                                            <div>
+                                                                <p>Owned: {userBalance()}</p>
+                                                                { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
+                                                                <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
+                                                                <BurnButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
+                                                            </div>
+                                                        ) : <></>
+                                                    }
+                                                    { 
+                                                        tokenAuthor == walletAddress ? (
+                                                            <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo?.amount} onError={setContractError} onUpdate={queryRoyaltyInfo} />
+                                                        ) : <></>
+                                                    }
+                                                </div>
+                                            ) : <></>
+                                        }
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    ) : <p>This NFT doesn't exist.</p>
+                        ) : <p>This NFT doesn't exist.</p>
                 }
         </div>
     )
