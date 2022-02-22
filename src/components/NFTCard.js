@@ -93,8 +93,8 @@ export default function NFTCard({ id }) {
     }
 
     const queryTokenContent = async () => {
-        if (!tokenData?.textURI) return;
-        var parsedTextURI = tokenData.textURI.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
+        if (!tokenData?.text_uri) return;
+        var parsedTextURI = tokenData.text_uri.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
         parsedTextURI = parsedTextURI.replace("text/markdown;charset=UTF-8", "text/markdown");
 
         try {
@@ -122,7 +122,6 @@ export default function NFTCard({ id }) {
 
     return (
         <div className="card m-3 cursor-pointer" style={styles.card} onClick={() => navigate('/nft?id=' + id)}>
-            
             <div style={styles.cardPreview}>
                 {tokenType && tokenContent ? (
                     tokenType == 'text/markdown' ? (
