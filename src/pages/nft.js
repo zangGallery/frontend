@@ -196,7 +196,21 @@ export default function NFTPage( { location }) {
         setContractError(null);
     }, [id])
 
-    useEffect(() => queryTokenURI(), [id, readProvider])
+    useEffect(() => {
+        setExists(true);
+        setTokenURI(null);
+        setTokenData(null);
+        setTokenContent(null);
+        setTokenType(null);
+        setTokenAuthor(null);
+        setRoyaltyInfo(null);
+        setTotalSupply(null);
+
+        queryTokenURI();
+        queryTokenAuthor();
+        queryRoyaltyInfo();
+        queryTotalSupply();
+    }, [id, readProvider])
     useEffect(() => queryTokenData(), [tokenURI])
     useEffect(() => queryTokenContent(), [tokenData])
 
