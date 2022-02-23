@@ -12,12 +12,15 @@ import EditModal from './EditModal';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit as editIcon } from '@fortawesome/free-solid-svg-icons';
+import { useTransactionHelper } from '../common/transaction_status';
 
 export default function EditButton ({ nftId, listingId, availableAmount, balance, onError, onUpdate, oldAmount }) {
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
     const [walletProvider, setWalletProvider] = useWalletProvider()
+
+    const handleTransaction = useTransactionHelper();
 
     const [buyModalOpen, setBuyModalOpen] = useState(false);
 
@@ -30,32 +33,22 @@ export default function EditButton ({ nftId, listingId, availableAmount, balance
 
         const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
-        try {
-            let transaction;
+        let transactionFunction = null;
 
-            if (newAmount === null && newPrice !== null) {
-                // Replacing only price
-                transaction = await contractWithSigner.editListingPrice(nftId, listingId, parseEther(newPrice).toString());
-            } else if (newAmount !== null && newPrice === null) {
-                // Replacing only amount
-                transaction = await contractWithSigner.editListingAmount(nftId, listingId, newAmount, oldAmount);
-            } else if (newAmount !== null && newPrice !== null) {
-                // Replacing both
-                transaction = await contractWithSigner.editListing(nftId, listingId, parseEther(newPrice).toString(), newAmount, oldAmount);
-            }
-
-            if (transaction) {
-                await transaction.wait(1);
-                console.log('Edited')
-
-                if (onUpdate) {
-                    onUpdate();
-                }
-            }
+        if (newAmount === null && newPrice !== null) {
+            // Replacing only price
+            transactionFunction = async () => contractWithSigner.editListingPrice(nftId, listingId, parseEther(newPrice).toString());
+        } else if (newAmount !== null && newPrice === null) {
+            // Replacing only amount
+            transactionFunction = async () => contractWithSigner.editListingAmount(nftId, listingId, newAmount, oldAmount);
+        } else if (newAmount !== null && newPrice !== null) {
+            // Replacing both
+            transactionFunction = async () => await contractWithSigner.editListing(nftId, listingId, parseEther(newPrice).toString(), newAmount, oldAmount);
         }
-        catch (e) {
-            console.log(e)
-            onError(e);
+
+        const { success } = await handleTransaction(transactionFunction, `Edit listing for #${nftId}`);
+        if (success && onUpdate) {
+            onUpdate();
         }
     }
 

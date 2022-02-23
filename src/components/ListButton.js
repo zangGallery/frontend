@@ -5,12 +5,14 @@ import { ListModal } from '.';
 import { parseEther } from '@ethersproject/units';
 import config from '../config';
 import { useWalletProvider } from '../common/provider';
+import { useTransactionHelper } from "../common/transaction_status";
 
 export default function ListButton ({ id, userBalance, userAvailableAmount, onError, onUpdate }) {
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
     const [walletProvider, setWalletProvider] = useWalletProvider();
+    const handleTransaction = useTransactionHelper()
 
     const [listModalOpen, setListModalOpen] = useState(false);
 
@@ -23,23 +25,11 @@ export default function ListButton ({ id, userBalance, userAvailableAmount, onEr
 
         const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
-        try {
-            console.log('Price:', price)
-            console.log('Parsed price:', parseEther(price).toString())
-            const transaction = await contractWithSigner.listToken(id, parseEther(price), amount);
+        const transactionFunction = async () => await contractWithSigner.listToken(id, parseEther(price), amount);
 
-            if (transaction) {
-                await transaction.wait(1);
-                console.log('Listed')
-
-                if (onUpdate) {
-                    onUpdate();
-                }
-            }
-        }
-        catch (e) {
-            console.log(e)
-            onError(e);
+        const { success } = await handleTransaction(transactionFunction, `List #${id}`);
+        if (success && onUpdate) {
+            onUpdate();
         }
     }
 

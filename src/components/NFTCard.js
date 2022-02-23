@@ -45,6 +45,7 @@ export default function NFTCard({ id }) {
     const [readProvider, setReadProvider] = useReadProvider();
     const [tokenType, setTokenType] = useState(null);
     const [tokenContent, setTokenContent] = useState(null);
+    const [exists, setExists] = useState(true);
 
     const contractAddress = config.contractAddresses.v1.zang;
     const contractABI = v1.zang;
@@ -58,8 +59,12 @@ export default function NFTCard({ id }) {
             const tURI = await contract.uri(id);
             setTokenURI(tURI);
         } catch (e) {
-            // TODO: Set error
-            console.log(e);
+            if (e.errorArgs && e.errorArgs[0] === 'ZangNFT: uri query for nonexistent token') {
+                setExists(false);
+            } else {
+                // TODO: Set error
+                console.log(e);
+            }
         }
     }
 
@@ -73,8 +78,12 @@ export default function NFTCard({ id }) {
 
             setTokenAuthor(author);
         } catch (e) {
-            // TODO: Set error
-            console.log(e);
+            if (e.errorArgs && e.errorArgs[0] === 'ZangNFT: author query for nonexistent token') {
+                setExists(false);
+            } else {
+                // TODO: Set error
+                console.log(e);
+            }
         }
     }
 
@@ -93,8 +102,8 @@ export default function NFTCard({ id }) {
     }
 
     const queryTokenContent = async () => {
-        if (!tokenData?.textURI) return;
-        var parsedTextURI = tokenData.textURI.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
+        if (!tokenData?.text_uri) return;
+        var parsedTextURI = tokenData.text_uri.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
         parsedTextURI = parsedTextURI.replace("text/markdown;charset=UTF-8", "text/markdown");
 
         try {
@@ -117,12 +126,16 @@ export default function NFTCard({ id }) {
     useEffect(() => queryTokenData(), [tokenURI])
     useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryTokenContent(), [tokenData])
+    useEffect(() => setExists(true), [id, readProvider])
 
     const effectiveTokenAuthor = lookupEns(tokenAuthor) || tokenAuthor || '...';
 
+    if (!exists) {
+        return <></>
+    }
+
     return (
         <div className="card m-3 cursor-pointer" style={styles.card} onClick={() => navigate('/nft?id=' + id)}>
-            
             <div style={styles.cardPreview}>
                 {tokenType && tokenContent ? (
                     tokenType == 'text/markdown' ? (

@@ -6,12 +6,15 @@ import { useWalletProvider } from '../common/provider';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { useTransactionHelper } from "../common/transaction_status";
 
 export default function DelistButton ({ nftId, listingId, onError, onUpdate }) {
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
     const [walletProvider, setWalletProvider] = useWalletProvider();
+
+    const handleTransaction = useTransactionHelper();
 
     const delist = async () => {
         if (!walletProvider) {
@@ -26,19 +29,11 @@ export default function DelistButton ({ nftId, listingId, onError, onUpdate }) {
         const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
 
-        try {
-            const transaction = await contractWithSigner.delistToken(nftId, listingId);
-            
-            if (transaction) {
-                await transaction.wait(1);
-            }
-            if (onUpdate) {
-                onUpdate();
-            }
-        }
-        catch (e) {
-            console.log(e);
-            onError(e);
+        const transactionFunction = async () => await contractWithSigner.delistToken(nftId, listingId);
+
+        const { success } = await handleTransaction(transactionFunction, `Delist #${nftId}`);
+        if (success && onUpdate) {
+            onUpdate();
         }
     }
 

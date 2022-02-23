@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
+import { atom, useRecoilState } from 'recoil'
 import { useReadProvider, useWalletProvider } from '../common/provider';
 import config from '../config';
 import { ethers } from 'ethers';
@@ -20,6 +21,14 @@ import Listings from '../components/Listings';
 import TransferButton from '../components/TransferButton';
 import { useEns } from '../common/ens';
 import TypeTag from '../components/TypeTag';
+import BurnButton from '../components/BurnButton';
+import EditRoyaltyButton from '../components/EditRoyaltyButton';
+import Decimal from 'decimal.js';
+
+const burnedIdsState = atom({
+    key: 'burnedIds',
+    default: []
+});
 
 const styles = {
     arrowContainer: {
@@ -40,10 +49,16 @@ export default function NFTPage( { location }) {
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
-    const { id } = queryString.parse(location.search);
+    const parsedQuery = queryString.parse(location.search);
+    const id = parsedQuery ? parseInt(parsedQuery.id) : null;
+
     const [readProvider, setReadProvider] = useReadProvider()
     const [walletProvider, setWalletProvider] = useWalletProvider()
     const { lookupEns } = useEns()
+
+    const [burnedIds, setBurnedIds] = useRecoilState(burnedIdsState);
+    const [prevValidId, setPrevValidId] = useState(null);
+    const [nextValidId, setNextValidId] = useState(null);
 
     // === NFT Info ===
 
@@ -53,10 +68,96 @@ export default function NFTPage( { location }) {
     const [tokenContent, setTokenContent] = useState(null)
     const [tokenAuthor, setTokenAuthor] = useState(null)
     const [royaltyInfo, setRoyaltyInfo] = useState(null)
+    const [totalSupply, setTotalSupply] = useState(null)
     const [lastNFTId, setLastNFTId] = useState(null)
+    const [exists, setExists] = useState(true)
 
     const [contractError, setContractError] = useState(null);
     const [walletAddress, setWalletAddress] = useState(null);
+
+    const queryPrevValidId = async () => {
+        if (!id || !readProvider) return;
+
+        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+
+        let prevId = id - 1;
+        let isValid = false;
+        while(prevId >= 1 && !isValid) {
+            if (burnedIds.includes(prevId)) {
+                prevId--;
+            } else {
+                try {
+                    isValid = await contract.exists(prevId);
+                } catch (e) {
+                    setContractError(e);
+                    break;
+                }
+
+                if (isValid) {
+                    break;
+                } else {
+                    setBurnedIds((burnedIds) => [...burnedIds, prevId]);
+                    prevId--;
+                }
+            }
+        }
+
+        if (isValid) {
+            setPrevValidId(prevId);
+        } else {
+            setPrevValidId(null);
+        }
+    }
+
+    const queryLastNFTId = async () => {
+        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+
+        try {
+            const newLastNFTId = (await contract.lastTokenId());
+            setLastNFTId(newLastNFTId.toNumber());
+            newLastNFTId.toNumber();
+        } catch (e) {
+            setContractError(e);
+        }
+    }
+
+    const queryNextValidId = async () => {
+        if (!id || !readProvider) return;
+
+        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+
+        let nextId = id + 1;
+        let isValid = false;
+
+        while(nextId <= lastNFTId && !isValid) {
+            if (nextId == lastNFTId) {
+                await queryLastNFTId();
+            }
+            if (burnedIds.includes(nextId)) {
+                nextId++;
+            } else {
+                try {
+                    isValid = await contract.exists(nextId);
+                } catch (e) {
+                    setContractError(e);
+                    break;
+                }
+
+                if (isValid) {
+                    break;
+                } else {
+                    setBurnedIds((burnedIds) => [...burnedIds, nextId]);
+                    nextId++;
+                }
+            }
+        }
+
+        if (isValid) {
+            setNextValidId(nextId);
+        } else {
+            setNextValidId(null);
+        }
+    }
 
     const queryTokenURI = async () => {
         if (!id || !readProvider) return;
@@ -64,11 +165,17 @@ export default function NFTPage( { location }) {
         try {
             const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
             const tURI = await contract.uri(id);
+
+            console.log('URI:', tURI);
       
             setTokenURI(tURI);
         }
         catch (e) {
-            setContractError(e);
+            if (e.errorArgs && e.errorArgs[0] === 'ZangNFT: uri query for nonexistent token') {
+                setExists(false);
+            } else {
+                setContractError(e);
+            }
         }
     }
 
@@ -81,7 +188,9 @@ export default function NFTPage( { location }) {
             setTokenAuthor(author);
         }
         catch (e) {
-            setContractError(e);
+            if (!e.errorArgs || e.errorArgs[0] !== 'ZangNFT: author query for nonexistent token') {
+                setContractError(e);
+            }
         }
     }
 
@@ -99,8 +208,8 @@ export default function NFTPage( { location }) {
     }
 
     const queryTokenContent = async () => {
-        if (!tokenData?.textURI) return;
-        var parsedTextURI = tokenData.textURI.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
+        if (!tokenData?.text_uri) return;
+        var parsedTextURI = tokenData.text_uri
         parsedTextURI = parsedTextURI.replace("text/markdown;charset=UTF-8", "text/markdown");
         try {
             const response = await fetch(parsedTextURI);
@@ -111,7 +220,6 @@ export default function NFTPage( { location }) {
         } catch (e) {
             setContractError(e);
         }
-        
     }
 
     const queryRoyaltyInfo = async () => {
@@ -120,7 +228,8 @@ export default function NFTPage( { location }) {
         const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
 
         try {
-            const [recipient, amount] = await contract.royaltyInfo(id, 10000);
+            let [recipient, amount] = await contract.royaltyInfo(id, 10000);
+            amount = new Decimal(amount.toString());
             setRoyaltyInfo({
                 recipient,
                 amount: amount.div(100).toNumber()
@@ -130,12 +239,24 @@ export default function NFTPage( { location }) {
         }
     }
 
+    const queryTotalSupply = async () => {
+        if (!id || !readProvider) return;
+        
+        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
+
+        try {
+            setTotalSupply(await contract.totalSupply(id));
+        } catch (e) {
+            setContractError(e);
+        }
+    }
+
     const changeId = (right) => () => {
         if (right) {
-            navigate('/nft?id=' + (parseInt(id) + 1));
+            navigate('/nft?id=' + nextValidId);
         }
         else {
-            navigate('/nft?id=' + (parseInt(id) - 1));
+            navigate('/nft?id=' + prevValidId);
         }
     }
 
@@ -144,18 +265,6 @@ export default function NFTPage( { location }) {
             navigate('/');
         }
     }, [id])
-
-    useEffect(async () => {
-        const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
-
-        try {
-            const newLastNFTId = (await contract.lastTokenId());
-            setLastNFTId(newLastNFTId.toNumber());
-        } catch (e) {
-            setContractError(e);
-        }
-
-    }, [])
 
     useEffect(async () => {
         if (walletProvider) {
@@ -171,12 +280,34 @@ export default function NFTPage( { location }) {
         setContractError(null);
     }, [id])
 
-    useEffect(() => queryTokenURI(), [id, readProvider])
+    useEffect(() => {
+        setExists(true);
+        setTokenURI(null);
+        setTokenData(null);
+        setTokenContent(null);
+        setTokenType(null);
+        setTokenAuthor(null);
+        setRoyaltyInfo(null);
+        setTotalSupply(null);
+        setPrevValidId(null);
+        setNextValidId(null);
+
+        queryTokenURI();
+        queryTokenAuthor();
+        queryRoyaltyInfo();
+        queryTotalSupply();
+
+        queryPrevValidId();
+        queryNextValidId();
+    }, [id, readProvider])
     useEffect(() => queryTokenData(), [tokenURI])
     useEffect(() => queryTokenContent(), [tokenData])
 
     useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryRoyaltyInfo(), [id, readProvider])
+    useEffect(() => queryTotalSupply(), [id, readProvider])
+    useEffect(() => setExists(true), [id, readProvider])
+    useEffect(queryLastNFTId, [])
 
     // === Listing info ===
 
@@ -317,6 +448,7 @@ export default function NFTPage( { location }) {
         queryListingSellerBalances();
         queryListings();
         queryUserBalance();
+        queryTotalSupply();
     }
 
     useEffect(queryListings, [id, walletAddress])
@@ -329,79 +461,103 @@ export default function NFTPage( { location }) {
                 <title>{id !== undefined && id !== null ? `#${id} - zang` : 'zang'}</title>
             </Helmet>
             <Header />
+            <p>{prevValidId} - {nextValidId}</p>
+            <p>Last: {lastNFTId}</p>
             <div style={styles.arrowContainer}>
-                { id == 1 ? <></> : <a style={styles.arrow} className="icon" role="button" onClick={changeId(false)}>{'\u25c0'}</a>}
-                { lastNFTId && id == lastNFTId ? <></> : <a style={styles.arrow} className="icon" role="button" onClick={changeId(true)}>{'\u25b6'}</a> }
+                { prevValidId ? <a style={styles.arrow} className="icon" role="button" onClick={changeId(false)}>{'\u25c0'}</a> : <></>}
+                { nextValidId ? <a style={styles.arrow} className="icon" role="button" onClick={changeId(true)}>{'\u25b6'}</a> : <></>}
             </div>
-            {
-                contractError ?
-                    (
-                        <article class="message is-danger">
-                            <div class="message-body">
-                                <strong>Error:</strong> {contractError?.message}.
-                            </div>
-                        </article>
-                    ) : <></>
-            }
-            <div className="columns m-4">
-                <div className="column" style={{overflow: 'hidden'}}>
-                    { readProvider ? (
-                         (
+                {
+                    contractError ?
+                        (
+                            <article class="message is-danger">
+                                <div class="message-body">
+                                    <strong>Error:</strong> {contractError?.message}.
+                                </div>
+                            </article>
+                        ) : <></>
+                }
+                {
+                    exists ?
+                        totalSupply == 0 ? (
+                            <p>This NFT has been successfully burned. <a href='/'>Go to Home Page</a>.</p>
+                        ) : (
                             <div>
-                                <div className="box">
-                                    {tokenType && tokenContent ? (
-                                        tokenType == 'text/markdown' ? (
-                                            <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
-                                        ) : <pre className="nft-plain">{tokenContent}</pre>
-                                    ) : <></>}
+                                <div className="columns m-4">
+                                    <div className="column" style={{overflow: 'hidden'}}>
+                                        { readProvider ? (
+                                            (
+                                                <div>
+                                                    <div className="box">
+                                                        {tokenType && tokenContent ? (
+                                                            tokenType == 'text/markdown' ? (
+                                                                <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
+                                                            ) : <pre className="nft-plain">{tokenContent}</pre>
+                                                        ) : <></>}
+                                                    </div>
+                                                </div>
+                                            )
+                                        )
+                                        : <p>Connect a wallet to view this NFT</p>
+                                        }
+                                    </div>
+                                    { 
+                                        <div className="column">
+                                            <h1 className="title">{tokenData?.name || ''}</h1>
+                                            <p className="subtitle mb-1">{tokenAuthor ? `by ${lookupEns(tokenAuthor) || tokenAuthor}` : ''}</p>
+                                            <div className="has-text-left m-0">
+                                                <TypeTag type={tokenType} />
+                                            </div>
+                                            <p className="is-italic">{tokenData?.description || ''}</p>
+                                            <p>{totalSupply ? `${totalSupply} editions` : ''}</p>
+                                            {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
+                                            <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
+                                            : <></>
+                                            }
+                                        </div>
+                                    }
+                                    
+                                </div>
+
+                                <div className="columns ml-2">
+                                    <div className="column">
+                                        <Listings
+                                            readProvider={readProvider}
+                                            walletProvider={walletProvider}
+                                            id={id}
+                                            walletAddress={walletAddress}
+                                            onError={setContractError}
+                                            onUpdate={onUpdate}
+                                            userBalance={userBalance()}
+                                            userAvailableAmount={userAvailableAmount()}
+                                            listingGroups={listingGroups()}
+                                        />
+                                        {
+                                            readProvider && walletProvider ? (
+                                                <div>
+                                                    {
+                                                        userBalance() ? (
+                                                            <div>
+                                                                <p>Owned: {userBalance()}</p>
+                                                                { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
+                                                                <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
+                                                                <BurnButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
+                                                            </div>
+                                                        ) : <></>
+                                                    }
+                                                    { 
+                                                        tokenAuthor == walletAddress ? (
+                                                            <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo?.amount} onError={setContractError} onUpdate={queryRoyaltyInfo} />
+                                                        ) : <></>
+                                                    }
+                                                </div>
+                                            ) : <></>
+                                        }
+                                    </div>
                                 </div>
                             </div>
-                        )
-                    )
-                    : <p>Connect a wallet to view this NFT</p>
-                    }
-                </div>
-                { 
-                    <div className="column">
-                        <h1 className="title">{tokenData?.name || ''}</h1>
-                        <p className="subtitle mb-1">{tokenAuthor ? `by ${lookupEns(tokenAuthor) || tokenAuthor}` : ''}</p>
-                        <div className="has-text-left m-0">
-                            <TypeTag type={tokenType} />
-                        </div>
-                        <p className="is-italic">{tokenData?.description || ''}</p>
-                        {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
-                        <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
-                        : <></>
-                        }
-                    </div>
+                        ) : <p>This NFT doesn't exist.</p>
                 }
-                
-            </div>
-
-            <div className="columns ml-2">
-                <div className="column">
-                    <Listings
-                        readProvider={readProvider}
-                        walletProvider={walletProvider}
-                        id={id}
-                        walletAddress={walletAddress}
-                        onError={setContractError}
-                        onUpdate={onUpdate}
-                        userBalance={userBalance()}
-                        userAvailableAmount={userAvailableAmount()}
-                        listingGroups={listingGroups()}
-                    />
-                    {
-                        readProvider && walletProvider && userBalance() ? (
-                            <div>
-                                <p>Owned: {userBalance()}</p>
-                                { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
-                                <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
-                            </div>
-                        ) : <></>
-                    }
-                </div>
-            </div>
         </div>
     )
 }
