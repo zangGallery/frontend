@@ -14,7 +14,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit as editIcon } from '@fortawesome/free-solid-svg-icons';
 import { useTransactionHelper } from '../common/transaction_status';
 
-export default function EditButton ({ nftId, listingId, availableAmount, balance, onError, onUpdate, oldAmount }) {
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
+
+export default function EditButton ({ nftId, listingId, availableAmount, balance, onUpdate, oldAmount }) {
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
@@ -23,13 +26,21 @@ export default function EditButton ({ nftId, listingId, availableAmount, balance
     const handleTransaction = useTransactionHelper();
 
     const [buyModalOpen, setBuyModalOpen] = useState(false);
+    const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const edit = async (newAmount, newPrice) => {
-        if (newAmount === null && newPrice === null) {
+        if (newAmount === null) {
+            setStandardError('No amount specified.')
+            return;
+        }
+        if (newPrice === null) {
+            setStandardError('No price specified.')
             return;
         }
 
         if (!nftId || !walletProvider) return;
+
+        setStandardError(null);
 
         const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());

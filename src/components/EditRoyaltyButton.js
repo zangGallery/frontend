@@ -9,15 +9,17 @@ import { useWalletProvider } from '../common/provider';
 import EditRoyaltyModal from "./EditRoyaltyModal";
 import { useTransactionHelper } from "../common/transaction_status";
 
-export default function EditRoyaltyButton ( { id, walletAddress, currentRoyaltyPercentage, onUpdate, onError } ) {
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
+
+export default function EditRoyaltyButton ( { id, currentRoyaltyPercentage, onUpdate } ) {
     const zangAddress = config.contractAddresses.v1.zang;
     const zangABI = v1.zang;
 
     const [walletProvider, setWalletProvider] = useWalletProvider()
-
     const handleTransaction = useTransactionHelper()
-
     const [editModalOpen, setEditModalOpen] = useState(false);
+    const [_, setStandardError] = useRecoilState(standardErrorState)
 
     if (currentRoyaltyPercentage === null || currentRoyaltyPercentage === undefined) {
         return <></>;
@@ -25,8 +27,10 @@ export default function EditRoyaltyButton ( { id, walletAddress, currentRoyaltyP
 
     const editRoyalty = async (royaltyPercentage) => {
         if (royaltyPercentage === null) {
-            return;
+            setStandardError('Please enter a royalty percentage.');
         }
+
+        setStandardError(null);
 
         const effectiveRoyaltyPercentage = new Decimal(royaltyPercentage).mul('100').toNumber();
 

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRecoilState } from "recoil";
 import { ethers } from 'ethers';
 import { v1 } from '../common/abi';
 import config from '../config';
@@ -7,11 +8,13 @@ import { useWalletProvider } from '../common/provider';
 
 import BurnModal from "./BurnModal";
 import { useTransactionHelper } from "../common/transaction_status";
+import { standardErrorState } from "../common/error";
 
-export default function BurnButton ( { id, walletAddress, balance, availableAmount, onUpdate, onError } ) {
+export default function BurnButton ( { id, walletAddress, balance, availableAmount, onUpdate } ) {
     const handleTransaction = useTransactionHelper();
     const zangAddress = config.contractAddresses.v1.zang;
     const zangABI = v1.zang;
+    const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const [walletProvider, setWalletProvider] = useWalletProvider()
 
@@ -23,7 +26,7 @@ export default function BurnButton ( { id, walletAddress, balance, availableAmou
         }
 
         if (!id || !walletProvider) return;
-        // setError(null);
+        setStandardError(null);
 
         const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());

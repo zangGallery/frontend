@@ -3,8 +3,8 @@ import { useState } from 'react';
 import config from '../config';
 import { ethers } from 'ethers';
 import { v1 } from '../common/abi';
-import rehypeSanitize from "rehype-sanitize";
-import * as queryString from "query-string";
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
 
 import { parseEther } from '@ethersproject/units';
 
@@ -13,7 +13,7 @@ import { useReadProvider, useWalletProvider } from '../common/provider';
 import BuyModal from './BuyModal';
 import { useTransactionHelper } from '../common/transaction_status';
 
-export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerBalance, onError, onUpdate }) {
+export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerBalance, onUpdate }) {
     sellerBalance = sellerBalance || 0;
 
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
@@ -21,6 +21,7 @@ export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerB
 
     const [readProvider, setReadProvider] = useReadProvider()
     const [walletProvider, setWalletProvider] = useWalletProvider()
+    const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const handleTransaction = useTransactionHelper();
 
@@ -28,6 +29,8 @@ export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerB
 
     const buy = async (amount) => {
         if (!nftId || !readProvider) return;
+
+        setStandardError(null);
 
         const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
