@@ -79,7 +79,14 @@ export default function NFTPage( { location }) {
     const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const queryPrevValidId = async () => {
-        if (!id || !readProvider) return;
+        if (!id) {
+            setStandardError('Could not determine the ID of the NFT.')
+            return;
+        }
+        if (!walletProvider) {
+            setStandardError('Please connect a wallet.')
+            return;
+        }
 
         const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
 

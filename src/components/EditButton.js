@@ -30,15 +30,22 @@ export default function EditButton ({ nftId, listingId, availableAmount, balance
 
     const edit = async (newAmount, newPrice) => {
         if (newAmount === null) {
-            setStandardError('No amount specified.')
+            setStandardError('Please enter an amount.')
             return;
         }
         if (newPrice === null) {
-            setStandardError('No price specified.')
+            setStandardError('Please enter a price.')
             return;
         }
 
-        if (!nftId || !walletProvider) return;
+        if (!nftId) {
+            setStandardError('Could not determine the ID of the NFT.')
+            return;
+        }
+        if (!walletProvider) {
+            setStandardError('Please connect a wallet.')
+            return;
+        }
 
         setStandardError(null);
 

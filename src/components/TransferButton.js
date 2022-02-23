@@ -33,7 +33,15 @@ export default function TransferButton ( { id, walletAddress, balance, available
             return;
         }
 
-        if (!id || !walletProvider) return;
+        if (!id) {
+            setStandardError('Could not determine the ID of the NFT.')
+            return;
+        }
+        if (!walletProvider) {
+            setStandardError('Please connect a wallet.')
+            return;
+        }
+
         setStandardError(null);
 
         const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);

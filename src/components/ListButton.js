@@ -21,16 +21,23 @@ export default function ListButton ({ id, userBalance, userAvailableAmount, onUp
     const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const list = async (amount, price) => {
-        if (amount === null || price === null) {
-            setStandardError('No amount specified.');
+        if (amount === null) {
+            setStandardError('Please enter an amount.');
             return;
         }
         if (price === null) {
-            setStandardError('No price specified.');
+            setStandardError('Please enter a price.');
             return;
         }
 
-        if (!id || !walletProvider) return;
+        if (!id) {
+            setStandardError('Could not determine the ID of the NFT.')
+            return;
+        }
+        if (!walletProvider) {
+            setStandardError('Please connect a wallet.')
+            return;
+        }
 
         setStandardError(null);
 

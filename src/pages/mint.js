@@ -37,9 +37,13 @@ export default function Mint() {
   const watchUseCustomRecipient = watch('useCustomRecipient', defaultValues.useCustomRecipient);
   const watchTextType = watch('textType', defaultValues.textType)
   const handleTransaction = useTransactionHelper()
-  const [standardError, setStandardError] = useRecoilState(standardErrorState)
+  const [_, setStandardError] = useRecoilState(standardErrorState)
 
   const executeTransaction = (mintConfirmed)  => async (data) => {
+    if (!walletProvider) {
+      setStandardError('Please connect a wallet.')
+      return;
+    }
     // Add non-React Hook Form fields
     data = {...data, text};
 

@@ -28,7 +28,19 @@ export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerB
     const [buyModalOpen, setBuyModalOpen] = useState(false);
 
     const buy = async (amount) => {
-        if (!nftId || !readProvider) return;
+        if (amount === null) {
+            setStandardError('Please enter an amount.');
+            return;
+        }
+
+        if (!nftId) {
+            setStandardError('Could not determine the ID of the NFT.')
+            return;
+        }
+        if (!walletProvider) {
+            setStandardError('Please connect a wallet.')
+            return;
+        }
 
         setStandardError(null);
 

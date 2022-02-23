@@ -29,6 +29,14 @@ export default function EditRoyaltyButton ( { id, currentRoyaltyPercentage, onUp
         if (royaltyPercentage === null) {
             setStandardError('Please enter a royalty percentage.');
         }
+        if (!id) {
+            setStandardError('Could not determine the ID of the NFT.')
+            return;
+        }
+        if (!walletProvider) {
+            setStandardError('Please connect a wallet.')
+            return;
+        }
 
         setStandardError(null);
 

@@ -20,12 +20,12 @@ export default function DelistButton ({ nftId, listingId, onUpdate }) {
     const handleTransaction = useTransactionHelper();
 
     const delist = async () => {
-        if (!walletProvider) {
-            setStandardError('Please connect a wallet.')
+        if (!nftId) {
+            setStandardError('Could not determine the ID of the NFT.')
             return;
         }
-        if (!nftId) {
-            setStandardError('No id specified.')
+        if (!walletProvider) {
+            setStandardError('Please connect a wallet.')
             return;
         }
 
