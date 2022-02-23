@@ -24,6 +24,8 @@ import TypeTag from '../components/TypeTag';
 import BurnButton from '../components/BurnButton';
 import EditRoyaltyButton from '../components/EditRoyaltyButton';
 import Decimal from 'decimal.js';
+import { standardErrorState } from '../common/error';
+import StandardErrorDisplay from '../components/StandardErrorDisplay';
 
 const burnedIdsState = atom({
     key: 'burnedIds',
@@ -72,8 +74,9 @@ export default function NFTPage( { location }) {
     const [lastNFTId, setLastNFTId] = useState(null)
     const [exists, setExists] = useState(true)
 
-    const [contractError, setContractError] = useState(null);
     const [walletAddress, setWalletAddress] = useState(null);
+
+    const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const queryPrevValidId = async () => {
         if (!id || !readProvider) return;
@@ -89,7 +92,7 @@ export default function NFTPage( { location }) {
                 try {
                     isValid = await contract.exists(prevId);
                 } catch (e) {
-                    setContractError(e);
+                    setStandardError(e.message);
                     break;
                 }
 
@@ -117,7 +120,7 @@ export default function NFTPage( { location }) {
             setLastNFTId(newLastNFTId.toNumber());
             newLastNFTId.toNumber();
         } catch (e) {
-            setContractError(e);
+            setStandardError(e.message);
         }
     }
 
@@ -139,7 +142,7 @@ export default function NFTPage( { location }) {
                 try {
                     isValid = await contract.exists(nextId);
                 } catch (e) {
-                    setContractError(e);
+                    setStandardError(e.message);
                     break;
                 }
 
@@ -174,7 +177,7 @@ export default function NFTPage( { location }) {
             if (e.errorArgs && e.errorArgs[0] === 'ZangNFT: uri query for nonexistent token') {
                 setExists(false);
             } else {
-                setContractError(e);
+                setStandardError(e.message);
             }
         }
     }
@@ -189,7 +192,7 @@ export default function NFTPage( { location }) {
         }
         catch (e) {
             if (!e.errorArgs || e.errorArgs[0] !== 'ZangNFT: author query for nonexistent token') {
-                setContractError(e);
+                setStandardError(e.message);
             }
         }
     }
@@ -203,7 +206,7 @@ export default function NFTPage( { location }) {
             setTokenData(newTokenData);
         }
         catch (e) {
-            setContractError(e);
+            setStandardError(e.message);
         }
     }
 
@@ -218,7 +221,7 @@ export default function NFTPage( { location }) {
             setTokenType(response.headers.get("content-type"))
             setTokenContent(parsedText)
         } catch (e) {
-            setContractError(e);
+            setStandardError(e.message);
         }
     }
 
@@ -235,7 +238,7 @@ export default function NFTPage( { location }) {
                 amount: amount.div(100).toNumber()
             })
         } catch (e) {
-            setContractError(e);
+            setStandardError(e.message);
         }
     }
 
@@ -247,7 +250,7 @@ export default function NFTPage( { location }) {
         try {
             setTotalSupply(await contract.totalSupply(id));
         } catch (e) {
-            setContractError(e);
+            setStandardError(e.message);
         }
     }
 
@@ -271,13 +274,13 @@ export default function NFTPage( { location }) {
             try {
                 setWalletAddress(await walletProvider.getSigner().getAddress());
             } catch (e) {
-                setContractError(e);
+                setStandardError(e.message);
             }
         }
     }, [walletProvider])
 
     useEffect(() => {
-        setContractError(null);
+        setStandardError(null);
     }, [id])
 
     useEffect(() => {
@@ -403,7 +406,7 @@ export default function NFTPage( { location }) {
             // If a listing has seller 0x0000... it has been delisted
             setListings(newListings);
         } catch (e) {
-            setContractError(e);
+            setStandardError(e.message);
         }
     }
 
@@ -417,7 +420,7 @@ export default function NFTPage( { location }) {
             setListingSellerBalances((currentBalance) => ({...currentBalance, [sellerAddress]: balance.toNumber()}));
         }
         catch (e) {
-            setContractError(e);
+            setStandardError(e.message);
         }
     }
 
@@ -440,7 +443,7 @@ export default function NFTPage( { location }) {
             
             await Promise.all(promises);
         } catch (e) {
-            setContractError(e);
+            setStandardError(e.message);
         }
     }
 
@@ -467,16 +470,7 @@ export default function NFTPage( { location }) {
                 { prevValidId ? <a style={styles.arrow} className="icon" role="button" onClick={changeId(false)}>{'\u25c0'}</a> : <></>}
                 { nextValidId ? <a style={styles.arrow} className="icon" role="button" onClick={changeId(true)}>{'\u25b6'}</a> : <></>}
             </div>
-                {
-                    contractError ?
-                        (
-                            <article class="message is-danger">
-                                <div class="message-body">
-                                    <strong>Error:</strong> {contractError?.message}.
-                                </div>
-                            </article>
-                        ) : <></>
-                }
+                <StandardErrorDisplay />
                 {
                     exists ?
                         totalSupply == 0 ? (
@@ -526,7 +520,6 @@ export default function NFTPage( { location }) {
                                             walletProvider={walletProvider}
                                             id={id}
                                             walletAddress={walletAddress}
-                                            onError={setContractError}
                                             onUpdate={onUpdate}
                                             userBalance={userBalance()}
                                             userAvailableAmount={userAvailableAmount()}
@@ -540,14 +533,14 @@ export default function NFTPage( { location }) {
                                                             <div>
                                                                 <p>Owned: {userBalance()}</p>
                                                                 { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
-                                                                <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
-                                                                <BurnButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onError={setContractError} onUpdate={onUpdate} />
+                                                                <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onUpdate={onUpdate} />
+                                                                <BurnButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onUpdate={onUpdate} />
                                                             </div>
                                                         ) : <></>
                                                     }
                                                     { 
                                                         tokenAuthor == walletAddress ? (
-                                                            <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo?.amount} onError={setContractError} onUpdate={queryRoyaltyInfo} />
+                                                            <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo?.amount} onUpdate={queryRoyaltyInfo} />
                                                         ) : <></>
                                                     }
                                                 </div>
