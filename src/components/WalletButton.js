@@ -50,7 +50,7 @@ export default function WalletButton() {
         try {
             wallet = await web3Modal.connect();
         } catch (e) {
-            setStandardError('Error connecting to wallet: "' + e + '".');
+            setStandardError(e.message);
             return;
         }
 
