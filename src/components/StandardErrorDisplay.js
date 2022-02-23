@@ -7,7 +7,7 @@ export default function StandardErrorDisplay () {
     return standardError ? (
             <article class="message is-danger">
                 <div class="message-body">
-                    <strong>Error:</strong> {standardError}.
+                    <strong>Error:</strong> {standardError}
                 </div>
             </article>
     ) : <></>
