@@ -9,6 +9,7 @@ import MDEditor from "@uiw/react-md-editor"
 import rehypeSanitize from "rehype-sanitize";
 import { useEns } from "../common/ens";
 import TypeTag from "./TypeTag";
+import { isTokenExistenceError } from "../common/error";
 
 const styles = {
     card: {
@@ -59,7 +60,7 @@ export default function NFTCard({ id }) {
             const tURI = await contract.uri(id);
             setTokenURI(tURI);
         } catch (e) {
-            if (e.errorArgs && e.errorArgs[0] === 'ZangNFT: uri query for nonexistent token') {
+            if (isTokenExistenceError(e)) {
                 setExists(false);
             } else {
                 // TODO: Set error
@@ -78,7 +79,7 @@ export default function NFTCard({ id }) {
 
             setTokenAuthor(author);
         } catch (e) {
-            if (e.errorArgs && e.errorArgs[0] === 'ZangNFT: author query for nonexistent token') {
+            if (isTokenExistenceError(e)) {
                 setExists(false);
             } else {
                 // TODO: Set error

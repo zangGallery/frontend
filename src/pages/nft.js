@@ -24,7 +24,7 @@ import TypeTag from '../components/TypeTag';
 import BurnButton from '../components/BurnButton';
 import EditRoyaltyButton from '../components/EditRoyaltyButton';
 import Decimal from 'decimal.js';
-import { standardErrorState } from '../common/error';
+import { isTokenExistenceError, standardErrorState } from '../common/error';
 import StandardErrorDisplay from '../components/StandardErrorDisplay';
 
 const burnedIdsState = atom({
@@ -181,7 +181,7 @@ export default function NFTPage( { location }) {
             setTokenURI(tURI);
         }
         catch (e) {
-            if (e.errorArgs && e.errorArgs[0] === 'ZangNFT: uri query for nonexistent token') {
+            if (isTokenExistenceError(e)) {
                 setExists(false);
             } else {
                 setStandardError(e.message);
@@ -198,7 +198,7 @@ export default function NFTPage( { location }) {
             setTokenAuthor(author);
         }
         catch (e) {
-            if (!e.errorArgs || e.errorArgs[0] !== 'ZangNFT: author query for nonexistent token') {
+            if (!isTokenExistenceError(e)) {
                 setStandardError(e.message);
             }
         }
