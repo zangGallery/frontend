@@ -10,6 +10,8 @@ import rehypeSanitize from "rehype-sanitize";
 import { useEns } from "../common/ens";
 import TypeTag from "./TypeTag";
 import { isTokenExistenceError } from "../common/error";
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
 
 const styles = {
     card: {
@@ -47,6 +49,7 @@ export default function NFTCard({ id }) {
     const [tokenType, setTokenType] = useState(null);
     const [tokenContent, setTokenContent] = useState(null);
     const [exists, setExists] = useState(true);
+    const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const contractAddress = config.contractAddresses.v1.zang;
     const contractABI = v1.zang;
@@ -63,8 +66,7 @@ export default function NFTCard({ id }) {
             if (isTokenExistenceError(e)) {
                 setExists(false);
             } else {
-                // TODO: Set error
-                console.log(e);
+                setStandardError(e.message);
             }
         }
     }
@@ -82,8 +84,7 @@ export default function NFTCard({ id }) {
             if (isTokenExistenceError(e)) {
                 setExists(false);
             } else {
-                // TODO: Set error
-                console.log(e);
+                setStandardError(e.message);
             }
         }
     }
@@ -97,8 +98,7 @@ export default function NFTCard({ id }) {
             console.log(newTokenData)
             setTokenData(newTokenData);
         } catch (e) {
-            // TODO: Set error
-            console.log(e)
+            setStandardError(e.message);
         }
     }
 
@@ -114,8 +114,7 @@ export default function NFTCard({ id }) {
             setTokenType(response.headers.get("content-type"))
             setTokenContent(parsedText)
         } catch (e) {
-            // TODO: Set error
-            console.log(e)
+            setStandardError(e.message);
         }
     }
 
