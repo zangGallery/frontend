@@ -50,9 +50,15 @@ export default function WalletButton() {
         try {
             wallet = await web3Modal.connect();
         } catch (e) {
-            setStandardError(e.message);
+            if (e?.message) {
+                setStandardError(e.message);
+            } else {
+                setStandardError('Failed to connect a wallet.')
+            }
             return;
         }
+
+        setStandardError(null);
 
         // Remove any pre-existing event handlers
         delete wallet._events.accountsChanged;
