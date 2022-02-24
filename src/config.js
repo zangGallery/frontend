@@ -2,7 +2,7 @@ const config = {
     contractAddresses: {
         v1: {
             zang: '0xf2a7f0eb7fda1242e5188c8696e23ba7b70c9a4f',
-            marketplace: '0xD0F0B404B01d0A183655047f2dD1559d611c35d7'
+            marketplace: '0x964b8697Aa9F6d404144261FE83D7b923eBa08D3'
         }
     },
     networks: {
