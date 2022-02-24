@@ -2,35 +2,56 @@
 <html>
 <head>
 
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:site" content="@nytimes">
-<meta name="twitter:creator" content="@SarahMaslinNir">
-<meta name="twitter:description" content="NEWARK - The guest list and parade of limousines with celebrities emerging from them seemed more suited to a red carpet event in Hollywood or New York than than a gritty stretch of Sussex Avenue near the former site of the James M. Baxter Terrace public housing project here.">
-<meta name="twitter:image" content="http://graphics8.nytimes.com/images/2012/02/19/us/19whitney-span/19whitney-span-articleLarge.jpg">
-<?php
-use kornrunner\Keccak;
 
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="alpha.zang.gallery">
+
+<meta name="twitter:image" content="https://alpha.zang.gallery/logo_white.png">
+<meta name="og:image" content="https://alpha.zang.gallery/logo_white.png">
+<?php
+include "Keccak.php";
+use kornrunner\Keccak;
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 $alchemy_url = "";
 
 $agent = $_SERVER["HTTP_USER_AGENT"];
 
 $methodSignature = 'uri(uint256)';
+
+//echo '<p>Method: ' . $methodSignature . '</p>';
+
 $encodedSignature = Keccak::hash($methodSignature, 256);
+$functionSelector = substr($encodedSignature, 0, 8); // First 4 bytes are the function selector
 $id =  $_GET["id"];
+
+echo '<meta name="og:url" content="https://alpha.zang.gallery/test3?id=' . $id . '" />';
+
 $hexId = dechex((float)$id);
 
-echo $hexId;
+//echo '<p>HEX: ' . $hexId . '</p>';
 
 $padded = str_pad($hexId, 64, '0', STR_PAD_LEFT);
 
-echo $padded;
+//echo $padded;
 
-/*
-$data = array(
+//echo '<p> Encoded signature: ' . $functionSelector . '</p>';
+
+
+$parameters = array(
     'to' => '0xf2a7f0eb7fda1242e5188c8696e23ba7b70c9a4f',
-    'key2' => 'value2');
+    'data' => ('0x' . $functionSelector . $padded));
 
-echo '<meta name="twitter:title" content="NFT #' . $id . '">';
+$data = array(
+  'jsonrpc' => '2.0',
+  'method' => 'eth_call',
+  'params' => array($parameters, 'latest')
+);
+
+//echo 'Test';
+//echo '<p>Data: ' . json_encode($data) . '</p>';
+
 
 $options = array(
   'http' => array(
@@ -42,13 +63,48 @@ $options = array(
 );
 
 $context  = stream_context_create( $options );
-$result = file_get_contents( $url, false, $context );
+$result = file_get_contents($alchemy_url, false, $context);
 $response = json_decode( $result );
-*/
+$resultData = $response->result;
+//echo $result;
+//echo '<p>' . $resultData . '</p>';
+
+// Remove the 0x prefix
+$resultData = substr($resultData, 2);
+
+// Remove the first 4 blocks from the result
+// The first 
+$resultData = substr($resultData, 32 * 4);
+/*echo '<p>' . substr($resultData, 0, 32) . '</p>';
+echo '<p>' . substr($resultData, 32, 32) . '</p>';
+echo '<p>' . substr($resultData, 32 * 2, 32) . '</p>';
+echo '<p>' . substr($resultData, 32 * 3, 32) . '</p>';
+echo '<p>' . substr($resultData, 32 * 4, 32) . '</p>';
+echo '<p>' . substr($resultData, 32 * 5, 32) . '</p>';*/
+
+function hex2str($hex) {
+  $str = '';
+  for($i=0;$i<strlen($hex);$i+=2) $str .= chr(hexdec(substr($hex,$i,2)));
+  return $str;
+}
+
+$resultURI = hex2str($resultData);
+//echo '<p>' . $resultURI . '</p>';
+// Remove right whitespace
+$resultURI = rtrim($resultURI);
+
+$json_content = file_get_contents($resultURI, 'r');
+$json_content = json_decode($json_content);
+//echo '<p>' . json_encode($json_content) . '</p>';
+//echo '<meta name="twitter:title" content="' . $json_content->name . '">';
+echo '<meta name="og:title" content="' . $json_content->name . '">';
+//echo '<meta name="twitter:description" content="' . $json_content->description . '">';
+echo '<meta name="og:description" content="' . $json_content->description . '">';
 ?>
 
 </head>
 <body>
+<p>Version: 18</p>
 
 <?php
 $agent = $_SERVER["HTTP_USER_AGENT"];
@@ -66,6 +122,7 @@ if( preg_match('/MSIE (\d+\.\d+);/', $agent) ) {
 } else if (preg_match('/Safari[\/\s](\d+\.\d+)/', $agent) ) {
   echo "You're using Safari";
 }
+
 ?> 
 
 </body>
