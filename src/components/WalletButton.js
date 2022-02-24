@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { mainnetProvider, restoreDefaultReadProvider, useReadProvider, useWalletProvider } from "../common/provider";
 import config from "../config";
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
 
 const styles = {
     ensInfoContainer: {
@@ -21,6 +23,7 @@ export default function WalletButton() {
     const [walletProvider, setWalletProvider] = useWalletProvider();
     const [ensAddress, setEnsAddress] = useState(null);
     const [ensAvatar, setEnsAvatar] = useState(null);
+    const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const providerOptions = {
         /* See Provider Options Section */
@@ -47,8 +50,7 @@ export default function WalletButton() {
         try {
             wallet = await web3Modal.connect();
         } catch (e) {
-            // TODO: Set error
-            console.log('Error connecting to wallet:', e);
+            setStandardError(e.message);
             return;
         }
 
@@ -104,7 +106,7 @@ export default function WalletButton() {
             const _ensAvatar = await mainnetProvider.getAvatar(_ensAddress);
             setEnsAvatar(_ensAvatar);
         } catch (e) {
-            // TODO: Set error
+            // Fetching can fail without side effects
             console.log(e);
         }
     }

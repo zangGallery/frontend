@@ -17,6 +17,9 @@ import { Helmet } from "react-helmet";
 import "bulma/css/bulma.min.css";
 import '../styles/globals.css'
 import { useTransactionHelper } from "../common/transaction_status";
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
+import StandardErrorDisplay from "../components/StandardErrorDisplay";
 
 const defaultValues = {
   editionSize: 1,
@@ -33,12 +36,14 @@ export default function Mint() {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false)
   const watchUseCustomRecipient = watch('useCustomRecipient', defaultValues.useCustomRecipient);
   const watchTextType = watch('textType', defaultValues.textType)
-  const [readProvider, setReadProvider] = useReadProvider()
   const handleTransaction = useTransactionHelper()
-
-  const numConfirmations = 5;
+  const [_, setStandardError] = useRecoilState(standardErrorState)
 
   const executeTransaction = (mintConfirmed)  => async (data) => {
+    if (!walletProvider) {
+      setStandardError('Please connect a wallet.')
+      return;
+    }
     // Add non-React Hook Form fields
     data = {...data, text};
 
@@ -54,12 +59,13 @@ export default function Mint() {
       return [...data.text].some(char => char.charCodeAt(0) > 127)
     }
 
+    setStandardError(null);
+
     const uri = 'data:'
                 + data.textType
                 + (isUTF8() && data.textType == 'text/plain' ? ',charset=UTF-8' : '')
                 + ',' + encodeURIComponent(data.text)
 
-    setTransactionState({ status: 'getSigner' });
     const contractAddress = config.contractAddresses.v1.zang;
 
     const contract = new ethers.Contract(contractAddress, v1.zang, walletProvider);
@@ -77,7 +83,7 @@ export default function Mint() {
         try {
           resolvedAddress = await mainnetProvider.resolveName(effectiveRoyaltyRecipient);
         } catch (e) {
-          setTransactionState({ status: 'error', error: e });
+          setStandardError('Invalid custom recipient address: "' + e.message + '".');
           return;
         }
 
@@ -85,7 +91,7 @@ export default function Mint() {
           effectiveRoyaltyRecipient = resolvedAddress;
         }
         else {
-          setTransactionState({ status: 'error', error: { message: 'Could not resolve ENS name.' } });
+          setStandardError('Could not resolve ENS name.');
           return;
         }
       }
@@ -95,7 +101,7 @@ export default function Mint() {
         effectiveRoyaltyRecipient = await walletProvider.getSigner().getAddress();
       }
       catch (e) {
-        setTransactionState({ status: 'error', error: e });
+        setStandardError('Could not retrieve wallet address: "' + e.message + '".')
         return;
       }
     }
@@ -111,40 +117,9 @@ export default function Mint() {
         navigate('/nft?id=' + tokenId);
       }
       else {
-        throw new Error('Wrong number of events emitted.')
+        setStandardError('Could not find token ID in transaction receipt.');
+        return;
       }
-    }
-  }
-
-  const getTransactionStatusInfo = () => {
-    let message = null;
-    switch(transactionState.status) {
-      case 'getSigner' : {
-        message = 'Querying signer...';
-        break;
-      }
-      case 'signing' : {
-        message = 'Waiting for signature';
-        break;
-      }
-      case 'confirmations' : {
-        message = `Awaiting confirmations... (${transactionState.done}/${transactionState.total})`;
-        break;
-      }
-      case 'error': {
-        message = 'Error: ' + transactionState.error.message;
-        if (transactionState.error.data?.message) {
-          message += transactionState.error.data.message;
-        }
-        break;
-      }
-    }
-
-    if (message) {
-      return <p>{message}</p>
-    }
-    else {
-      return <></>
     }
   }
 
@@ -154,6 +129,7 @@ export default function Mint() {
         <title>Mint - zang</title>
       </Helmet>
       <Header />
+      <StandardErrorDisplay />
       <div className="columns m-4">
         <div className="column">
           <h1 className="title">Mint your NFT</h1>
@@ -222,7 +198,6 @@ export default function Mint() {
             )
             : <p>Connect a wallet to mint</p>
           }
-          {getTransactionStatusInfo()}
         </div>
       </div>
       <MintConfirmModal isOpen={confirmModalOpen} setIsOpen={setConfirmModalOpen} onClose={(confirmed) => handleSubmit(executeTransaction(confirmed))()} />

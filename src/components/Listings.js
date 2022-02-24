@@ -11,8 +11,10 @@ import { useEns } from "../common/ens";
 import ListButton from "./ListButton";
 import DelistButton from "./DelistButton";
 import { useTransactionHelper } from "../common/transaction_status";
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
 
-export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onError, onUpdate }) {
+export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onUpdate }) {
     const zangAddress = config.contractAddresses.v1.zang;
     const zangABI = v1.zang;
 
@@ -26,14 +28,15 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
     const otherListingGroups = () => (listingGroups || []).filter(group => group.seller !== walletAddress);
 
     const handleTransaction = useTransactionHelper();
+    const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const approveMarketplace = async () => {
         if (!walletProvider) {
-            onError('No wallet provider.');
+            setStandardError('No wallet provider.');
             return;
         };
         if (!id) {
-            onError('No id specified.');
+            setStandardError('No id specified.');
             return;
         }
 
@@ -60,7 +63,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
             const approved = await zangContract.isApprovedForAll(walletAddress, marketplaceAddress);
             setIsApproved(approved);
         } catch (e) {
-            onError(e);
+            setStandardError(e.message);
         }
     }
 
@@ -71,7 +74,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
             {
                 userBalance ? (
                     isApproved ? (
-                        <ListButton id={id} userBalance={userBalance} userAvailableAmount={userAvailableAmount} onError={onError} onUpdate={onUpdate} />
+                        <ListButton id={id} userBalance={userBalance} userAvailableAmount={userAvailableAmount} onUpdate={onUpdate} />
                     ) : (
                         <div>
                             <p>Approve the marketplace contract to list</p>
@@ -91,8 +94,8 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                                     userListingGroup().listings.map(listing => (
                                         <div key={listing.id} className="is-flex" >
                                             <p style={{width: '6em'}}>{listing.amount} {listing.token} @ {listing.price}Ξ</p>
-                                            <EditButton nftId={id} listingId={listing.id} balance={userBalance} onError={onError} onUpdate={onUpdate} oldAmount={listing.amount} availableAmount={userAvailableAmount} />
-                                            <DelistButton nftId={id} listingId={listing.id} onError={onError} onUpdate={onUpdate} />
+                                            <EditButton nftId={id} listingId={listing.id} balance={userBalance} onUpdate={onUpdate} oldAmount={listing.amount} availableAmount={userAvailableAmount} />
+                                            <DelistButton nftId={id} listingId={listing.id} onUpdate={onUpdate} />
                                         </div>
                                     ))
                                 }
@@ -118,7 +121,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                                                     </div>
 
                                                     { walletProvider ? (
-                                                        <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onError={onError} onUpdate={onUpdate} />
+                                                        <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onUpdate={onUpdate} />
                                                     ) : <></>
                                                     }
                                                 </div>

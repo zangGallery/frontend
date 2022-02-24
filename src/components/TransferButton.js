@@ -7,8 +7,10 @@ import { useWalletProvider } from '../common/provider';
 
 import TransferModal from "./TransferModal";
 import { useTransactionHelper } from "../common/transaction_status";
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
 
-export default function TransferButton ( { id, walletAddress, balance, availableAmount, onUpdate, onError } ) {
+export default function TransferButton ( { id, walletAddress, balance, availableAmount, onUpdate } ) {
     const zangAddress = config.contractAddresses.v1.zang;
     const zangABI = v1.zang;
 
@@ -18,14 +20,29 @@ export default function TransferButton ( { id, walletAddress, balance, available
 
     const [transferModalOpen, setTransferModalOpen] = useState(false);
 
+    const [_, setStandardError] = useRecoilState(standardErrorState);
+
     const transfer = async (to, amount) => {
-        console.log('Amount: ' + amount + ' To: ' + to + ' ID: ' + id + ' Wallet: ' + walletAddress)
-        if (to === null || amount === null) {
+        if (to === null) {
+            setStandardError('Please enter a valid address.');
             return;
         }
 
-        if (!id || !walletProvider) return;
-        // setError(null);
+        if (amount === null) {
+            setStandardError('Please enter an amount.');
+            return;
+        }
+
+        if (!id) {
+            setStandardError('Could not determine the ID of the NFT.')
+            return;
+        }
+        if (!walletProvider) {
+            setStandardError('Please connect a wallet.')
+            return;
+        }
+
+        setStandardError(null);
 
         const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
         const contractWithSigner = contract.connect(walletProvider.getSigner());
