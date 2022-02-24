@@ -1,14 +1,35 @@
 import Joi from "joi";
 
-const _alwaysInvalid = (value, helpers) => {
-    helpers.error('any.only')
+const ensDomain = Joi.string().domain({ tlds: { allow: ['eth'] } });
+const ethAddress = Joi.string().pattern(/^0x[a-fA-F0-9]{40}$/);
+
+const validateCustomRecipient = (value, helpers) => {
+    if (!value) {
+        return helpers.error('any.required');
+    }
+    if (value.includes('.eth')) {
+        const ensValidation = ensDomain.validate(value);
+        if(ensValidation.error) {
+            return helpers.error('custom.address');
+        }
+    } else {
+        const ethValidation = ethAddress.validate(value);
+        if(ethValidation.error) {
+            return helpers.error('custom.address');
+        }
+    }
+    return value;
 }
 
-const _customRecipient = Joi.alternatives().try(
-    Joi.string().domain({ tlds: { allow: ['eth'] } }).when('useCustomRecipient', { is: true, then: Joi.required() }), // (ENS) domain
-    Joi.string().pattern(/^0x[a-fA-F0-9]{40}$/).when('useCustomRecipient', { is: true, then: Joi.required() }), // Address
-    Joi.string().when('useCustomRecipient', {is : true, then: Joi.custom(_alwaysInvalid), otherwise: Joi.string().empty('')}) // Other string (when it is not required)
-)
+const _customRecipient = Joi.when('useCustomRecipient',
+    {
+        is: true,
+        then: Joi.string().custom(validateCustomRecipient),
+        otherwise: Joi.string().empty('')
+    }
+).messages({
+    'custom.address': '"Address" must be a valid Ethereum name or address'
+})
 
 const maxDigits = (max) => (value, helpers) => {
     const convertedValue = helpers.original + '';

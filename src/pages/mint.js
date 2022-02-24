@@ -20,6 +20,7 @@ import { useTransactionHelper } from "../common/transaction_status";
 import { useRecoilState } from 'recoil';
 import { standardErrorState } from '../common/error';
 import StandardErrorDisplay from "../components/StandardErrorDisplay";
+import ValidatedInput from "../components/ValidatedInput";
 
 const defaultValues = {
   editionSize: 1,
@@ -29,7 +30,7 @@ const defaultValues = {
 }
 
 export default function Mint() {
-  const { register, formState: { errors }, handleSubmit, watch } = useForm({ defaultValues: defaultValues, mode: 'onChange', resolver: joiResolver(schemas.mint)});
+  const { register, formState: { errors, isValid }, handleSubmit, watch } = useForm({ defaultValues: defaultValues, mode: 'onChange', resolver: joiResolver(schemas.mint)});
   const [text, setText] = useState('')
   const [walletProvider, setWalletProvider] = useWalletProvider()
   const [transactionState, setTransactionState] = useState({ status: 'noTransaction'})
@@ -133,24 +134,9 @@ export default function Mint() {
       <div className="columns m-4">
         <div className="column">
           <h1 className="title">Mint your NFT</h1>
-          <div className="field">
-            <label className="label" htmlFor="title">Title</label>
-            <div className="control">
-              <input id="title" className="input" type="text" {...register('title')} placeholder="Title of your artwork" />
-            </div>
-          </div>
-          <div className="field">
-            <label className="label" htmlFor="description">Description</label>
-            <div className="control">
-              <input id="description" className="input" type="text" {...register('description')} placeholder="Description of your artwork" />
-            </div>
-          </div>
-          <div className="field">
-            <label className="label" htmlFor="editionSize">Edition size</label>
-            <div className="control">
-              <input id="editionSize" className="input" type="number" {...register('editionSize')} defaultValue="1" min="1" />
-            </div>
-          </div>
+          <ValidatedInput label="Title" name="title" type="text" register={register} errors={errors} />
+          <ValidatedInput label="Description" name="description" type="text" register={register} errors={errors} />
+          <ValidatedInput label="Edition size" name="editionSize" type="number" register={register} errors={errors} />
           <div className="field">
             <label className="label">Content</label>
             <div className="control">
@@ -165,13 +151,7 @@ export default function Mint() {
               <MultiEditor textType={watchTextType} value={text} setValue={setText} />
             </div>
           </div>
-          <div className="field">
-            <label className="label" htmlFor="royaltyPercentage">Royalty percentage</label>
-            <div className="control">
-              <input id="royaltyPercentage" className="input" type="number" {...register('royaltyPercentage')} defaultValue="10" min="0" max="100" step="0.01" />
-            </div>
-            {errors.royaltyPercentage?.message || <></>}
-          </div>
+          <ValidatedInput label="Royalty percentage" name="royaltyPercentage" type="number" defaultValue="10" min="0" max="100" step="0.01" register={register} errors={errors} />
           <div className="field">
           <label className="checkbox label">
             <input type="checkbox" {...register('useCustomRecipient')} className="mr-1" />
@@ -181,11 +161,7 @@ export default function Mint() {
           </div>
           {
             watchUseCustomRecipient ? (
-              <div className="field">
-                <label className="label" htmlFor="customRecipient">Address</label>
-                <input id="customRecipient" className="input" type="text" {...register('customRecipient')} placeholder='0x... or ENS address' />
-                {errors.customRecipient?.message || <></>}
-              </div>
+              <ValidatedInput label="Address" name="customRecipient" type="text" placeholder="0x... or ENS address" register={register} errors={errors} />
             ) : <></>
           }
           <div className="notification is-danger">
@@ -194,7 +170,7 @@ export default function Mint() {
           {
             walletProvider ? (
               transactionState.status == 'noTransaction' || transactionState.status == 'error' ?
-                <button className="button is-primary" onClick={handleSubmit(executeTransaction(false))}>Mint</button> : <></>
+                <button className="button is-primary" disabled={!isValid} onClick={handleSubmit(executeTransaction(false))}>Mint</button> : <></>
             )
             : <p>Connect a wallet to mint</p>
           }
