@@ -29,12 +29,8 @@ export default function EditButton ({ nftId, listingId, availableAmount, balance
     const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const edit = async (newAmount, newPrice) => {
-        if (newAmount === null) {
-            setStandardError('Please enter an amount.')
-            return;
-        }
-        if (newPrice === null) {
-            setStandardError('Please enter a price.')
+        if (newAmount === null && newPrice === null) {
+            setStandardError('Please enter an amount or a price.')
             return;
         }
 
