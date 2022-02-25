@@ -27,6 +27,9 @@ import Decimal from 'decimal.js';
 import { isTokenExistenceError, standardErrorState } from '../common/error';
 import StandardErrorDisplay from '../components/StandardErrorDisplay';
 
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+
 const burnedIdsState = atom({
     key: 'burnedIds',
     default: []
@@ -36,7 +39,8 @@ const styles = {
     arrowContainer: {
         display: 'flex',
         justifyContent: 'flex-end',
-        marginTop: '1em'
+        marginTop: '1em',
+        height: '2em'
     },
     arrow: {
         fontSize: '2em',
@@ -109,9 +113,9 @@ export default function NFTPage( { location }) {
         }
 
         if (isValid) {
-            setPrevValidId(prevId);
+            return prevId;
         } else {
-            setPrevValidId(null);
+            return null;
         }
     }
 
@@ -159,9 +163,9 @@ export default function NFTPage( { location }) {
         }
 
         if (isValid) {
-            setNextValidId(nextId);
+            return nextId;
         } else {
-            setNextValidId(null);
+            return null;
         }
     }
 
@@ -286,7 +290,7 @@ export default function NFTPage( { location }) {
         setStandardError(null);
     }, [id])
 
-    useEffect(() => {
+    useEffect(async () => {
         setExists(true);
         setTokenURI(null);
         setTokenData(null);
@@ -303,8 +307,9 @@ export default function NFTPage( { location }) {
         queryRoyaltyInfo();
         queryTotalSupply();
 
-        queryPrevValidId();
-        queryNextValidId();
+        const [prevId, nextId] = await Promise.all([queryPrevValidId(), queryNextValidId()]);
+        setPrevValidId(prevId);
+        setNextValidId(nextId);
     }, [id, readProvider])
     useEffect(() => queryTokenData(), [tokenURI])
     useEffect(() => queryTokenContent(), [tokenData])
@@ -467,8 +472,6 @@ export default function NFTPage( { location }) {
                 <title>{id !== undefined && id !== null ? `#${id} - zang` : 'zang'}</title>
             </Helmet>
             <Header />
-            <p>{prevValidId} - {nextValidId}</p>
-            <p>Last: {lastNFTId}</p>
             <div style={styles.arrowContainer}>
                 { prevValidId ? <a style={styles.arrow} className="icon" role="button" onClick={changeId(false)}>{'\u25c0'}</a> : <></>}
                 { nextValidId ? <a style={styles.arrow} className="icon" role="button" onClick={changeId(true)}>{'\u25b6'}</a> : <></>}
@@ -481,44 +484,36 @@ export default function NFTPage( { location }) {
                         ) : (
                             <div>
                                 <div className="columns m-4">
-                                    <div className="column" style={{overflow: 'hidden'}}>
+                                    <div className="column is-two-thirds" style={{overflow: 'hidden'}}>
                                         { readProvider ? (
                                             (
                                                 <div>
                                                     <div className="box">
-                                                        {tokenType && tokenContent ? (
+                                                        {tokenType && (tokenContent || tokenContent == '') ? (
                                                             tokenType == 'text/markdown' ? (
                                                                 <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
                                                             ) : <pre className="nft-plain">{tokenContent}</pre>
-                                                        ) : <></>}
+                                                        ) : <Skeleton count="12"/>}
                                                     </div>
                                                 </div>
                                             )
                                         )
                                         : <p>Connect a wallet to view this NFT</p>
                                         }
-                                    </div>
-                                    { 
+                                    </div> 
                                         <div className="column">
-                                            <h1 className="title">{tokenData?.name || ''}</h1>
-                                            <p className="subtitle mb-1">{tokenAuthor ? `by ${lookupEns(tokenAuthor) || tokenAuthor}` : ''}</p>
+                                            <h1 className="title">{tokenData?.name || <Skeleton/>}</h1>
+                                            <p className="subtitle mb-1">{tokenAuthor ? `by ${lookupEns(tokenAuthor) || tokenAuthor}` : <Skeleton/>}</p>
                                             <div className="has-text-left m-0">
-                                                <TypeTag type={tokenType} />
+                                                {tokenType && totalSupply ? <span><TypeTag type={tokenType}/><span className="tag is-black ml-1">Edition size: {totalSupply.toString()}</span></span> : <Skeleton className="mr-1" inline count={2} width={90}/>}
                                             </div>
-                                            <p className="is-italic">{tokenData?.description || ''}</p>
-                                            <p>{totalSupply ? `${totalSupply} editions` : ''}</p>
-                                            {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
-                                            <p>{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
-                                            : <></>
-                                            }
-                                        </div>
-                                    }
-                                    
-                                </div>
+                                            <p className="is-italic">{tokenData?.description || <Skeleton/>}</p>
 
-                                <div className="columns ml-2">
-                                    <div className="column">
-                                        <Listings
+                                            {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
+                                            <p className="is-size-6">{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
+                                            : <Skeleton/>
+                                            }
+                                            <Listings
                                             readProvider={readProvider}
                                             walletProvider={walletProvider}
                                             id={id}
