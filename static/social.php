@@ -26,7 +26,7 @@ $encodedSignature = Keccak::hash($methodSignature, 256);
 $functionSelector = substr($encodedSignature, 0, 8); // First 4 bytes are the function selector
 $id =  $_GET["id"];
 
-echo '<meta name="og:url" content="https://alpha.zang.gallery/test3?id=' . $id . '" />';
+echo '<meta name="og:url" content="https://alpha.zang.gallery/nft?id=' . $id . '" />';
 
 $hexId = dechex((float)$id);
 
@@ -100,30 +100,10 @@ $json_content = json_decode($json_content);
 echo '<meta name="og:title" content="' . $json_content->name . '">';
 //echo '<meta name="twitter:description" content="' . $json_content->description . '">';
 echo '<meta name="og:description" content="' . $json_content->description . '">';
+
+$page = file_get_contents('https://alpha.zang.gallery/nft/content');
+echo $page;
 ?>
-
 </head>
-<body>
-<p>Version: 18</p>
 
-<?php
-$agent = $_SERVER["HTTP_USER_AGENT"];
-
-if( preg_match('/MSIE (\d+\.\d+);/', $agent) ) {
-  echo "You're using Internet Explorer";
-} else if (preg_match('/Chrome[\/\s](\d+\.\d+)/', $agent) ) {
-  echo "You're using Chrome";
-} else if (preg_match('/Edge\/\d+/', $agent) ) {
-  echo "You're using Edge";
-} else if ( preg_match('/Firefox[\/\s](\d+\.\d+)/', $agent) ) {
-  echo "You're using Firefox";
-} else if ( preg_match('/OPR[\/\s](\d+\.\d+)/', $agent) ) {
-  echo "You're using Opera";
-} else if (preg_match('/Safari[\/\s](\d+\.\d+)/', $agent) ) {
-  echo "You're using Safari";
-}
-
-?> 
-
-</body>
 </html>		
