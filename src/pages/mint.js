@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { v1 } from '../common/abi';
 import config from '../config'
@@ -148,6 +148,8 @@ export default function Mint() {
     }
   }
 
+  
+
   return (
     <div>
       <Helmet>
@@ -223,6 +225,7 @@ export default function Mint() {
             : <p>Connect a wallet to mint</p>
           }
           {getTransactionStatusInfo()}
+
         </div>
       </div>
       <MintConfirmModal isOpen={confirmModalOpen} setIsOpen={setConfirmModalOpen} onClose={(confirmed) => handleSubmit(executeTransaction(confirmed))()} />
