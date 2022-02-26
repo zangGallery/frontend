@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { RoutingLink, WalletButton } from ".";
 import { useWalletProvider } from "../common/provider";
+import config from "../config";
 
 export default function Header() {
     const [isActive, setActive] = useState(false)
@@ -67,7 +68,7 @@ export default function Header() {
                 </div>
             </nav>
             {
-                chainId !== null && chainId !== 3 ? (
+                chainId !== null && chainId !== config.networks.external ? (
                     <div className="notification is-danger">
                         <p>Error: please switch to <strong>Ropsten</strong>.</p>
                     </div>

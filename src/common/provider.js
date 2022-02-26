@@ -1,12 +1,8 @@
 import { useState, useEffect } from "react";
-import { getDefaultProvider } from "ethers";
+import { ethers } from "ethers";
 import config from "../config";
 
-var _defaultReadProvider = getDefaultProvider(config.networks.external,
-    {
-        alchemy: config.api_keys.alchemy
-    }
-);
+var _defaultReadProvider = new ethers.providers.AlchemyProvider(config.networks.external, config.api_keys.alchemy);
 
 var _readProvider = _defaultReadProvider;
 var _walletProvider = null;
@@ -72,11 +68,7 @@ const restoreDefaultReadProvider = () => {
     }
 }
 
-const mainnetProvider = getDefaultProvider('mainnet',
-    {
-        alchemy: config.api_keys.alchemy
-    }
-);
+const mainnetProvider = new ethers.providers.AlchemyProvider('mainnet', config.api_keys.alchemy_mainnet);
 
 export {
     mainnetProvider,
