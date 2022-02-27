@@ -10,11 +10,18 @@ const transactionStatusState = atom({
     default: {},
 });
 
+const transactionListenersState = atom({
+    key: 'transactionListeners',
+    default: []
+});
+
 // Transaction status schema:
 /*
 {
     status: 'pending' | 'approved' | 'success' | 'error',
     name: string,
+    content [optional]: any,
+    url [optional]: string,
     hash: string,
     errorMessage [only if status == 'error']: string
 }
@@ -26,15 +33,30 @@ const transactionStatusState = atom({
 const useTransactionStatus = () => {
     const [transactionsStatus, setTransactionsStatus] = useRecoilState(transactionStatusState);
 
-    const updateTransactionStatus = async (transactionHash, status) => {
-        setTransactionsStatus((currentTransactionStatus) => ({
-            ...currentTransactionStatus,
-            [transactionHash]: status,
-        }));
+    const [transactionListeners, setTransactionListeners] = useRecoilState(transactionListenersState);
+
+    const register = (listener) => {
+        setTransactionListeners((transactionListeners) => {
+            if (transactionListeners.includes(listener)) {
+                return transactionListeners;
+            }
+            return [...transactionListeners, listener];
+        });
     }
 
-    const getTransactionStatus = (transactionHash) => {
-        return transactionsStatus[transactionHash];
+    const updateTransactionStatus = async (transactionId, status) => {
+        setTransactionsStatus((currentTransactionStatus) => ({
+            ...currentTransactionStatus,
+            [transactionId]: status,
+        }));
+
+        for (const listener of transactionListeners) {
+            listener(transactionId, status);
+        }
+    }
+
+    const getTransactionStatus = (transactionId) => {
+        return transactionsStatus[transactionId];
     }
 
     const getTransactions = () => {
@@ -44,7 +66,8 @@ const useTransactionStatus = () => {
     return {
         getTransactionStatus,
         transactions: transactionsStatus,
-        updateTransactionStatus
+        updateTransactionStatus,
+        register
     };
 }
 
@@ -57,27 +80,30 @@ const useTransactionHelper = () => {
         return transactionCount;
     }
 
-    const handleTransaction = async (transactionFunction, transactionName, rethrow) => {
+    const handleTransaction = async (transactionFunction, transactionName, contentFunction, rethrow) => {
         const transactionId = newId();
         let transaction;
         try {
             updateTransactionStatus(transactionId, {
-                'status': 'pending',
-                'name': transactionName
+                status: 'pending',
+                name: transactionName,
+                content: contentFunction ? await contentFunction('pending') : null
             });
             transaction = await transactionFunction();
             updateTransactionStatus(transactionId, {
-                'status': 'approved',
-                'name': transactionName,
-                'hash': transaction.hash
+                status: 'approved',
+                name: transactionName,
+                hash: transaction.hash,
+                content: contentFunction ? await contentFunction('approved', transaction) : null
             });
 
             const receipt = await transaction.wait(1);
 
             updateTransactionStatus(transactionId, {
-                'status': 'success',
-                'name': transactionName,
-                'hash': transaction.hash
+                status: 'success',
+                name: transactionName,
+                hash: transaction.hash,
+                content: contentFunction ? await contentFunction('success', transaction, true, receipt) : null
             });
 
             return {
@@ -92,7 +118,8 @@ const useTransactionHelper = () => {
                 'status': 'error',
                 'name': transactionName,
                 'hash': transaction?.hash,
-                'errorMessage': e.message
+                'errorMessage': e.message,
+                content: contentFunction ? await contentFunction('success', transaction, false) : null
             });
             
             if (rethrow) {
