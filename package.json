@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "gatsby develop",
     "start": "gatsby develop",
-    "build": "gatsby build",
+    "build": "gatsby build && python postbuild.py",
     "serve": "gatsby serve",
     "clean": "gatsby clean"
   },
