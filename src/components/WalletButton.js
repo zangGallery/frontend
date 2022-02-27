@@ -53,7 +53,9 @@ export default function WalletButton() {
             if (e?.message) {
                 setStandardError(e.message);
             } else {
-                setStandardError('Failed to connect a wallet.')
+                // Some wallets reject the promise without actually throwing an error.
+                // In this situation we fail silently.
+                console.log(e);
             }
             return;
         }
