@@ -18,6 +18,10 @@ const config = {
     },
     ens: {
         cacheExpiration: 1000 * 60 * 2 // 2 minutes
+    },
+    blockExplorer: {
+        name: 'PolygonScan',
+        url: 'https://polygonscan.com'
     }
 }
 

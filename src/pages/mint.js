@@ -21,6 +21,7 @@ import { useRecoilState } from 'recoil';
 import { standardErrorState } from '../common/error';
 import StandardErrorDisplay from "../components/StandardErrorDisplay";
 import ValidatedInput from "../components/ValidatedInput";
+import ViewOnExplorer from "../components/ViewOnExplorer";
 
 const defaultValues = {
   editionSize: 1,
@@ -107,21 +108,34 @@ export default function Mint() {
       }
     }
 
+    const contentFunction = (status, transaction, success, receipt) => {
+      console.log('Calling content function')
+      if (status !== 'success') {
+        return null;
+      }
+      
+      if (success && receipt && receipt.blockNumber) {
+        const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)
+        if (matchingEvents.length == 1) {
+          const tokenId = matchingEvents[0].args[3].toString();
+          return (
+            <div>
+              <p><a className="is-underlined" href={'/nft?id=' + tokenId}>NFT #{tokenId}</a> minted</p>
+              <p><ViewOnExplorer hash={transaction.hash} /></p>
+            </div>
+          )
+        }
+        else {
+          setStandardError('Could not find token ID in transaction receipt.');
+          return;
+        }
+      }
+    }
+
     const transactionFunction = async () => 
       await contractWithSigner.mint(uri, data.title, data.description, data.editionSize, effectiveRoyaltyPercentage, effectiveRoyaltyRecipient, 0);
 
-    const { success, receipt } = await handleTransaction(transactionFunction, `Mint`);
-    if (success && receipt && receipt.blockNumber) {
-      const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)
-      if (matchingEvents.length == 1) {
-        const tokenId = matchingEvents[0].args[3]
-        navigate('/nft?id=' + tokenId);
-      }
-      else {
-        setStandardError('Could not find token ID in transaction receipt.');
-        return;
-      }
-    }
+    handleTransaction(transactionFunction, 'Mint', contentFunction);
   }
 
   
