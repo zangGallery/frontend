@@ -1,119 +1,97 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="#POST_BASE_URL#">
 
-<meta name="twitter:card" content="summary">
-<meta name="twitter:site" content="#POST_BASE_URL#">
-
-<meta name="twitter:image" content="#POST_BASE_URL#/logo_white.png">
-<meta name="og:image" content="#POST_BASE_URL#/logo_white.png">
-<?php
-
-function isCommonBrowser() {
-    $agent = $_SERVER["HTTP_USER_AGENT"];
-    $browsers = array(
-        'Chrome', 'Firefox', 'Opera', 'OPR', 'Edge', 'Safari', 'MSIE', 'Trident/7'
-    );
-    for ($i = 0; $i < count($browsers); $i++) {
-        if (strpos($agent, $browsers[$i])) {
+    <meta name="twitter:image" content="#POST_BASE_URL#/logo_white.png">
+    <meta name="og:image" content="#POST_BASE_URL#/logo_white.png">
+    <?php
+      function isCommonBrowser() {
+        $agent = $_SERVER["HTTP_USER_AGENT"];
+        $browsers = array(
+            'Chrome', 'Firefox', 'Opera', 'OPR', 'Edge', 'Safari', 'MSIE', 'Trident/7'
+        );
+        for ($i = 0; $i < count($browsers); $i++) {
+          if (strpos($agent, $browsers[$i])) {
             return true;
+          }
         }
-    }
 
-    return false;
-}
-use kornrunner\Keccak;
-if (!isCommonBrowser()) {
-  include "Keccak.php";
-  ini_set('display_errors', '1');
-  ini_set('display_startup_errors', '1');
-  error_reporting(E_ALL);
-  $alchemy_url = "#POST_ALCHEMY_URL#";
+        return false;
+      }
 
-  $methodSignature = 'uri(uint256)';
+      use kornrunner\Keccak;
 
-  // echo '<meta name="og:url" content="#POST_BASE_URL#/nft?id=' . $id . '" />';
+      if (!isCommonBrowser()) {
+        include "Keccak.php";
+        $alchemy_url = "#POST_ALCHEMY_URL#";
 
-  $encodedSignature = Keccak::hash($methodSignature, 256);
-  $functionSelector = substr($encodedSignature, 0, 8); // First 4 bytes are the function selector
-  $id =  $_GET["id"];
+        $methodSignature = 'uri(uint256)';
 
-  echo '<meta name="og:url" content="#POST_BASE_URL#/nft?id=' . $id . '" />';
+        $encodedSignature = Keccak::hash($methodSignature, 256);
 
-  $hexId = dechex((float)$id);
+        // First 4 bytes are the function selector
+        $functionSelector = substr($encodedSignature, 0, 8);
+        $id =  $_GET["id"];
 
-  //echo '<p>HEX: ' . $hexId . '</p>';
+        echo '<meta name="og:url" content="#POST_BASE_URL#/nft?id=' . $id . '" />';
 
-  $padded = str_pad($hexId, 64, '0', STR_PAD_LEFT);
+        $hexId = dechex((float)$id);
 
-  //echo $padded;
+        $padded = str_pad($hexId, 64, '0', STR_PAD_LEFT);
 
-  $parameters = array(
-    'to' => '#POST_ZANG_ADDRESS#',
-    'data' => ('0x' . $functionSelector . $padded));
+        $parameters = array(
+          'to' => '#POST_ZANG_ADDRESS#',
+          'data' => ('0x' . $functionSelector . $padded));
 
-  $data = array(
-    'jsonrpc' => '2.0',
-    'method' => 'eth_call',
-    'params' => array($parameters, 'latest')
-  );
+        $data = array(
+          'jsonrpc' => '2.0',
+          'method' => 'eth_call',
+          'params' => array($parameters, 'latest')
+        );
 
-  //echo 'Test';
-  //echo '<p>Data: ' . json_encode($data) . '</p>';
+        $options = array(
+          'http' => array(
+            'method'  => 'POST',
+            'content' => json_encode( $data ),
+            'header'=>  "Content-Type: application/json\r\n" .
+                        "Accept: application/json\r\n"
+          )
+        );
 
+        $context  = stream_context_create( $options );
+        $result = file_get_contents($alchemy_url, false, $context);
+        $response = json_decode( $result );
+        $resultData = $response->result;
 
-  $options = array(
-    'http' => array(
-        'method'  => 'POST',
-        'content' => json_encode( $data ),
-        'header'=>  "Content-Type: application/json\r\n" .
-                    "Accept: application/json\r\n"
-        )
-    );
+        // Remove the 0x prefix
+        $resultData = substr($resultData, 2);
 
-  $context  = stream_context_create( $options );
-  $result = file_get_contents($alchemy_url, false, $context);
-  $response = json_decode( $result );
-  $resultData = $response->result;
-  //echo $result;
-  //echo '<p>' . $resultData . '</p>';
+        // Remove the first 4 blocks from the result
+        $resultData = substr($resultData, 32 * 4);
 
-  // Remove the 0x prefix
-  $resultData = substr($resultData, 2);
+        function hex2str($hex) {
+          $str = '';
+          for($i=0;$i<strlen($hex);$i+=2) $str .= chr(hexdec(substr($hex,$i,2)));
+          return $str;
+        }
 
-  // Remove the first 4 blocks from the result
-  // The first 
-  $resultData = substr($resultData, 32 * 4);
-  /*echo '<p>' . substr($resultData, 0, 32) . '</p>';
-  echo '<p>' . substr($resultData, 32, 32) . '</p>';
-  echo '<p>' . substr($resultData, 32 * 2, 32) . '</p>';
-  echo '<p>' . substr($resultData, 32 * 3, 32) . '</p>';
-  echo '<p>' . substr($resultData, 32 * 4, 32) . '</p>';
-  echo '<p>' . substr($resultData, 32 * 5, 32) . '</p>';*/
+        $resultURI = hex2str($resultData);
 
-  function hex2str($hex) {
-    $str = '';
-    for($i=0;$i<strlen($hex);$i+=2) $str .= chr(hexdec(substr($hex,$i,2)));
-    return $str;
-  }
+        // Remove right whitespace
+        $resultURI = rtrim($resultURI);
 
-  $resultURI = hex2str($resultData);
-  //echo '<p>' . $resultURI . '</p>';
-  // Remove right whitespace
-  $resultURI = rtrim($resultURI);
+        $json_content = file_get_contents($resultURI, 'r');
+        $json_content = json_decode($json_content);
 
-  $json_content = file_get_contents($resultURI, 'r');
-  $json_content = json_decode($json_content);
-  //echo '<p>' . json_encode($json_content) . '</p>';
-  //echo '<meta name="twitter:title" content="' . $json_content->name . '">';
-  echo '<meta name="og:title" content="' . $json_content->name . '">';
-  //echo '<meta name="twitter:description" content="' . $json_content->description . '">';
-  echo '<meta name="og:description" content="' . $json_content->description . '">';
-}
+        echo '<meta name="og:title" content="' . $json_content->name . '">';
+        echo '<meta name="og:description" content="' . $json_content->description . '">';
+      }
 
-$page = file_get_contents('#POST_BASE_URL#/nft/content');
-echo $page;
-?>
-</head>
+      $page = file_get_contents('#POST_BASE_URL#/nft/content');
+      echo $page;
+    ?>
+  </head>
 
 </html>		
