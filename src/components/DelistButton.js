@@ -36,7 +36,7 @@ export default function DelistButton ({ nftId, listingId, onUpdate }) {
 
         const transactionFunction = async () => await contractWithSigner.delistToken(nftId, listingId);
 
-        const { success } = await handleTransaction(transactionFunction, `Delist #${nftId}`);
+        const { success } = await handleTransaction(transactionFunction, `Delist NFT #${nftId}`);
         if (success && onUpdate) {
             onUpdate();
         }

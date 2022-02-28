@@ -53,7 +53,7 @@ export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerB
         console.log('Converted:', price.toString())
 
         const transactionFunction = async () => await contractWithSigner.buyToken(nftId, listingId, amount, { value: price.mul(amount) });
-        const { success } = await handleTransaction(transactionFunction, `Buy #${nftId}`);
+        const { success } = await handleTransaction(transactionFunction, `Buy NFTs #${nftId}`);
         if (success && onUpdate) {
             onUpdate();
         }

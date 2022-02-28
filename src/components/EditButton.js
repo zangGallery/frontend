@@ -60,7 +60,7 @@ export default function EditButton ({ nftId, listingId, availableAmount, balance
             transactionFunction = async () => await contractWithSigner.editListing(nftId, listingId, parseEther(newPrice).toString(), newAmount, oldAmount);
         }
 
-        const { success } = await handleTransaction(transactionFunction, `Edit listing for #${nftId}`);
+        const { success } = await handleTransaction(transactionFunction, `Edit listing for NFT #${nftId}`);
         if (success && onUpdate) {
             onUpdate();
         }

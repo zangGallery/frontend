@@ -49,7 +49,7 @@ export default function EditRoyaltyButton ( { id, currentRoyaltyPercentage, onUp
         const contractWithSigner = contract.connect(walletProvider.getSigner());
         const transactionFunction = async () => await contractWithSigner.decreaseRoyaltyNumerator(id, effectiveRoyaltyPercentage);
 
-        const { success } = await handleTransaction(transactionFunction, `Edit royalty for #${id}`);
+        const { success } = await handleTransaction(transactionFunction, `Edit royalty for NFT #${id}`);
         if (success && onUpdate) {
             onUpdate();
         }

@@ -45,7 +45,7 @@ export default function ListButton ({ id, userBalance, userAvailableAmount, onUp
         const contractWithSigner = contract.connect(walletProvider.getSigner());
         const transactionFunction = async () => await contractWithSigner.listToken(id, parseEther(price), amount);
 
-        const { success } = await handleTransaction(transactionFunction, `List #${id}`);
+        const { success } = await handleTransaction(transactionFunction, `List NFT #${id}`);
         if (success && onUpdate) {
             onUpdate();
         }
