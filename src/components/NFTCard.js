@@ -12,6 +12,8 @@ import TypeTag from "./TypeTag";
 import { isTokenExistenceError } from "../common/error";
 import { useRecoilState } from 'recoil';
 import { standardErrorState } from '../common/error';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 const styles = {
     card: {
@@ -128,7 +130,7 @@ export default function NFTCard({ id }) {
     useEffect(() => queryTokenContent(), [tokenData])
     useEffect(() => setExists(true), [id, readProvider])
 
-    const effectiveTokenAuthor = lookupEns(tokenAuthor) || tokenAuthor || '...';
+    const effectiveTokenAuthor = lookupEns(tokenAuthor) || tokenAuthor || null;
 
     if (!exists) {
         return <></>
@@ -141,19 +143,19 @@ export default function NFTCard({ id }) {
                     tokenType == 'text/markdown' ? (
                         <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
                     ) : <pre className="nft-plain" style={{overflow: 'hidden'}}>{tokenContent}</pre>
-                ) : <></>}
+                ) : <Skeleton count={10}/>}
             </div>
             <div style={styles.cardShadow}></div>
             <div className="card-content" >
                 <div className="media">
                     <div className="media-content">
-                        <p className="title is-4">{tokenData?.name || '...'}</p>
-                        <p className="subtitle is-6"> by {effectiveTokenAuthor}</p>
+                        <p className="title is-4 mb-0">{tokenData?.name || <Skeleton/>}</p>
+                        <span className="subtitle is-6">{effectiveTokenAuthor ? "by "+effectiveTokenAuthor : <Skeleton/>}</span>
                     </div>
                 </div>
 
                 <div className="content is-italic" style={styles.description}>
-                    {tokenData?.description || '...'}
+                    {tokenData?.description || <Skeleton/>}
                 </div>
                 <div className="has-text-right">
                     <TypeTag type={tokenData?.text_uri} isUri={true} />
