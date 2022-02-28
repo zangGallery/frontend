@@ -62,7 +62,7 @@ export default function EditButton ({ nftId, listingId, availableAmount, balance
 
         const { success } = await handleTransaction(transactionFunction, `Edit listing for NFT #${nftId}`);
         if (success && onUpdate) {
-            onUpdate();
+            onUpdate(nftId);
         }
     }
 

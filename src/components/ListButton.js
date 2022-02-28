@@ -47,7 +47,7 @@ export default function ListButton ({ id, userBalance, userAvailableAmount, onUp
 
         const { success } = await handleTransaction(transactionFunction, `List NFT #${id}`);
         if (success && onUpdate) {
-            onUpdate();
+            onUpdate(id);
         }
     }
 

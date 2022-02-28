@@ -38,7 +38,7 @@ export default function DelistButton ({ nftId, listingId, onUpdate }) {
 
         const { success } = await handleTransaction(transactionFunction, `Delist NFT #${nftId}`);
         if (success && onUpdate) {
-            onUpdate();
+            onUpdate(nftId);
         }
     }
 

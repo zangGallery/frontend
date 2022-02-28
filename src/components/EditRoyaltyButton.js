@@ -51,7 +51,7 @@ export default function EditRoyaltyButton ( { id, currentRoyaltyPercentage, onUp
 
         const { success } = await handleTransaction(transactionFunction, `Edit royalty for NFT #${id}`);
         if (success && onUpdate) {
-            onUpdate();
+            onUpdate(id);
         }
     }
 

@@ -57,6 +57,7 @@ export default function NFTPage( { location }) {
 
     const parsedQuery = queryString.parse(location.search);
     const id = parsedQuery ? parseInt(parsedQuery.id) : null;
+    const [updateTracker, setUpdateTracker] = useState([0, null]);
 
     const [readProvider, setReadProvider] = useReadProvider()
     const [walletProvider, setWalletProvider] = useWalletProvider()
@@ -470,11 +471,19 @@ export default function NFTPage( { location }) {
         }
     }
 
-    const onUpdate = () => {
-        queryListingSellerBalances();
-        queryListings();
-        queryUserBalance();
-        queryTotalSupply();
+    useEffect(() => {
+        const updateId = updateTracker[0];
+        if (updateId === id) {
+            queryListingSellerBalances();
+            queryListings();
+            queryUserBalance();
+            queryTotalSupply();
+            queryRoyaltyInfo();
+        }
+    }, [updateTracker]);
+
+    const onUpdate = (updatedNFTId) => {
+        setUpdateTracker(([_, counter]) => [updatedNFTId, counter + 1]);
     }
 
     useEffect(queryListings, [id, walletAddress])
@@ -559,7 +568,7 @@ export default function NFTPage( { location }) {
                                                                     <div className="is-flex is-justify-content-center mt-1">
                                                                         {
                                                                             tokenAuthor == walletAddress ? (
-                                                                                <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo?.amount} onUpdate={queryRoyaltyInfo} />
+                                                                                <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo?.amount} onUpdate={onUpdate} />
                                                                             ) : <></>
                                                                         }
                                                                     </div>

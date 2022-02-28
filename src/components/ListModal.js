@@ -105,7 +105,7 @@ export default function ListModal ({ isOpen, setIsOpen, onClose, balance, availa
         if (success) {
                 setIsApproved(true);
             if (onUpdate) {
-                onUpdate();
+                onUpdate(id);
             }
         }
     }

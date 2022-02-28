@@ -54,7 +54,7 @@ export default function TransferButton ( { id, walletAddress, balance, available
         const transactionFunction = async () => await contractWithSigner.safeTransferFrom(walletAddress, to, id, amount, []);
         const { success } = await handleTransaction(transactionFunction, `Transfer NFT #${id}`);
         if (success && onUpdate) {
-            onUpdate();
+            onUpdate(id);
         }
     }
 
