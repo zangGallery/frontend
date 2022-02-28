@@ -46,15 +46,15 @@ export default function TransferModal ({ isOpen, setIsOpen, onClose, balance, av
                 <ValidatedInput label="Amount" name="amount" type="number" step="1" min="1" errors={errors} register={register} />
                 <ValidatedInput label="To" name="to" type="string" errors={errors} register={register} />
                 { watchAmount > availableAmount && watchAmount <= balance ? (
-                    <p>
-                        Warning: You only have {availableAmount} "free" (not tied to listings) token{availableAmount == 1 ? '' : 's'}.
+                    <p className="notification is-warning">
+                        <b>Warning</b>: You only have {availableAmount} "free" (not tied to listings) token{availableAmount == 1 ? '' : 's'}.
                         Proceeding will use {watchAmount - availableAmount} token{watchAmount - availableAmount == 1 ? '' : 's'} tied to existing listings,
                         making some listings unfulfillable.
                     </p>
                 ) : <></>}
                 {
                     watchAmount > balance ? (
-                        <p>Error: Cannot gift more tokens than you own ({balance})</p>
+                        <p className="notification is-error"><b>Error</b>: Cannot gift more tokens than you own ({balance})</p>
                     ) : <></>
                 }
             </section>
