@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { RoutingLink, WalletButton } from ".";
 import { useWalletProvider } from "../common/provider";
+import config from "../config";
 
 export default function Header() {
     const [isActive, setActive] = useState(false)
@@ -31,9 +32,9 @@ export default function Header() {
         <div>
             <nav className="navbar" role="navigation" aria-label="main navigation">
                 <div className="navbar-brand">
-                    <a className="navbar-item" href=".">
+                    <RoutingLink className="navbar-item" href=".">
                         <h1 className="title pb-1">{".zang{"}</h1>
-                    </a>
+                    </RoutingLink>
 
                 <a role="button" className={"navbar-burger" + (isActive ? " is-active" : "")} onClick={toggleClass} aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                     <span aria-hidden="true"></span>
@@ -67,9 +68,9 @@ export default function Header() {
                 </div>
             </nav>
             {
-                chainId !== null && chainId !== 3 ? (
+                chainId !== null && chainId !== config.networks.main.chainId ? (
                     <div className="notification is-danger">
-                        <p>Error: please switch to <strong>Ropsten</strong>.</p>
+                        <p>Error: please switch to <strong>{config.networks.main.name}</strong>.</p>
                     </div>
                 ) : null
             }

@@ -8,6 +8,12 @@ import { navigate } from "gatsby-link";
 import MDEditor from "@uiw/react-md-editor"
 import rehypeSanitize from "rehype-sanitize";
 import { useEns } from "../common/ens";
+import TypeTag from "./TypeTag";
+import { isTokenExistenceError } from "../common/error";
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 const styles = {
     card: {
@@ -44,6 +50,8 @@ export default function NFTCard({ id }) {
     const [readProvider, setReadProvider] = useReadProvider();
     const [tokenType, setTokenType] = useState(null);
     const [tokenContent, setTokenContent] = useState(null);
+    const [exists, setExists] = useState(true);
+    const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const contractAddress = config.contractAddresses.v1.zang;
     const contractABI = v1.zang;
@@ -57,8 +65,11 @@ export default function NFTCard({ id }) {
             const tURI = await contract.uri(id);
             setTokenURI(tURI);
         } catch (e) {
-            // TODO: Set error
-            console.log(e);
+            if (isTokenExistenceError(e)) {
+                setExists(false);
+            } else {
+                setStandardError(e.message);
+            }
         }
     }
 
@@ -72,8 +83,11 @@ export default function NFTCard({ id }) {
 
             setTokenAuthor(author);
         } catch (e) {
-            // TODO: Set error
-            console.log(e);
+            if (isTokenExistenceError(e)) {
+                setExists(false);
+            } else {
+                setStandardError(e.message);
+            }
         }
     }
 
@@ -86,14 +100,13 @@ export default function NFTCard({ id }) {
             console.log(newTokenData)
             setTokenData(newTokenData);
         } catch (e) {
-            // TODO: Set error
-            console.log(e)
+            setStandardError(e.message);
         }
     }
 
     const queryTokenContent = async () => {
-        if (!tokenData?.textURI) return;
-        var parsedTextURI = tokenData.textURI.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
+        if (!tokenData?.text_uri) return;
+        var parsedTextURI = tokenData.text_uri.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
         parsedTextURI = parsedTextURI.replace("text/markdown;charset=UTF-8", "text/markdown");
 
         try {
@@ -103,8 +116,7 @@ export default function NFTCard({ id }) {
             setTokenType(response.headers.get("content-type"))
             setTokenContent(parsedText)
         } catch (e) {
-            // TODO: Set error
-            console.log(e)
+            setStandardError(e.message);
         }
     }
 
@@ -116,33 +128,37 @@ export default function NFTCard({ id }) {
     useEffect(() => queryTokenData(), [tokenURI])
     useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryTokenContent(), [tokenData])
+    useEffect(() => setExists(true), [id, readProvider])
 
-    const effectiveTokenAuthor = lookupEns(tokenAuthor) || tokenAuthor || '...';
+    const effectiveTokenAuthor = lookupEns(tokenAuthor) || tokenAuthor || null;
+
+    if (!exists) {
+        return <></>
+    }
 
     return (
         <div className="card m-3 cursor-pointer" style={styles.card} onClick={() => navigate('/nft?id=' + id)}>
-            
             <div style={styles.cardPreview}>
-                {tokenType && tokenContent ? (
+                {tokenType && (tokenContent !== null) ? (
                     tokenType == 'text/markdown' ? (
                         <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
                     ) : <pre className="nft-plain" style={{overflow: 'hidden'}}>{tokenContent}</pre>
-                ) : <></>}
+                ) : <Skeleton count={10}/>}
             </div>
             <div style={styles.cardShadow}></div>
             <div className="card-content" >
                 <div className="media">
                     <div className="media-content">
-                        <p className="title is-4">{tokenData?.name || '...'}</p>
-                        <p className="subtitle is-6"> by {effectiveTokenAuthor}</p>
+                        <p className="title is-4 mb-0">{tokenData?.name || <Skeleton/>}</p>
+                        <span className="subtitle is-6">{effectiveTokenAuthor !== null ? "by " + effectiveTokenAuthor : <Skeleton/>}</span>
                     </div>
                 </div>
 
                 <div className="content is-italic" style={styles.description}>
-                    {tokenData?.description || '...'}
+                    {tokenData?.description !== undefined && tokenData?.description !== null ? tokenData.description : <Skeleton/>}
                 </div>
                 <div className="has-text-right">
-                    {(tokenData?.textURI.split(';')[0] == "data:text/plain" || (tokenData?.textURI.split(',')[0]) == "data:text/plain") ? <span class="tag is-info">plaintext</span> : <span class="tag is-link">markdown</span>}
+                    <TypeTag type={tokenData?.text_uri} isUri={true} />
                 </div>
             </div>
         </div>

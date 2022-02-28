@@ -1,123 +1,36 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from 'ethers';
 import { v1 } from '../common/abi';
-import { ListModal } from '.';
-import { parseEther } from '@ethersproject/units';
 import config from '../config';
 
 import BuyButton from "./BuyButton";
 import FulfillabilityInfo from "./FulfillabilityInfo";
 import EditButton from "./EditButton";
+import Listing from "./Listing";
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { useEns } from "../common/ens";
+import ListButton from "./ListButton";
+import DelistButton from "./DelistButton";
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
 
-export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onError, onUpdate }) {
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+
+export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onUpdate }) {
     const zangAddress = config.contractAddresses.v1.zang;
     const zangABI = v1.zang;
 
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
-    const marketplaceABI = v1.marketplace;
 
     const { lookupEns } = useEns();
 
-    const [listModalOpen, setListModalOpen] = useState(false)
-
     const [isApproved, setIsApproved] = useState(false);
 
-    const userListingGroup = () => (listingGroups || []).find(group => group.seller === walletAddress);
-    const otherListingGroups = () => (listingGroups || []).filter(group => group.seller !== walletAddress);
+    const userListingGroup = () => (listingGroups ? listingGroups.find(group => group.seller === walletAddress) : null);
+    const otherListingGroups = () => (listingGroups ? listingGroups.filter(group => group.seller !== walletAddress) : null);
 
-    const list = async (amount, price) => {
-        console.log('Amount: ' + amount + ' Price: ' + price)
-        console.log('ID: ' + id, 'Wallet: ' + walletAddress)
-        if (amount === null || price === null) {
-            return;
-        }
-
-        if (!id || !walletProvider) return;
-
-        const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
-        const contractWithSigner = contract.connect(walletProvider.getSigner());
-        try {
-            console.log('Price:', price)
-            console.log('Parsed price:', parseEther(price).toString())
-            const transaction = await contractWithSigner.listToken(id, parseEther(price), amount);
-
-            if (transaction) {
-                await transaction.wait(1);
-                console.log('Listed')
-
-                if (onUpdate) {
-                    onUpdate();
-                }
-            }
-        }
-        catch (e) {
-            console.log(e)
-            onError(e);
-        }
-    }
-
-    const delist = async (listingId) => {
-        if (!walletProvider) {
-            onError('No wallet provider.')
-            return;
-        }
-        if (!id) {
-            onError('No id specified.')
-            return;
-        }
-
-        const contract = new ethers.Contract(marketplaceAddress, marketplaceABI, walletProvider);
-        const contractWithSigner = contract.connect(walletProvider.getSigner());
-
-        try {
-            const transaction = await contractWithSigner.delistToken(id, listingId);
-            
-            if (transaction) {
-                await transaction.wait(1);
-            }
-
-            // queryListings();
-            // queryUserBalance();
-            if (onUpdate) {
-                onUpdate();
-            }
-        }
-        catch (e) {
-            console.log(e);
-            onError(e);
-        }
-    }
-
-    const approveMarketplace = async () => {
-        if (!walletProvider) {
-            onError('No wallet provider.');
-            return;
-        };
-        if (!id) {
-            onError('No id specified.');
-            return;
-        }
-
-        const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
-        const contractWithSigner = contract.connect(walletProvider.getSigner());
-
-        try {
-            const transaction = await contractWithSigner.setApprovalForAll(marketplaceAddress, true);
-            
-            if (transaction) {
-                await transaction.wait(1);
-                setIsApproved(true);
-            }
-        }
-        catch (e) {
-            console.log(e);
-            onError(e);
-        }
-    }
+    const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const checkApproval = async () => {
         if (!id || !walletAddress) return;
@@ -128,7 +41,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
             const approved = await zangContract.isApprovedForAll(walletAddress, marketplaceAddress);
             setIsApproved(approved);
         } catch (e) {
-            onError(e);
+            setStandardError(e.message);
         }
     }
 
@@ -138,14 +51,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
         <div>
             {
                 userBalance ? (
-                    isApproved ? (
-                        <button className="button is-info" onClick={() => setListModalOpen(true)}>List</button>
-                    ) : (
-                        <div>
-                            <p>Approve the marketplace contract to list</p>
-                                <button className="button is-warning" onClick={approveMarketplace}>Approve Marketplace</button>
-                        </div>
-                    )
+                    <ListButton id={id} userBalance={userBalance} userAvailableAmount={userAvailableAmount} onUpdate={onUpdate} walletAddress={walletAddress} />
                 ) : <></>
             }
             <div>
@@ -157,10 +63,14 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                                 <FulfillabilityInfo group={userListingGroup()} />
                                 {
                                     userListingGroup().listings.map(listing => (
-                                        <div key={listing.id} className="is-flex" >
-                                            <p style={{width: '6em'}}>{listing.amount} {listing.token} @ {listing.price}Ξ</p>
-                                            <EditButton nftId={id} listingId={listing.id} balance={userBalance} onError={onError} onUpdate={onUpdate} oldAmount={listing.amount} availableAmount={userAvailableAmount} />
-                                            <p className="has-text-danger is-clickable"><FontAwesomeIcon icon={faTrashAlt} onClick={() => delist(listing.id)}/></p>
+                                        <div key={listing.id}>
+                                            <Listing price={listing.price} amount={listing.amount}>
+                                                <div className="is-flex is-justify-content-center mt-2" style={{width: "100%"}}>
+                                                    <EditButton nftId={id} listingId={listing.id} balance={userBalance} onUpdate={onUpdate} oldAmount={listing.amount} availableAmount={userAvailableAmount} />
+                                                    <DelistButton nftId={id} listingId={listing.id} onUpdate={onUpdate} />
+                                                </div>
+                                            </Listing>
+                                            <hr/>
                                         </div>
                                     ))
                                 }
@@ -170,36 +80,34 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                 }
                 <h4 className="title is-4 mt-2">{userListingGroup() ? 'Other Listings' : 'Listings'}</h4>
                 {
-                    otherListingGroups().length > 0 ?
-                        otherListingGroups().map((group, index) => (
-                            <div key={'group' + index} className="box">
-                                <p>Seller: { lookupEns(group.seller) || group.seller}</p>
-                                <FulfillabilityInfo group={group} />
+                    otherListingGroups() !== null ? (
+                        otherListingGroups().length > 0 ?
+                            otherListingGroups().map((group, index) => (
+                                <div key={'group' + index} className="block p-2 pb-5" style={{border: "1px #eee solid", borderRadius: "0.5em"}}>
+                                    <p className="is-size-7">SELLER</p>
+                                    <p>{ lookupEns(group.seller) || group.seller}</p>
+                                    <FulfillabilityInfo group={group} />
 
-                                <div>
-                                    {
-                                        group.listings.map(listing => (
-                                            <div key={listing.id}>
-                                                <div className="mt-4">
-                                                    <div style={{width: '5em'}}>
-                                                        <p>{listing.amount} {listing.token} @ {listing.price}Ξ</p>
-                                                    </div>
-
-                                                    { walletProvider ? (
-                                                        <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onError={onError} onUpdate={onUpdate} />
-                                                    ) : <></>
-                                                    }
+                                    <div>
+                                        {
+                                            group.listings.map(listing => (
+                                                <div key={listing.id}>
+                                                    <hr/>
+                                                    <Listing price={listing.price} amount={listing.amount}>
+                                                        { walletProvider ? (
+                                                            <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onUpdate={onUpdate} />
+                                                        ) : <></>
+                                                        }
+                                                    </Listing>
                                                 </div>
-                                            </div>
-                                        ))
-                                    }
+                                            ))
+                                        }
+                                    </div>
                                 </div>
-                            </div>
-                        )) : <></>
+                            )) : <p>No listings.</p>
+                    ) : <Skeleton height={180} />
                 }
             </div>
-            
-            {<ListModal isOpen={listModalOpen} setIsOpen={setListModalOpen} onClose={list} balance={userBalance} availableAmount={userAvailableAmount} />}
         </div>
     )
 }

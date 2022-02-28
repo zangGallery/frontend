@@ -75,8 +75,6 @@ export default function EditModal ({ isOpen, setIsOpen, onClose, balance, availa
               Amount
             </label>
 
-            { editAmount ? <p> Test</p> : <p>Test 2</p>}
-
             { editAmount ? (
 
               <div className="control">
@@ -101,17 +99,19 @@ export default function EditModal ({ isOpen, setIsOpen, onClose, balance, availa
           </div>
 
           { editAmount && watchAmount > Math.min(balance, effectiveAvailableAmount) ? (
-              <p>
-              { watchAmount <= balance ? (
-                  'Warning: ' + warningMessage()
+              
+              watchAmount <= balance ? (
+                <p className="notification is-warning"><b>Warning</b>: {warningMessage()}</p>
               ) : (
-                `Error: Cannot list more tokens than you own (${balance}).`
-              )}
-              </p>) : <></>
+                <p className="notification is-danger">
+                  <b>Error</b>: Cannot list more tokens than you own ({balance}).
+                </p>
+              )
+              ) : <></>
           }
         </section>
         <footer className="modal-card-foot">
-          <button className="button" disabled={(!isValid && isDirty) || !validCheckboxes() || watchAmount > balance} onClick={handleSubmit(closeModal)}>Edit</button>
+          <button className="button is-black" disabled={(!isValid && isDirty) || !validCheckboxes() || watchAmount > balance} onClick={handleSubmit(closeModal)}>Edit</button>
         </footer>
       </div>
     </div>

@@ -7,6 +7,9 @@ import { v1 } from "../common/abi";
 import { ethers } from "ethers";
 import { Header } from "../components";
 import { Helmet } from "react-helmet"
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
+import StandardErrorDisplay from "../components/StandardErrorDisplay";
 
 import "bulma/css/bulma.min.css";
 import '../styles/globals.css'
@@ -15,6 +18,8 @@ export default function Home() {
   const [readProvider, setReadProvider] = useReadProvider();
   const [lastNFTId, setLastNFTId] = useState(null);
   const [nfts, setNFTs] = useState([])
+
+  const [_, setStandardError] = useRecoilState(standardErrorState);
 
   const increment = 5;
 
@@ -27,8 +32,7 @@ export default function Home() {
       const newLastNFTId = (await contract.lastTokenId());
       setLastNFTId(newLastNFTId.toNumber());
     } catch (e) {
-      // TODO: Set error
-      console.log(e)
+      setStandardError(e.message);
     }
     
   }, [])
@@ -54,11 +58,12 @@ export default function Home() {
             <title>zang</title>
           </Helmet>
             <Header />
+            <StandardErrorDisplay />
             <div className="columns m-4">
               <div className="column">
                 <h1 className="title has-text-centered">Latest NFTs</h1>
                 <InfiniteScroll
-                  dataLength={nfts.length} //This is important field to render the next data
+                  dataLength={nfts.length}
                   next={() => getMoreIds(increment)}
                   hasMore={nfts.length < lastNFTId}
                   loader={<h4>Loading...</h4>}

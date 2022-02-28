@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "gatsby develop",
     "start": "gatsby develop",
-    "build": "gatsby build",
+    "build": "gatsby build && python postbuild.py",
     "serve": "gatsby serve",
     "clean": "gatsby clean"
   },
@@ -47,7 +47,10 @@
     "react-helmet": "^6.1.0",
     "react-hook-form": "^7.15.3",
     "react-infinite-scroll-component": "^6.1.0",
+    "react-loading-skeleton": "^3.0.3",
     "react-modal": "^3.14.3",
+    "react-toastify": "^8.2.0",
+    "react-tooltip": "^4.2.21",
     "recoil": "^0.5.2",
     "rehype-sanitize": "^5.0.0",
     "stream-browserify": "^3.0.0",

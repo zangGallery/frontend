@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { mainnetProvider, restoreDefaultReadProvider, useReadProvider, useWalletProvider } from "../common/provider";
+import { ensProvider, restoreDefaultReadProvider, useReadProvider, useWalletProvider } from "../common/provider";
 import config from "../config";
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
 
 const styles = {
     ensInfoContainer: {
@@ -21,6 +23,7 @@ export default function WalletButton() {
     const [walletProvider, setWalletProvider] = useWalletProvider();
     const [ensAddress, setEnsAddress] = useState(null);
     const [ensAvatar, setEnsAvatar] = useState(null);
+    const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const providerOptions = {
         /* See Provider Options Section */
@@ -34,7 +37,7 @@ export default function WalletButton() {
 
     const connectWallet = async () => {
         const web3Modal = new Web3Modal({
-            network: config.networks.external,
+            network: config.networks.main.chainId,
             cacheProvider: false, 
             providerOptions,
             disableInjectedProvider: false
@@ -47,10 +50,17 @@ export default function WalletButton() {
         try {
             wallet = await web3Modal.connect();
         } catch (e) {
-            // TODO: Set error
-            console.log('Error connecting to wallet:', e);
+            if (e?.message) {
+                setStandardError(e.message);
+            } else {
+                // Some wallets reject the promise without actually throwing an error.
+                // In this situation we fail silently.
+                console.log(e);
+            }
             return;
         }
+
+        setStandardError(null);
 
         // Remove any pre-existing event handlers
         delete wallet._events.accountsChanged;
@@ -98,13 +108,13 @@ export default function WalletButton() {
 
         try {
             const walletAddress = await newProvider.getSigner().getAddress();
-            const _ensAddress = await mainnetProvider.lookupAddress(walletAddress);
+            const _ensAddress = await ensProvider.lookupAddress(walletAddress);
             setEnsAddress(_ensAddress);
             
-            const _ensAvatar = await mainnetProvider.getAvatar(_ensAddress);
+            const _ensAvatar = await ensProvider.getAvatar(_ensAddress);
             setEnsAvatar(_ensAvatar);
         } catch (e) {
-            // TODO: Set error
+            // Fetching can fail without side effects
             console.log(e);
         }
     }
