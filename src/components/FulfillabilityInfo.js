@@ -5,7 +5,7 @@ export default function FulfillabilityInfo ({ group }) {
 
     return (
         group.sellerBalance !== undefined && group.sellerBalance !== null && group.sellerBalance < totalListedAmount(group) ? (
-        group.sellerBalance == 0 ? <span className="tag is-danger">Unfulfillable</span> : <span className="tag is-warning">Partially fulfillable (${group.sellerBalance} available)</span> 
+        group.sellerBalance == 0 ? <span className="tag is-danger">Unfulfillable</span> : <span className="tag is-warning">Partially fulfillable ({group.sellerBalance} available)</span> 
         ) : <></>
     )
 }
