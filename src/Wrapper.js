@@ -22,8 +22,25 @@ export default function Wrapper ({ children, props }) {
                     </Helmet>
                 ) : <></>
             }
-            {children}
+            <div style={{minHeight: "90vh"}}>
+                {children}
+            </div>
             <TransactionNotifications />
+            <footer className="footer has-background-black has-text-white">
+                <div className="columns">
+                    <div className="column">
+                        <p><a href="mailto:team@zang.gallery"><u>team@zang.gallery</u></a></p>
+                        <p>Platform fee: 5%</p>
+                    </div>
+                    <div className="column">
+                        <a href="https://twitter.com/zanggallery" target="_blank"><u>Twitter</u></a>
+                        <br/>
+                        <a href="https://github.com/zanggallery" target="_blank"><u>Github</u></a>
+                        <br/>
+                        <a href="https://discord.gg/jnpCz9R3gf" target="_blank"><u>Discord</u></a>
+                    </div>
+                </div>
+            </footer>
         </div>
     )
 }
