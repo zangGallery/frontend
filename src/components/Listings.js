@@ -6,6 +6,7 @@ import config from '../config';
 import BuyButton from "./BuyButton";
 import FulfillabilityInfo from "./FulfillabilityInfo";
 import EditButton from "./EditButton";
+import Listing from "./Listing";
 
 import { useEns } from "../common/ens";
 import ListButton from "./ListButton";
@@ -13,6 +14,9 @@ import DelistButton from "./DelistButton";
 import { useTransactionHelper } from "../common/transaction_status";
 import { useRecoilState } from 'recoil';
 import { standardErrorState } from '../common/error';
+
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 export default function Listings( { walletProvider, id, listingGroups, walletAddress, userBalance, userAvailableAmount, onUpdate }) {
     const zangAddress = config.contractAddresses.v1.zang;
@@ -73,14 +77,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
         <div>
             {
                 userBalance ? (
-                    isApproved ? (
-                        <ListButton id={id} userBalance={userBalance} userAvailableAmount={userAvailableAmount} onUpdate={onUpdate} />
-                    ) : (
-                        <div>
-                            <p>Approve the marketplace contract to list</p>
-                                <button className="button is-warning" onClick={approveMarketplace}>Approve Marketplace</button>
-                        </div>
-                    )
+                    <ListButton id={id} userBalance={userBalance} userAvailableAmount={userAvailableAmount} onUpdate={onUpdate} walletAddress={walletAddress} />
                 ) : <></>
             }
             <div>
@@ -92,10 +89,14 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                                 <FulfillabilityInfo group={userListingGroup()} />
                                 {
                                     userListingGroup().listings.map(listing => (
-                                        <div key={listing.id} className="is-flex" >
-                                            <p style={{width: '6em'}}>{listing.amount} {listing.token} @ {listing.price}Ξ</p>
-                                            <EditButton nftId={id} listingId={listing.id} balance={userBalance} onUpdate={onUpdate} oldAmount={listing.amount} availableAmount={userAvailableAmount} />
-                                            <DelistButton nftId={id} listingId={listing.id} onUpdate={onUpdate} />
+                                        <div key={listing.id}>
+                                            <Listing price={listing.price} amount={listing.amount}>
+                                                <div className="is-flex is-justify-content-center mt-2" style={{width: "100%"}}>
+                                                    <EditButton nftId={id} listingId={listing.id} balance={userBalance} onUpdate={onUpdate} oldAmount={listing.amount} availableAmount={userAvailableAmount} />
+                                                    <DelistButton nftId={id} listingId={listing.id} onUpdate={onUpdate} />
+                                                </div>
+                                            </Listing>
+                                            <hr/>
                                         </div>
                                     ))
                                 }
@@ -107,24 +108,22 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                 {
                     otherListingGroups().length > 0 ?
                         otherListingGroups().map((group, index) => (
-                            <div key={'group' + index} className="box">
-                                <p>Seller: { lookupEns(group.seller) || group.seller}</p>
+                            <div key={'group' + index} className="block p-2 pb-5" style={{border: "1px #eee solid", borderRadius: "0.5em"}}>
+                                <p className="is-size-7">SELLER</p>
+                                <p>{ lookupEns(group.seller) || group.seller}</p>
                                 <FulfillabilityInfo group={group} />
 
                                 <div>
                                     {
                                         group.listings.map(listing => (
                                             <div key={listing.id}>
-                                                <div className="mt-4">
-                                                    <div style={{width: '5em'}}>
-                                                        <p>{listing.amount} {listing.token} @ {listing.price}Ξ</p>
-                                                    </div>
-
+                                                <hr/>
+                                                <Listing price={listing.price} amount={listing.amount}>
                                                     { walletProvider ? (
                                                         <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onUpdate={onUpdate} />
                                                     ) : <></>
                                                     }
-                                                </div>
+                                                </Listing>
                                             </div>
                                         ))
                                     }
