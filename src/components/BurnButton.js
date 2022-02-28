@@ -48,7 +48,7 @@ export default function BurnButton ( { id, walletAddress, balance, availableAmou
 
     return (
         <div>
-            <button className="button is-danger" onClick={() => setBurnModalOpen(true)}>Burn</button>
+            <button className="button is-black is-small" onClick={() => setBurnModalOpen(true)}>Burn</button>
             <BurnModal isOpen={burnModalOpen} setIsOpen={setBurnModalOpen} onClose={burn} balance={balance} availableAmount={availableAmount} />
         </div>
     )

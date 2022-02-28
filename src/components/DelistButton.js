@@ -43,6 +43,6 @@ export default function DelistButton ({ nftId, listingId, onUpdate }) {
     }
 
     return (
-        <p className="has-text-danger is-clickable"><FontAwesomeIcon icon={faTrashAlt} onClick={() => delist()}/></p>
+        <button className="button is-black is-small" onClick={() => delist()}>Delist</button>
     )
 }

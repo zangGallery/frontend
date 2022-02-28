@@ -56,7 +56,7 @@ export default function TransferButton ( { id, walletAddress, balance, available
 
     return (
         <div>
-            <button className="button is-success" onClick={() => setTransferModalOpen(true)}>Gift</button>
+            <button className="button is-black is-small mr-1" onClick={() => setTransferModalOpen(true)}>Gift</button>
             <TransferModal isOpen={transferModalOpen} setIsOpen={setTransferModalOpen} onClose={transfer} balance={balance} availableAmount={availableAmount} />
         </div>
     )

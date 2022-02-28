@@ -61,7 +61,7 @@ export default function BuyButton ({ nftId, listingId, price, maxAmount, sellerB
 
     return (
         <div>
-            <button className="button is-small is-primary" onClick={() => setBuyModalOpen(true)}>Buy</button>
+            <button className="button is-black" onClick={() => setBuyModalOpen(true)}>Buy</button>
             <BuyModal isOpen={buyModalOpen} setIsOpen={setBuyModalOpen} onClose={buy} maxAmount={maxAmount} sellerBalance={sellerBalance} price={price} />
         </div>
         

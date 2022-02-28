@@ -57,7 +57,7 @@ export default function EditRoyaltyButton ( { id, currentRoyaltyPercentage, onUp
 
     return (
         <div>
-            <button className="button is-success" onClick={() => setEditModalOpen(true)}>Edit Royalty</button>
+            <button className="button is-black is-small" onClick={() => setEditModalOpen(true)}>Edit Royalty</button>
             <EditRoyaltyModal isOpen={editModalOpen} setIsOpen={setEditModalOpen} onClose={editRoyalty} currentRoyaltyPercentage={currentRoyaltyPercentage} />
         </div>
     )
