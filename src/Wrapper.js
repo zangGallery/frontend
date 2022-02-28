@@ -28,11 +28,11 @@ export default function Wrapper ({ children, props }) {
             <TransactionNotifications />
             <footer className="footer has-background-black has-text-white">
                 <div className="columns">
-                    <div className="column">
+                    <div className="column has-text-centered">
                         <p><a href="mailto:team@zang.gallery"><u>team@zang.gallery</u></a></p>
                         <p>Platform fee: 5%</p>
                     </div>
-                    <div className="column">
+                    <div className="column has-text-centered">
                         <a href="https://twitter.com/zanggallery" target="_blank"><u>Twitter</u></a>
                         <br/>
                         <a href="https://github.com/zanggallery" target="_blank"><u>Github</u></a>
