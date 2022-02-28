@@ -77,6 +77,7 @@ export default function NFTPage( { location }) {
     const [totalSupply, setTotalSupply] = useState(null)
     const [lastNFTId, setLastNFTId] = useState(null)
     const [exists, setExists] = useState(true)
+    const [listings, setListings] = useState([])
 
     const [walletAddress, setWalletAddress] = useState(null);
 
@@ -301,6 +302,7 @@ export default function NFTPage( { location }) {
         setTotalSupply(null);
         setPrevValidId(null);
         setNextValidId(null);
+        setListings([]);
 
         queryTokenURI();
         queryTokenAuthor();
@@ -322,7 +324,6 @@ export default function NFTPage( { location }) {
 
     // === Listing info ===
 
-    const [listings, setListings] = useState([])
     const [listingSellerBalances, setListingSellerBalances] = useState({});
 
     const activeListings = () => {
@@ -514,15 +515,17 @@ export default function NFTPage( { location }) {
                                             : <Skeleton/>
                                             }
                                             <Listings
-                                            readProvider={readProvider}
-                                            walletProvider={walletProvider}
-                                            id={id}
-                                            walletAddress={walletAddress}
-                                            onUpdate={onUpdate}
-                                            userBalance={userBalance()}
-                                            userAvailableAmount={userAvailableAmount()}
-                                            listingGroups={listingGroups()}
-                                        />
+                                                readProvider={readProvider}
+                                                walletProvider={walletProvider}
+                                                id={id}
+                                                walletAddress={walletAddress}
+                                                onUpdate={onUpdate}
+                                                userBalance={userBalance()}
+                                                userAvailableAmount={userAvailableAmount()}
+                                                listingGroups={listingGroups()}
+                                            />
+                                            
+                                        <hr/>
                                         {
                                             readProvider && walletProvider ? (
                                                 <div>
@@ -530,16 +533,20 @@ export default function NFTPage( { location }) {
                                                         userBalance() ? (
                                                             <div>
                                                                 <p>Owned: {userBalance()}</p>
-                                                                { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <></> }
-                                                                <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onUpdate={onUpdate} />
-                                                                <BurnButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onUpdate={onUpdate} />
+                                                                { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <Skeleton/> }
+                                                                <div className="is-flex is-justify-content-center">
+                                                                    <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onUpdate={onUpdate} />
+                                                                    <BurnButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onUpdate={onUpdate} />
+                                                                </div>
+                                                                <div className="is-flex is-justify-content-center mt-1">
+                                                                    {
+                                                                        tokenAuthor == walletAddress ? (
+                                                                            <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo?.amount} onUpdate={queryRoyaltyInfo} />
+                                                                        ) : <></>
+                                                                    }
+                                                                </div>
                                                             </div>
-                                                        ) : <></>
-                                                    }
-                                                    { 
-                                                        tokenAuthor == walletAddress ? (
-                                                            <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo?.amount} onUpdate={queryRoyaltyInfo} />
-                                                        ) : <></>
+                                                        ) : <Skeleton height={3}/>
                                                     }
                                                 </div>
                                             ) : <></>
