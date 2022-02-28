@@ -1,6 +1,6 @@
 import { atom, useRecoilState } from 'recoil'
 import config from '../config';
-import { mainnetProvider } from "./provider"
+import { ensProvider } from "./provider"
 
 const ensInfoState = atom({
     key: 'ensInfo',
@@ -18,7 +18,7 @@ const useEns = () => {
     const updateEns = async (address) => {
         setQueries([...queries, address]);
 
-        const ensAddress = await mainnetProvider.lookupAddress(address);
+        const ensAddress = await ensProvider.lookupAddress(address);
 
         setEnsInfo((currentEnsInfo) => ({
             ...currentEnsInfo,

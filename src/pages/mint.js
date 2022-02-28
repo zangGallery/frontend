@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { v1 } from '../common/abi';
 import config from '../config'
-import { mainnetProvider, useReadProvider, useWalletProvider } from "../common/provider";
+import { ensProvider, useReadProvider, useWalletProvider } from "../common/provider";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import Decimal from "decimal.js";
@@ -83,7 +83,7 @@ export default function Mint() {
       if (effectiveRoyaltyRecipient.includes('.eth')) {
         let resolvedAddress = null;
         try {
-          resolvedAddress = await mainnetProvider.resolveName(effectiveRoyaltyRecipient);
+          resolvedAddress = await ensProvider.resolveName(effectiveRoyaltyRecipient);
         } catch (e) {
           setStandardError('Invalid custom recipient address: "' + e.message + '".');
           return;
@@ -181,7 +181,7 @@ export default function Mint() {
             ) : <></>
           }
           <div className="notification is-danger">
-            <p><strong>Important</strong>: beta.zang.gallery currently uses <strong>Ropsten</strong>. Make sure that you're signing a transaction on the Ropsten network!</p>
+            <p><strong>Important</strong>: zang.gallery currently uses <strong>{config.networks.main.name}</strong>. Make sure that you're signing a transaction on the Polygon network!</p>
           </div>
           {
             walletProvider ? (
