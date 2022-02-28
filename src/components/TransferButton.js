@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import { v1 } from '../common/abi';
 import config from '../config';
 
-import { useWalletProvider, mainnetProvider } from '../common/provider';
+import { useWalletProvider, ensProvider } from '../common/provider';
 
 import TransferModal from "./TransferModal";
 import { useTransactionHelper } from "../common/transaction_status";
@@ -45,7 +45,7 @@ export default function TransferButton ( { id, walletAddress, balance, available
         setStandardError(null);
 
         if (to.includes('.eth')) {
-            to = mainnetProvider.resolveName(to);
+            to = ensProvider.resolveName(to);
         }
 
         const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
