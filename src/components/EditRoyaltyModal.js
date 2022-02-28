@@ -52,7 +52,7 @@ export default function EditRoyaltyModal ({ isOpen, setIsOpen, onClose, currentR
                 ) : <></>}
             </section>
             <footer className="modal-card-foot">
-            <button className="button" disabled={(!isValid && isDirty) || watchRoyaltyPercentage >= currentRoyaltyPercentage} onClick={handleSubmit(closeModal)}>Edit Royalty</button>
+            <button className="button is-black" disabled={(!isValid && isDirty) || watchRoyaltyPercentage >= currentRoyaltyPercentage} onClick={handleSubmit(closeModal)}>Edit Royalty</button>
             </footer>
         </div>
         </div>
