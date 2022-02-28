@@ -62,11 +62,11 @@ export default function BuyModal ({ isOpen, setIsOpen, onClose, maxAmount, selle
             <p>Price: {price}</p>
             <ValidatedInput label="Amount" name="amount" type="number" step="1" min="1" errors={errors} register={register} />
             <p>Total: {total() ? `${total()} ETH` : ''}</p>
-            { validAmount() ? <></> : <p>
-                Error: 
+            { validAmount() ? <></> : <p className="notification is-danger">
+                <b>Error</b>: 
                 { watchAmount <= maxAmount ?
-                    `Cannot buy more tokens than the seller's balance (${sellerBalance}).` :
-                    `Cannot buy more tokens than the listed amount (${maxAmount}).`
+                    ` Cannot buy more tokens than the seller's balance (${sellerBalance}).` :
+                    ` Cannot buy more tokens than the listed amount (${maxAmount}).`
                 }
                 </p>
             }

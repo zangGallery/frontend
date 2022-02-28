@@ -52,7 +52,7 @@ export default function BurnModal ({ isOpen, setIsOpen, onClose, balance, availa
                 ) : <></>}
                 {
                     watchAmount > balance ? (
-                        <p className="notification is-danger"><b>Error</b>: Cannot burn more tokens than you own ({balance})</p>
+                        <p className="notification is-danger"><b>Error</b>: Cannot burn more tokens than you own ({balance}).</p>
                     ) : <></>
                 }
             </section>

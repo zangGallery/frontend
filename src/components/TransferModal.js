@@ -54,7 +54,7 @@ export default function TransferModal ({ isOpen, setIsOpen, onClose, balance, av
                 ) : <></>}
                 {
                     watchAmount > balance ? (
-                        <p className="notification is-error"><b>Error</b>: Cannot gift more tokens than you own ({balance})</p>
+                        <p className="notification is-danger"><b>Error</b>: Cannot gift more tokens than you own ({balance}).</p>
                     ) : <></>
                 }
             </section>

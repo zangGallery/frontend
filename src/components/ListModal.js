@@ -140,13 +140,12 @@ export default function ListModal ({ isOpen, setIsOpen, onClose, balance, availa
           <ValidatedInput label="Price" name="price" type="number" step="0.1" min="0" errors={errors} register={register} />
 
           { watchAmount > Math.min(balance, availableAmount) ? (
-            <p>
-              { watchAmount <= balance ? (
-                  'Warning: ' + warningMessage()
+            watchAmount <= balance ? (
+                  <p className="notification is-warning"><b>Warning</b>: {warningMessage()}</p>
               ) : (
-                `Error: Cannot list more tokens than you own (${balance}).`
-              )}
-            </p>) : <></>
+                <p className="notification is-danger"><b>Error</b>: Cannot list more tokens than you own ({balance}).</p>
+              )
+            ) : <></>
           }
         </section>
         <footer className="modal-card-foot">

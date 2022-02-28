@@ -99,13 +99,15 @@ export default function EditModal ({ isOpen, setIsOpen, onClose, balance, availa
           </div>
 
           { editAmount && watchAmount > Math.min(balance, effectiveAvailableAmount) ? (
-              <p>
-              { watchAmount <= balance ? (
-                  'Warning: ' + warningMessage()
+              
+              watchAmount <= balance ? (
+                <p className="notification is-warning"><b>Warning</b>: {warningMessage()}</p>
               ) : (
-                `Error: Cannot list more tokens than you own (${balance}).`
-              )}
-              </p>) : <></>
+                <p className="notification is-danger">
+                  <b>Error</b>: Cannot list more tokens than you own ({balance}).
+                </p>
+              )
+              ) : <></>
           }
         </section>
         <footer className="modal-card-foot">

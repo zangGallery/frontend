@@ -46,8 +46,8 @@ export default function EditRoyaltyModal ({ isOpen, setIsOpen, onClose, currentR
                 <p>Current royalty percentage: {currentRoyaltyPercentage.toFixed(2)}%</p>
                 <ValidatedInput label="Royalty percentage" name="royaltyPercentage" type="number" defaultValue={currentRoyaltyPercentage - 0.01} min="0" max={currentRoyaltyPercentage - 0.01} step="0.01" errors={errors} register={register} />
                 { watchRoyaltyPercentage >= currentRoyaltyPercentage ? (
-                    <p>
-                        Error: The royalty percentage can only be decreased.
+                    <p className="notification is-danger">
+                        <b>Error</b>: The royalty percentage can only be decreased.
                     </p>
                 ) : <></>}
             </section>
