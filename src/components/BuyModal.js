@@ -61,7 +61,13 @@ export default function BuyModal ({ isOpen, setIsOpen, onClose, maxAmount, selle
             { sellerBalance < maxAmount ? <p>Seller's balance: {sellerBalance}</p> : <></>}
             <p>Price: {price}</p>
             <ValidatedInput label="Amount" name="amount" type="number" step="1" min="1" errors={errors} register={register} />
-            <p>Total: {total() ? `${total()} ETH` : ''}</p>
+            {
+                total() ? (
+                    <p>Total: {total()} <object className="matic-6" type="image/svg+xml" data="https://zang.gallery/matic_logo.svg" aria-label="Matic" /></p>
+                ) : (
+                    <p>Total: </p>
+                )
+            }
             { validAmount() ? <></> : <p className="notification is-danger">
                 <b>Error</b>: 
                 { watchAmount <= maxAmount ?

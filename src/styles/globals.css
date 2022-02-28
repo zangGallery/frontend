@@ -22,3 +22,29 @@ a {
 .nft-plain {
   background-color: inherit;
 }
+
+.matic-6 {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 0;
+  stroke: currentColor;
+  fill: currentColor;
+  line-height: 1;
+  position: relative;
+  top: -.1rem;
+  vertical-align: middle;
+}
+
+.matic-3 {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  stroke-width: 0;
+  stroke: currentColor;
+  fill: currentColor;
+  line-height: 1;
+  position: relative;
+  top: -.2rem;
+  vertical-align: middle;
+}
