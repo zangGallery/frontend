@@ -1,9 +1,16 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Joi from "joi";
 import { joiResolver } from "@hookform/resolvers/joi"
 import ValidatedInput from "./ValidatedInput";
 import { schemas } from "../common";
+import { useReadProvider, useWalletProvider } from '../common/provider';
+import { useTransactionHelper } from "../common/transaction_status";
+import { useRecoilState } from 'recoil';
+import { standardErrorState } from '../common/error';
+import { ethers } from 'ethers';
+import { v1 } from '../common/abi';
+import config from '../config';
 
 const styles = {
   modalCard: {
@@ -44,10 +51,14 @@ const etherValidator = (label) => (value, helpers) => {
   return value;
 }
 
-export default function ListModal ({ isOpen, setIsOpen, onClose, balance, availableAmount }) {
-  const { register, formState: { isDirty, isValid, errors }, handleSubmit, watch } = useForm({ defaultValues, mode: 'onChange', resolver: joiResolver(schemas.list)});
+export default function ListModal ({ isOpen, setIsOpen, onClose, balance, availableAmount, id, walletAddress, onUpdate }) {
+    const zangAddress = config.contractAddresses.v1.zang;
+    const zangABI = v1.zang;
 
-  const watchAmount = watch('amount');
+    const marketplaceAddress = config.contractAddresses.v1.marketplace;
+    const { register, formState: { isDirty, isValid, errors }, handleSubmit, watch } = useForm({ defaultValues, mode: 'onChange', resolver: joiResolver(schemas.list)});
+
+    const watchAmount = watch('amount');
 
   const closeModal = (data) => {
     setIsOpen(false);
@@ -70,7 +81,50 @@ export default function ListModal ({ isOpen, setIsOpen, onClose, balance, availa
     return message;
   }
 
-  if (!isOpen) return <></>
+    const handleTransaction = useTransactionHelper();
+    const [_, setStandardError] = useRecoilState(standardErrorState);
+    const [isApproved, setIsApproved] = useState(false);
+    const [walletProvider, setWalletProvider] = useWalletProvider()
+
+    const approveMarketplace = async () => {
+        if (!walletProvider) {
+            setStandardError('No wallet provider.');
+            return;
+        };
+        if (!id) {
+            setStandardError('No id specified.');
+            return;
+        }
+
+        const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
+        const contractWithSigner = contract.connect(walletProvider.getSigner());
+        const transactionFunction = async () => await contractWithSigner.setApprovalForAll(marketplaceAddress, true);
+
+        const { success } = await handleTransaction(transactionFunction, 'Approve Marketplace');
+
+        if (success) {
+                setIsApproved(true);
+            if (onUpdate) {
+                onUpdate();
+            }
+        }
+    }
+    const checkApproval = async () => {
+        if (!id || !walletAddress) return;
+
+        const zangContract = new ethers.Contract(zangAddress, zangABI, walletProvider);
+
+        try {
+            const approved = await zangContract.isApprovedForAll(walletAddress, marketplaceAddress);
+            setIsApproved(approved);
+        } catch (e) {
+            setStandardError(e.message);
+        }
+    }
+
+    useEffect(checkApproval, [id, walletAddress])
+
+    if (!isOpen) return <></>
 
   return (
     <div className="modal is-active">
@@ -96,7 +150,7 @@ export default function ListModal ({ isOpen, setIsOpen, onClose, balance, availa
           }
         </section>
         <footer className="modal-card-foot">
-          <button className="button" disabled={(!isValid && isDirty) || watchAmount > balance} onClick={handleSubmit(closeModal)}>List</button>
+          {!isApproved ? <button className="button is-black" onClick={approveMarketplace}>Approve Marketplace</button> : <button className="button is-black" disabled={(!isValid && isDirty) || watchAmount > balance} onClick={handleSubmit(closeModal)}>List</button>}
         </footer>
       </div>
     </div>

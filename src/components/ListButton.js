@@ -10,7 +10,7 @@ import { useTransactionHelper } from "../common/transaction_status";
 import { useRecoilState } from 'recoil';
 import { standardErrorState } from '../common/error';
 
-export default function ListButton ({ id, userBalance, userAvailableAmount, onUpdate }) {
+export default function ListButton ({ id, userBalance, userAvailableAmount, onUpdate, walletAddress }) {
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
@@ -53,8 +53,8 @@ export default function ListButton ({ id, userBalance, userAvailableAmount, onUp
 
     return (
         <div>
-            <button className="button is-info" onClick={() => setListModalOpen(true)}>List</button>
-            <ListModal isOpen={listModalOpen} setIsOpen={setListModalOpen} onClose={list} balance={userBalance} availableAmount={userAvailableAmount} />
+            <button className="button is-black" onClick={() => setListModalOpen(true)}>List</button>
+            <ListModal isOpen={listModalOpen} setIsOpen={setListModalOpen} onClose={list} balance={userBalance} availableAmount={userAvailableAmount} id={id} walletAddress={walletAddress} onUpdate={onUpdate} />
         </div>
     )
 }
