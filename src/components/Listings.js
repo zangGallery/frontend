@@ -11,7 +11,6 @@ import Listing from "./Listing";
 import { useEns } from "../common/ens";
 import ListButton from "./ListButton";
 import DelistButton from "./DelistButton";
-import { useTransactionHelper } from "../common/transaction_status";
 import { useRecoilState } from 'recoil';
 import { standardErrorState } from '../common/error';
 
@@ -28,35 +27,10 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
 
     const [isApproved, setIsApproved] = useState(false);
 
-    const userListingGroup = () => (listingGroups || []).find(group => group.seller === walletAddress);
-    const otherListingGroups = () => (listingGroups || []).filter(group => group.seller !== walletAddress);
+    const userListingGroup = () => (listingGroups ? listingGroups.find(group => group.seller === walletAddress) : null);
+    const otherListingGroups = () => (listingGroups ? listingGroups.filter(group => group.seller !== walletAddress) : null);
 
-    const handleTransaction = useTransactionHelper();
     const [_, setStandardError] = useRecoilState(standardErrorState);
-
-    const approveMarketplace = async () => {
-        if (!walletProvider) {
-            setStandardError('No wallet provider.');
-            return;
-        };
-        if (!id) {
-            setStandardError('No id specified.');
-            return;
-        }
-
-        const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
-        const contractWithSigner = contract.connect(walletProvider.getSigner());
-        const transactionFunction = async () => await contractWithSigner.setApprovalForAll(marketplaceAddress, true);
-
-        const { success } = await handleTransaction(transactionFunction, 'Approve Marketplace');
-
-        if (success) {
-            setIsApproved(true);
-            if (onUpdate) {
-                onUpdate();
-            }
-        }
-    }
 
     const checkApproval = async () => {
         if (!id || !walletAddress) return;
@@ -106,30 +80,32 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                 }
                 <h4 className="title is-4 mt-2">{userListingGroup() ? 'Other Listings' : 'Listings'}</h4>
                 {
-                    otherListingGroups().length > 0 ?
-                        otherListingGroups().map((group, index) => (
-                            <div key={'group' + index} className="block p-2 pb-5" style={{border: "1px #eee solid", borderRadius: "0.5em"}}>
-                                <p className="is-size-7">SELLER</p>
-                                <p>{ lookupEns(group.seller) || group.seller}</p>
-                                <FulfillabilityInfo group={group} />
+                    otherListingGroups() !== null ? (
+                        otherListingGroups().length > 0 ?
+                            otherListingGroups().map((group, index) => (
+                                <div key={'group' + index} className="block p-2 pb-5" style={{border: "1px #eee solid", borderRadius: "0.5em"}}>
+                                    <p className="is-size-7">SELLER</p>
+                                    <p>{ lookupEns(group.seller) || group.seller}</p>
+                                    <FulfillabilityInfo group={group} />
 
-                                <div>
-                                    {
-                                        group.listings.map(listing => (
-                                            <div key={listing.id}>
-                                                <hr/>
-                                                <Listing price={listing.price} amount={listing.amount}>
-                                                    { walletProvider ? (
-                                                        <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onUpdate={onUpdate} />
-                                                    ) : <></>
-                                                    }
-                                                </Listing>
-                                            </div>
-                                        ))
-                                    }
+                                    <div>
+                                        {
+                                            group.listings.map(listing => (
+                                                <div key={listing.id}>
+                                                    <hr/>
+                                                    <Listing price={listing.price} amount={listing.amount}>
+                                                        { walletProvider ? (
+                                                            <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onUpdate={onUpdate} />
+                                                        ) : <></>
+                                                        }
+                                                    </Listing>
+                                                </div>
+                                            ))
+                                        }
+                                    </div>
                                 </div>
-                            </div>
-                        )) : <></>
+                            )) : <p>No listings.</p>
+                    ) : <Skeleton height={180} />
                 }
             </div>
         </div>

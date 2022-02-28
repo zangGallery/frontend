@@ -77,7 +77,7 @@ export default function NFTPage( { location }) {
     const [totalSupply, setTotalSupply] = useState(null)
     const [lastNFTId, setLastNFTId] = useState(null)
     const [exists, setExists] = useState(true)
-    const [listings, setListings] = useState([])
+    const [listings, setListings] = useState(null)
 
     const [walletAddress, setWalletAddress] = useState(null);
 
@@ -126,7 +126,7 @@ export default function NFTPage( { location }) {
         try {
             const newLastNFTId = (await contract.lastTokenId());
             setLastNFTId(newLastNFTId.toNumber());
-            newLastNFTId.toNumber();
+            return newLastNFTId.toNumber();
         } catch (e) {
             setStandardError(e.message);
         }
@@ -139,9 +139,15 @@ export default function NFTPage( { location }) {
 
         let nextId = id + 1;
         let isValid = false;
+        let actualLastNFTId = lastNFTId;
 
-        while(nextId <= lastNFTId && !isValid) {
-            if (nextId == lastNFTId) {
+        if (actualLastNFTId === null) {
+            actualLastNFTId = await queryLastNFTId();
+        }
+
+        while(nextId <= actualLastNFTId && !isValid) {
+            if (nextId == actualLastNFTId) {
+                console.log('Querying...')
                 await queryLastNFTId();
             }
             if (burnedIds.includes(nextId)) {
@@ -282,7 +288,7 @@ export default function NFTPage( { location }) {
             try {
                 setWalletAddress(await walletProvider.getSigner().getAddress());
             } catch (e) {
-                setStandardError(e.message);
+                setStandardError(e?.message);
             }
         }
     }, [walletProvider])
@@ -302,7 +308,8 @@ export default function NFTPage( { location }) {
         setTotalSupply(null);
         setPrevValidId(null);
         setNextValidId(null);
-        setListings([]);
+        setListings(null);
+        setListingSellerBalances({});
 
         queryTokenURI();
         queryTokenAuthor();
@@ -327,10 +334,13 @@ export default function NFTPage( { location }) {
     const [listingSellerBalances, setListingSellerBalances] = useState({});
 
     const activeListings = () => {
-        return listings.filter(listing => parseInt(listing.seller, 16) != 0)
+        return listings ? listings.filter(listing => parseInt(listing.seller, 16) != 0) : null;
     }
 
     const listingGroups = () => {
+        if (!activeListings()) {
+            return null;
+        }
         const groups = {};
 
         for (const listing of activeListings()) {
@@ -357,7 +367,7 @@ export default function NFTPage( { location }) {
     }
 
     const addressBalance = (address) => {
-        return listingSellerBalances[address] || 0; 
+        return listingSellerBalances[address]; 
     }
 
     const userBalance = () => {
@@ -365,9 +375,13 @@ export default function NFTPage( { location }) {
     }
 
     const addressAvailableAmount = (address) => {
-        if (!id || !walletAddress) return 0;
+        if (!id || !walletAddress || activeListings() === null) return null;
 
         let _availableAmount = addressBalance(address);
+
+        if (_availableAmount === null || _availableAmount === undefined) {
+            return null;
+        }
 
         for (const listing of activeListings()) {
             if (listing.seller == address) {
@@ -440,14 +454,14 @@ export default function NFTPage( { location }) {
     const queryListingSellerBalances = async () => {
         if (!id || !listings) return;
 
-        console.log('Listings: ', activeListings())
-
         const promises = [];
 
         try {
-            for (const listing of activeListings()) {
-                const promise = updateSellerBalance(listing.seller);
-                promises.push(promise);
+            if (activeListings()) {
+                for (const listing of activeListings()) {
+                    const promise = updateSellerBalance(listing.seller);
+                    promises.push(promise);
+                }
             }
             
             await Promise.all(promises);
@@ -480,9 +494,7 @@ export default function NFTPage( { location }) {
                 <StandardErrorDisplay />
                 {
                     exists ?
-                        totalSupply == 0 ? (
-                            <p>This NFT has been successfully burned. <a href='/'>Go to Home Page</a>.</p>
-                        ) : (
+                        (
                             <div>
                                 <div className="columns m-4">
                                     <div className="column is-two-thirds" style={{overflow: 'hidden'}}>
@@ -503,17 +515,18 @@ export default function NFTPage( { location }) {
                                         }
                                     </div> 
                                         <div className="column">
-                                            <h1 className="title">{tokenData?.name || <Skeleton/>}</h1>
-                                            <p className="subtitle mb-1">{tokenAuthor ? `by ${lookupEns(tokenAuthor) || tokenAuthor}` : <Skeleton/>}</p>
+                                            <h1 className="title">{(tokenData?.name !== null && tokenData?.name !== undefined) ? tokenData.name : <Skeleton/>}</h1>
+                                            <p className="subtitle mb-1">{tokenAuthor !== null ? `by ${lookupEns(tokenAuthor) || tokenAuthor}` : <Skeleton/>}</p>
                                             <div className="has-text-left m-0">
-                                                {tokenType && totalSupply ? <span><TypeTag type={tokenType}/><span className="tag is-black ml-1">Edition size: {totalSupply.toString()}</span></span> : <Skeleton className="mr-1" inline count={2} width={90}/>}
+                                                {tokenType && totalSupply !== null ? <span><TypeTag type={tokenType}/><span className="tag is-black ml-1">Edition size: {totalSupply.toString()}</span></span> : <Skeleton className="mr-1" inline count={2} width={90}/>}
                                             </div>
-                                            <p className="is-italic">{tokenData?.description || <Skeleton/>}</p>
+                                            <p className="is-italic">{tokenData?.description !== undefined && tokenData?.description !== null ? tokenData.description : <Skeleton/>}</p>
 
-                                            {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== 0 ? 
+                                            {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== null ? 
                                             <p className="is-size-6">{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
                                             : <Skeleton/>
                                             }
+                                            <hr />
                                             <Listings
                                                 readProvider={readProvider}
                                                 walletProvider={walletProvider}
@@ -530,22 +543,28 @@ export default function NFTPage( { location }) {
                                             readProvider && walletProvider ? (
                                                 <div>
                                                     {
-                                                        userBalance() ? (
-                                                            <div>
-                                                                <p>Owned: {userBalance()}</p>
-                                                                { userBalance() != userAvailableAmount() ? <p>Available (not listed): {userAvailableAmount()}</p> : <Skeleton/> }
-                                                                <div className="is-flex is-justify-content-center">
-                                                                    <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onUpdate={onUpdate} />
-                                                                    <BurnButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onUpdate={onUpdate} />
-                                                                </div>
-                                                                <div className="is-flex is-justify-content-center mt-1">
+                                                        userBalance() !== null ? (
+                                                            userBalance() != 0 ? (
+                                                                <div>
+                                                                    <p>Owned: {userBalance()}</p>
                                                                     {
-                                                                        tokenAuthor == walletAddress ? (
-                                                                            <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo?.amount} onUpdate={queryRoyaltyInfo} />
-                                                                        ) : <></>
+                                                                        userAvailableAmount() === null ? <Skeleton/> : (
+                                                                            <p>Not listed: {userAvailableAmount()}</p>
+                                                                        )
                                                                     }
+                                                                    <div className="is-flex is-justify-content-center">
+                                                                        <TransferButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onUpdate={onUpdate} />
+                                                                        <BurnButton id={id} walletAddress={walletAddress} balance={userBalance()} availableAmount={userAvailableAmount()} onUpdate={onUpdate} />
+                                                                    </div>
+                                                                    <div className="is-flex is-justify-content-center mt-1">
+                                                                        {
+                                                                            tokenAuthor == walletAddress ? (
+                                                                                <EditRoyaltyButton id={id} walletAddress={walletAddress} currentRoyaltyPercentage={royaltyInfo?.amount} onUpdate={queryRoyaltyInfo} />
+                                                                            ) : <></>
+                                                                        }
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            ) : <></>
                                                         ) : <Skeleton height={3}/>
                                                     }
                                                 </div>

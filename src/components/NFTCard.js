@@ -139,7 +139,7 @@ export default function NFTCard({ id }) {
     return (
         <div className="card m-3 cursor-pointer" style={styles.card} onClick={() => navigate('/nft?id=' + id)}>
             <div style={styles.cardPreview}>
-                {tokenType && tokenContent ? (
+                {tokenType && (tokenContent !== null) ? (
                     tokenType == 'text/markdown' ? (
                         <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
                     ) : <pre className="nft-plain" style={{overflow: 'hidden'}}>{tokenContent}</pre>
@@ -150,12 +150,12 @@ export default function NFTCard({ id }) {
                 <div className="media">
                     <div className="media-content">
                         <p className="title is-4 mb-0">{tokenData?.name || <Skeleton/>}</p>
-                        <span className="subtitle is-6">{effectiveTokenAuthor ? "by "+effectiveTokenAuthor : <Skeleton/>}</span>
+                        <span className="subtitle is-6">{effectiveTokenAuthor !== null ? "by " + effectiveTokenAuthor : <Skeleton/>}</span>
                     </div>
                 </div>
 
                 <div className="content is-italic" style={styles.description}>
-                    {tokenData?.description || <Skeleton/>}
+                    {tokenData?.description !== undefined && tokenData?.description !== null ? tokenData.description : <Skeleton/>}
                 </div>
                 <div className="has-text-right">
                     <TypeTag type={tokenData?.text_uri} isUri={true} />
