@@ -9,7 +9,7 @@ import Decimal from "decimal.js";
 import { useForm } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi"
 import { schemas } from "../common";
-import { MintConfirmModal, MultiEditor } from "../components";
+import { MintConfirmModal, MultiEditor, RoutingLink } from "../components";
 import { Header } from "../components";
 import { navigate } from "gatsby-link";
 import { Helmet } from "react-helmet";
@@ -120,7 +120,7 @@ export default function Mint() {
           const tokenId = matchingEvents[0].args[3].toString();
           return (
             <div>
-              <p><a className="is-underlined" href={'/nft?id=' + tokenId}>NFT #{tokenId}</a> minted</p>
+              <p><RoutingLink className="is-underlined" href={'/nft?id=' + tokenId}>NFT #{tokenId}</RoutingLink> minted</p>
               <p><ViewOnExplorer hash={transaction.hash} /></p>
             </div>
           )

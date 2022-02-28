@@ -32,9 +32,9 @@ export default function Header() {
         <div>
             <nav className="navbar" role="navigation" aria-label="main navigation">
                 <div className="navbar-brand">
-                    <a className="navbar-item" href=".">
+                    <RoutingLink className="navbar-item" href=".">
                         <h1 className="title pb-1">{".zang{"}</h1>
-                    </a>
+                    </RoutingLink>
 
                 <a role="button" className={"navbar-burger" + (isActive ? " is-active" : "")} onClick={toggleClass} aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                     <span aria-hidden="true"></span>
