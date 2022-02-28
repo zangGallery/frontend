@@ -86,7 +86,6 @@ export default function NFTPage( { location }) {
 
     const queryPrevValidId = async () => {
         if (!id) {
-            setStandardError('Could not determine the ID of the NFT.')
             return;
         }
 
