@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { mainnetProvider, restoreDefaultReadProvider, useReadProvider, useWalletProvider } from "../common/provider";
+import { ensProvider, restoreDefaultReadProvider, useReadProvider, useWalletProvider } from "../common/provider";
 import config from "../config";
 import { useRecoilState } from 'recoil';
 import { standardErrorState } from '../common/error';
@@ -37,7 +37,7 @@ export default function WalletButton() {
 
     const connectWallet = async () => {
         const web3Modal = new Web3Modal({
-            network: config.networks.external,
+            network: config.networks.main.chainId,
             cacheProvider: false, 
             providerOptions,
             disableInjectedProvider: false
@@ -108,10 +108,10 @@ export default function WalletButton() {
 
         try {
             const walletAddress = await newProvider.getSigner().getAddress();
-            const _ensAddress = await mainnetProvider.lookupAddress(walletAddress);
+            const _ensAddress = await ensProvider.lookupAddress(walletAddress);
             setEnsAddress(_ensAddress);
             
-            const _ensAvatar = await mainnetProvider.getAvatar(_ensAddress);
+            const _ensAvatar = await ensProvider.getAvatar(_ensAddress);
             setEnsAvatar(_ensAvatar);
         } catch (e) {
             // Fetching can fail without side effects

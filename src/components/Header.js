@@ -68,9 +68,9 @@ export default function Header() {
                 </div>
             </nav>
             {
-                chainId !== null && chainId !== config.networks.external ? (
+                chainId !== null && chainId !== config.networks.main.chainId ? (
                     <div className="notification is-danger">
-                        <p>Error: please switch to <strong>Ropsten</strong>.</p>
+                        <p>Error: please switch to <strong>{config.networks.main.name}</strong>.</p>
                     </div>
                 ) : null
             }

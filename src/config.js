@@ -1,13 +1,19 @@
 const config = {
     contractAddresses: {
         v1: {
-            zang: '0xf2a7f0eb7fda1242e5188c8696e23ba7b70c9a4f',
-            marketplace: '0x964b8697Aa9F6d404144261FE83D7b923eBa08D3'
+            zang: '0x62d76F41c4d538712A4404e39b2E20BA7d18FEd0',
+            marketplace: '0x59E52c8aB048022307ab4A92557a138f10a19d97'
         }
     },
     networks: {
-        external: 'ropsten',
-        internal: 'http://localhost:8545'
+        main: {
+            name: 'Polygon',
+            chainId: 137
+        },
+        ens: {
+            name: 'ENS',
+            chainId: 1
+        }
     },
     api_keys: {
         alchemy: process.env.GATSBY_ALCHEMY_API_KEY,
