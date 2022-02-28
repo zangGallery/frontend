@@ -1,6 +1,6 @@
 # zang
 
-[zang](https://zang.gallery) is an on-chain text NFT platform. The Ropsten public beta is currently available at [beta.zang.gallery](https://beta.zang.gallery).
+[zang](https://zang.gallery) is an on-chain text NFT platform.
 
 ## Running a local instance
 
