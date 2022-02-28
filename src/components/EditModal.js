@@ -109,7 +109,7 @@ export default function EditModal ({ isOpen, setIsOpen, onClose, balance, availa
           }
         </section>
         <footer className="modal-card-foot">
-          <button className="button" disabled={(!isValid && isDirty) || !validCheckboxes() || watchAmount > balance} onClick={handleSubmit(closeModal)}>Edit</button>
+          <button className="button is-black" disabled={(!isValid && isDirty) || !validCheckboxes() || watchAmount > balance} onClick={handleSubmit(closeModal)}>Edit</button>
         </footer>
       </div>
     </div>

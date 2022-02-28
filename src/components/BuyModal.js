@@ -72,7 +72,7 @@ export default function BuyModal ({ isOpen, setIsOpen, onClose, maxAmount, selle
             }
             </section>
             <footer className="modal-card-foot">
-            <button className="button" disabled={!isValid && isDirty && validAmount()} onClick={handleSubmit(closeModal)}>Buy</button>
+            <button className="button is-black" disabled={!isValid && isDirty && validAmount()} onClick={handleSubmit(closeModal)}>Buy</button>
             </footer>
         </div>
         </div>

@@ -26,8 +26,8 @@ export default function MintConfirmModal ({ isOpen, setIsOpen, onClose }) {
           <p className="modal-card-title" style={styles.modalCardTitle}>Some fields are empty. Mint anyway?</p>
         </header>
         <footer className="modal-card-foot">
-          <button className="button" onClick={() => closeModal(true)}>Yes</button>
-          <button className="button" onClick={() => closeModal(false)}>No</button>
+          <button className="button is-black" onClick={() => closeModal(true)}>Yes</button>
+          <button className="button is-black" onClick={() => closeModal(false)}>No</button>
         </footer>
       </div>
     </div>

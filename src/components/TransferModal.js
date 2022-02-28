@@ -59,7 +59,7 @@ export default function TransferModal ({ isOpen, setIsOpen, onClose, balance, av
                 }
             </section>
             <footer className="modal-card-foot">
-            <button className="button" disabled={(!isValid && isDirty) || watchAmount > balance} onClick={handleSubmit(closeModal)}>Gift</button>
+            <button className="button is-black" disabled={(!isValid && isDirty) || watchAmount > balance} onClick={handleSubmit(closeModal)}>Gift</button>
             </footer>
         </div>
         </div>
