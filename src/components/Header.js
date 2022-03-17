@@ -53,6 +53,10 @@ export default function Header() {
                         Mint
                     </RoutingLink>
 
+                    <RoutingLink href='/bridge' className="navbar-item is-size-5 has-text-weight-bold">
+                        Bridge
+                    </RoutingLink>
+
                     { walletProvider ? (
                         <RoutingLink href='/vault' className="navbar-item is-size-5 has-text-weight-bold">
                             Vault
@@ -62,6 +66,8 @@ export default function Header() {
 
                     <div className="navbar-end">
                         <div className="navbar-item">
+                            <a href='/about' className="navbar-item is-size-5 has-text-weight-bold">
+                            </a>
                             <WalletButton />
                         </div>
                     </div>
