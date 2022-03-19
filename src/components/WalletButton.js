@@ -4,8 +4,8 @@ import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { ensProvider, restoreDefaultReadProvider, useReadProvider, useWalletProvider } from "../common/provider";
 import config from "../config";
-import { useRecoilState } from 'recoil';
-import { standardErrorState } from '../common/error';
+import { atom, useRecoilState } from 'recoil';
+import { formatError, standardErrorState } from '../common/error';
 
 const ensAddressState = atom({
     key: 'ensAddress',
@@ -61,7 +61,7 @@ export default function WalletButton() {
             wallet = await web3Modal.connect();
         } catch (e) {
             if (e?.message) {
-                setStandardError(e.message);
+                setStandardError(formatError(e));
             } else {
                 // Some wallets reject the promise without actually throwing an error.
                 // In this situation we fail silently.

@@ -25,7 +25,7 @@ import TypeTag from '../components/TypeTag';
 import BurnButton from '../components/BurnButton';
 import EditRoyaltyButton from '../components/EditRoyaltyButton';
 import Decimal from 'decimal.js';
-import { isTokenExistenceError, standardErrorState } from '../common/error';
+import { formatError, isTokenExistenceError, standardErrorState } from '../common/error';
 import StandardErrorDisplay from '../components/StandardErrorDisplay';
 
 import Skeleton from 'react-loading-skeleton';
@@ -101,7 +101,7 @@ export default function NFTPage( { location }) {
                 try {
                     isValid = await contract.exists(prevId);
                 } catch (e) {
-                    setStandardError(e.message);
+                    setStandardError(formatError(e));
                     break;
                 }
 
@@ -129,7 +129,7 @@ export default function NFTPage( { location }) {
             setLastNFTId(newLastNFTId.toNumber());
             return newLastNFTId.toNumber();
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -157,7 +157,7 @@ export default function NFTPage( { location }) {
                 try {
                     isValid = await contract.exists(nextId);
                 } catch (e) {
-                    setStandardError(e.message);
+                    setStandardError(formatError(e));
                     break;
                 }
 
@@ -192,7 +192,7 @@ export default function NFTPage( { location }) {
             if (isTokenExistenceError(e)) {
                 setExists(false);
             } else {
-                setStandardError(e.message);
+                setStandardError(formatError(e));
             }
         }
     }
@@ -207,7 +207,7 @@ export default function NFTPage( { location }) {
         }
         catch (e) {
             if (!isTokenExistenceError(e)) {
-                setStandardError(e.message);
+                setStandardError(formatError(e));
             }
         }
     }
@@ -221,7 +221,7 @@ export default function NFTPage( { location }) {
             setTokenData(newTokenData);
         }
         catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -236,7 +236,7 @@ export default function NFTPage( { location }) {
             setTokenType(response.headers.get("content-type"))
             setTokenContent(parsedText)
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -253,7 +253,7 @@ export default function NFTPage( { location }) {
                 amount: amount.div(100).toNumber()
             })
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -265,7 +265,7 @@ export default function NFTPage( { location }) {
         try {
             setTotalSupply(await contract.totalSupply(id));
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -289,7 +289,7 @@ export default function NFTPage( { location }) {
             try {
                 setWalletAddress(await walletProvider.getSigner().getAddress());
             } catch (e) {
-                setStandardError(e?.message);
+                setStandardError(formatError(e));
             }
         }
     }, [walletProvider])
@@ -430,7 +430,7 @@ export default function NFTPage( { location }) {
             // If a listing has seller 0x0000... it has been delisted
             setListings(newListings);
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -444,7 +444,7 @@ export default function NFTPage( { location }) {
             setListingSellerBalances((currentBalance) => ({...currentBalance, [sellerAddress]: balance.toNumber()}));
         }
         catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -467,7 +467,7 @@ export default function NFTPage( { location }) {
             
             await Promise.all(promises);
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
