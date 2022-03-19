@@ -8,7 +8,7 @@ import { ethers } from "ethers";
 import { Header } from "../components";
 import { Helmet } from "react-helmet"
 import { useRecoilState } from 'recoil';
-import { standardErrorState } from '../common/error';
+import { formatError, standardErrorState } from '../common/error';
 import StandardErrorDisplay from "../components/StandardErrorDisplay";
 
 import "bulma/css/bulma.min.css";
@@ -42,7 +42,7 @@ export default function Home() {
         updateNftToBalance(nftId, newWalletAddress);
       }
     } catch (e) {
-      setStandardError(e.message);
+      setStandardError(formatError(e));
     }
     
   }, [walletProvider]);
@@ -56,7 +56,7 @@ export default function Home() {
       const newLastNFTId = (await contract.lastTokenId());
       setLastNFTId(newLastNFTId.toNumber());
     } catch (e) {
-      setStandardError(e.message)
+      setStandardError(formatError(e))
     }
   }, [])
 
@@ -74,7 +74,7 @@ export default function Home() {
         [nftId]: balance
       }));
     } catch (e) {
-      setStandardError(e.message)
+      setStandardError(formatError(e))
     }
     
   }

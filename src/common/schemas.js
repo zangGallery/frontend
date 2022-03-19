@@ -1,4 +1,5 @@
 import Joi from "joi";
+import { defaultSchema as rehypeDefaultSchema } from "rehype-sanitize";
 
 const ensDomain = Joi.string().domain({ tlds: { allow: ['eth'] } });
 const ethAddress = Joi.string().pattern(/^0x[a-fA-F0-9]{40}$/);
@@ -104,12 +105,24 @@ const editRoyalty = Joi.object().keys({
     royaltyPercentage: Joi.number().custom(maxDigits(2)).min(0).max(100).empty('').required().label('Royalty percentage'),
 })
 
+const validMarkdown = {
+    ...rehypeDefaultSchema,
+    protocols: {
+        ...rehypeDefaultSchema.protocols,
+        src: [
+            ...rehypeDefaultSchema.protocols.src,
+            'data'
+        ]
+    }
+};
+
 export default {
     burn,
     buy,
     edit,
     editRoyalty,
     list,
+    validMarkdown,
     mint,
     transfer
 }

@@ -7,7 +7,7 @@ import { schemas } from "../common";
 import { useReadProvider, useWalletProvider } from '../common/provider';
 import { useTransactionHelper } from "../common/transaction_status";
 import { useRecoilState } from 'recoil';
-import { standardErrorState } from '../common/error';
+import { formatError, standardErrorState } from '../common/error';
 import { ethers } from 'ethers';
 import { v1 } from '../common/abi';
 import config from '../config';
@@ -118,7 +118,7 @@ export default function ListModal ({ isOpen, setIsOpen, onClose, balance, availa
             const approved = await zangContract.isApprovedForAll(walletAddress, marketplaceAddress);
             setIsApproved(approved);
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
