@@ -96,7 +96,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                                                     <Listing price={listing.price} amount={listing.amount}>
                                                         { walletProvider ? (
                                                             <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onUpdate={onUpdate} />
-                                                        ) : <></>
+                                                        ) : <button className="button is-black" disabled>Connect wallet to buy</button>
                                                         }
                                                     </Listing>
                                                 </div>
