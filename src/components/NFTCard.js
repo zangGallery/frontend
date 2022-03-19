@@ -97,7 +97,7 @@ export default function NFTCard({ id }) {
         try {
             const tokenDataResponse = await fetch(tokenURI);
             const newTokenData = await tokenDataResponse.json();
-            console.log(newTokenData)
+            //console.log(newTokenData)
             setTokenData(newTokenData);
         } catch (e) {
             setStandardError(e.message);
@@ -112,7 +112,7 @@ export default function NFTCard({ id }) {
         try {
             const response = await fetch(parsedTextURI);
             const parsedText = await response.text()
-            console.log("content: " + parsedTextURI)
+            //console.log("content: " + parsedTextURI)
             setTokenType(response.headers.get("content-type"))
             setTokenContent(parsedText)
         } catch (e) {

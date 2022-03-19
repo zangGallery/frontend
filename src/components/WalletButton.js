@@ -6,6 +6,8 @@ import { ensProvider, restoreDefaultReadProvider, useReadProvider, useWalletProv
 import config from "../config";
 import { useRecoilState } from 'recoil';
 import { standardErrorState } from '../common/error';
+import ethProvider from "eth-provider";
+import {RoutingLink} from ".";
 
 const styles = {
     ensInfoContainer: {
@@ -15,6 +17,9 @@ const styles = {
     },
     avatar: {
         marginRight: '0.5em'
+    },
+    walletButton: {
+        borderColor: 'white'
     }
 }
 
@@ -23,6 +28,7 @@ export default function WalletButton() {
     const [walletProvider, setWalletProvider] = useWalletProvider();
     const [ensAddress, setEnsAddress] = useState(null);
     const [ensAvatar, setEnsAvatar] = useState(null);
+    const [balance, setBalance] = useState(null);
     const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const providerOptions = {
@@ -30,8 +36,11 @@ export default function WalletButton() {
         walletconnect: {
             package: WalletConnectProvider,
             options: {
-            infuraId: config.api_keys.infura.project_id
+                infuraId: config.api_keys.infura.project_id
             }
+        },
+        frame: {
+            package: ethProvider
         }
     };
 
@@ -108,6 +117,10 @@ export default function WalletButton() {
 
         try {
             const walletAddress = await newProvider.getSigner().getAddress();
+            newProvider.getBalance(walletAddress).then(balance => {
+                const balanceFormatted = ethers.utils.formatEther(balance);
+                setBalance(balanceFormatted);
+            });
             const _ensAddress = await ensProvider.lookupAddress(walletAddress);
             setEnsAddress(_ensAddress);
             
@@ -120,24 +133,25 @@ export default function WalletButton() {
     }
 
     return (
-        <div className="buttons">
-            
-            <a className="button is-link" style={styles.walletButton} onClick={connectWallet}>{
-            walletProvider ? (
-                <div style={styles.ensInfoContainer}>
-                    {
-                        ensAvatar ? (
-                            <div className="image" style={styles.avatar}>
-                                <img className="is-rounded is-1by1" src={ensAvatar || ''} />
-                            </div>
-                        ) : <></>
-                    }
-                    <p>{ensAddress ? ensAddress : 'Change Wallet'}</p>
-                </div>
-                
-                ) : 'Connect Wallet'}
-            
-            </a>
+        <div>
+            <div className="is-flex is-align-items-center is-justify-content-center has-background-white-ter" style={{borderRadius: '4px', padding: '2px'}}>
+                <div className="is-flex is-align-items-center has-text-black" style={{height: "40px"}}><span>{balance ? <div className="p-2">{parseFloat(balance).toFixed(4)} <object className="matic-6" type="image/svg+xml" data="https://zang.gallery/matic_logo.svg" aria-label="Matic" /></div> : ''}</span></div>
+                <a className="button has-background-white has-text-black m-0" style={styles.walletButton} onClick={connectWallet}>{
+                walletProvider ? (
+                    <div style={styles.ensInfoContainer}>
+                        {
+                            ensAvatar ? (
+                                <div className="image" style={styles.avatar}>
+                                    <img className="is-rounded is-1by1" src={ensAvatar || ''} />
+                                </div>
+                            ) : <></>
+                        }
+                        <p>{ensAddress ? ensAddress : 'Change Wallet'}</p>
+                    </div>
+                    ) : 'Connect Wallet'}
+                </a>
+            </div>
+            {balance ? <p className="is-size-7">Need more? <RoutingLink href="/bridge"><u>Bridge</u></RoutingLink></p>: <></>}
         </div>
     )
 }
