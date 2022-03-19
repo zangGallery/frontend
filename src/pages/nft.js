@@ -355,7 +355,7 @@ export default function NFTPage( { location }) {
         const newGroups = []
 
         for (const [seller, _listings] of Object.entries(groups)) {
-            _listings.sort((a, b) => a.price - b.price)
+            _listings.sort((a, b) => a.price - b.price);
 
             newGroups.push({
                 seller,
@@ -363,6 +363,12 @@ export default function NFTPage( { location }) {
                 sellerBalance: listingSellerBalances[seller] // undefined means that it's not available yet
             })
         }
+
+        // Sort by price
+        for (const group of newGroups) {
+            group.listings.sort((a, b) => a.price - b.price);
+        }
+        newGroups.sort((a, b) => a.listings[0].price - b.listings[0].price);
 
         return newGroups;
     }
@@ -426,6 +432,8 @@ export default function NFTPage( { location }) {
             }
 
             await Promise.all(promises);
+
+            newListings.sort((a, b) => a.price - b.price);
 
             // If a listing has seller 0x0000... it has been delisted
             setListings(newListings);
