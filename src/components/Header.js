@@ -28,12 +28,19 @@ export default function Header() {
         setActive(!isActive);
     }
 
+    const styles = {
+        navbarItem: {
+            paddingTop: '0',
+            height: '4rem'
+        }
+    }
+
     return (
         <div>
             <nav className="navbar" role="navigation" aria-label="main navigation">
                 <div className="navbar-brand">
                     <RoutingLink className="navbar-item" href=".">
-                        <h1 className="title pb-1">{".zang{"}</h1>
+                        <h1 className="title pb-1" style={{height: '4rem'}}>{".zang{"}</h1>
                     </RoutingLink>
 
                 <a role="button" className={"navbar-burger" + (isActive ? " is-active" : "")} onClick={toggleClass} aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
@@ -45,16 +52,16 @@ export default function Header() {
 
                 <div id="navbarBasicExample" className={"navbar-menu" + (isActive ? " is-active" : "")} >
                 <div className="navbar-start">
-                    <RoutingLink href='/' className="navbar-item is-size-5 has-text-weight-bold">
+                    <RoutingLink href='/' className="navbar-item is-size-5 has-text-weight-bold" style={styles.navbarItem}>
                         Home
                     </RoutingLink>
 
-                    <RoutingLink href='/mint' className="navbar-item is-size-5 has-text-weight-bold">
+                    <RoutingLink href='/mint' className="navbar-item is-size-5 has-text-weight-bold" style={styles.navbarItem}>
                         Mint
                     </RoutingLink>
 
                     { walletProvider ? (
-                        <RoutingLink href='/vault' className="navbar-item is-size-5 has-text-weight-bold">
+                        <RoutingLink href='/vault' className="navbar-item is-size-5 has-text-weight-bold" style={styles.navbarItem}>
                             Vault
                         </RoutingLink>
                     ) : null }

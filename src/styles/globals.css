@@ -48,3 +48,7 @@ a {
   top: -.2rem;
   vertical-align: middle;
 }
+
+.w-md-editor.w-md-editor-show-live {
+  max-width: 96vw;
+}

@@ -12,7 +12,7 @@ import { useEns } from "../common/ens";
 import ListButton from "./ListButton";
 import DelistButton from "./DelistButton";
 import { useRecoilState } from 'recoil';
-import { standardErrorState } from '../common/error';
+import { formatError, standardErrorState } from '../common/error';
 
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
@@ -41,7 +41,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
             const approved = await zangContract.isApprovedForAll(walletAddress, marketplaceAddress);
             setIsApproved(approved);
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -96,7 +96,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                                                     <Listing price={listing.price} amount={listing.amount}>
                                                         { walletProvider ? (
                                                             <BuyButton nftId={id} listingId={listing.id} price={listing.price} maxAmount={listing.amount} sellerBalance={group.sellerBalance} onUpdate={onUpdate} />
-                                                        ) : <></>
+                                                        ) : <button className="button is-black" disabled>Connect wallet to buy</button>
                                                         }
                                                     </Listing>
                                                 </div>

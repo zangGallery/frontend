@@ -4,8 +4,25 @@ import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { ensProvider, restoreDefaultReadProvider, useReadProvider, useWalletProvider } from "../common/provider";
 import config from "../config";
-import { useRecoilState } from 'recoil';
-import { standardErrorState } from '../common/error';
+import ethProvider from "eth-provider";
+import {RoutingLink} from ".";
+import { atom, useRecoilState } from 'recoil';
+import { formatError, standardErrorState } from '../common/error';
+
+const ensAddressState = atom({
+    key: 'ensAddress',
+    default: null
+});
+
+const ensAvatarState = atom({
+    key: 'ensAvatar',
+    default: null
+});
+
+const walletBalanceState = atom({
+    key: 'walletBalance',
+    default: null
+});
 
 const styles = {
     ensInfoContainer: {
@@ -15,14 +32,18 @@ const styles = {
     },
     avatar: {
         marginRight: '0.5em'
+    },
+    walletButton: {
+        borderColor: 'white'
     }
 }
 
 export default function WalletButton() {
     const [readProvider, setReadProvider] = useReadProvider();
     const [walletProvider, setWalletProvider] = useWalletProvider();
-    const [ensAddress, setEnsAddress] = useState(null);
-    const [ensAvatar, setEnsAvatar] = useState(null);
+    const [ensAddress, setEnsAddress] = useRecoilState(ensAddressState);
+    const [ensAvatar, setEnsAvatar] = useRecoilState(ensAvatarState);
+    const [balance, setBalance] = useRecoilState(walletBalanceState);
     const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const providerOptions = {
@@ -30,8 +51,11 @@ export default function WalletButton() {
         walletconnect: {
             package: WalletConnectProvider,
             options: {
-            infuraId: config.api_keys.infura.project_id
+                infuraId: config.api_keys.infura.project_id
             }
+        },
+        frame: {
+            package: ethProvider
         }
     };
 
@@ -51,7 +75,7 @@ export default function WalletButton() {
             wallet = await web3Modal.connect();
         } catch (e) {
             if (e?.message) {
-                setStandardError(e.message);
+                setStandardError(formatError(e));
             } else {
                 // Some wallets reject the promise without actually throwing an error.
                 // In this situation we fail silently.
@@ -108,6 +132,10 @@ export default function WalletButton() {
 
         try {
             const walletAddress = await newProvider.getSigner().getAddress();
+            newProvider.getBalance(walletAddress).then(balance => {
+                const balanceFormatted = ethers.utils.formatEther(balance);
+                setBalance(balanceFormatted);
+            });
             const _ensAddress = await ensProvider.lookupAddress(walletAddress);
             setEnsAddress(_ensAddress);
             
@@ -120,24 +148,25 @@ export default function WalletButton() {
     }
 
     return (
-        <div className="buttons">
-            
-            <a className="button is-link" style={styles.walletButton} onClick={connectWallet}>{
-            walletProvider ? (
-                <div style={styles.ensInfoContainer}>
-                    {
-                        ensAvatar ? (
-                            <div className="image" style={styles.avatar}>
-                                <img className="is-rounded is-1by1" src={ensAvatar || ''} />
-                            </div>
-                        ) : <></>
-                    }
-                    <p>{ensAddress ? ensAddress : 'Change Wallet'}</p>
-                </div>
-                
-                ) : 'Connect Wallet'}
-            
-            </a>
+        <div>
+            <div className="is-flex is-align-items-center is-justify-content-center has-background-white-ter" style={{borderRadius: '4px', padding: '2px'}}>
+                <div className="is-flex is-align-items-center has-text-black" style={{height: "40px"}}><span>{balance ? <div className="p-2">{parseFloat(balance).toFixed(4)} <object className="matic-6" type="image/svg+xml" data="https://zang.gallery/matic_logo.svg" aria-label="Matic" /></div> : ''}</span></div>
+                <a className="button has-background-white has-text-black m-0" style={styles.walletButton} onClick={connectWallet}>{
+                walletProvider ? (
+                    <div style={styles.ensInfoContainer}>
+                        {
+                            ensAvatar ? (
+                                <div className="image" style={styles.avatar}>
+                                    <img className="is-rounded is-1by1" src={ensAvatar || ''} />
+                                </div>
+                            ) : <></>
+                        }
+                        <p>{ensAddress ? ensAddress : 'Change Wallet'}</p>
+                    </div>
+                    ) : 'Connect Wallet'}
+                </a>
+            </div>
+            {balance ? <p className="is-size-7">Need more? <RoutingLink href="/bridge"><u>Bridge</u></RoutingLink></p>: <></>}
         </div>
     )
 }

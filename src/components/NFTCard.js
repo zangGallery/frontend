@@ -7,11 +7,12 @@ import { v1 } from "../common/abi";
 import { navigate } from "gatsby-link";
 import MDEditor from "@uiw/react-md-editor"
 import rehypeSanitize from "rehype-sanitize";
+import schemas from "../common/schemas";
 import { useEns } from "../common/ens";
 import TypeTag from "./TypeTag";
 import { isTokenExistenceError } from "../common/error";
 import { useRecoilState } from 'recoil';
-import { standardErrorState } from '../common/error';
+import { formatError, standardErrorState } from '../common/error';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
@@ -68,7 +69,7 @@ export default function NFTCard({ id }) {
             if (isTokenExistenceError(e)) {
                 setExists(false);
             } else {
-                setStandardError(e.message);
+                setStandardError(formatError(e));
             }
         }
     }
@@ -86,7 +87,7 @@ export default function NFTCard({ id }) {
             if (isTokenExistenceError(e)) {
                 setExists(false);
             } else {
-                setStandardError(e.message);
+                setStandardError(formatError(e));
             }
         }
     }
@@ -97,10 +98,10 @@ export default function NFTCard({ id }) {
         try {
             const tokenDataResponse = await fetch(tokenURI);
             const newTokenData = await tokenDataResponse.json();
-            console.log(newTokenData)
+            //console.log(newTokenData)
             setTokenData(newTokenData);
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -112,11 +113,11 @@ export default function NFTCard({ id }) {
         try {
             const response = await fetch(parsedTextURI);
             const parsedText = await response.text()
-            console.log("content: " + parsedTextURI)
+            //console.log("content: " + parsedTextURI)
             setTokenType(response.headers.get("content-type"))
             setTokenContent(parsedText)
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -141,7 +142,7 @@ export default function NFTCard({ id }) {
             <div style={styles.cardPreview}>
                 {tokenType && (tokenContent !== null) ? (
                     tokenType == 'text/markdown' ? (
-                        <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
+                        <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
                     ) : <pre className="nft-plain" style={{overflow: 'hidden'}}>{tokenContent}</pre>
                 ) : <Skeleton count={10}/>}
             </div>

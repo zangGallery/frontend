@@ -1,4 +1,5 @@
 import { atom, useRecoilState } from 'recoil'
+import { formatError } from './error';
 
 const transactionCountState = atom({
     key: 'transactionCount',
@@ -118,7 +119,7 @@ const useTransactionHelper = () => {
                 'status': 'error',
                 'name': transactionName,
                 'hash': transaction?.hash,
-                'errorMessage': e.message,
+                'errorMessage': formatError(e),
                 content: contentFunction ? await contentFunction('success', transaction, false) : null
             });
             

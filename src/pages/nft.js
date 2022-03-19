@@ -6,6 +6,7 @@ import config from '../config';
 import { ethers } from 'ethers';
 import { v1 } from '../common/abi';
 import rehypeSanitize from "rehype-sanitize";
+import schemas from '../common/schemas'
 import * as queryString from "query-string";
 
 import MDEditor from "@uiw/react-md-editor"
@@ -24,7 +25,7 @@ import TypeTag from '../components/TypeTag';
 import BurnButton from '../components/BurnButton';
 import EditRoyaltyButton from '../components/EditRoyaltyButton';
 import Decimal from 'decimal.js';
-import { isTokenExistenceError, standardErrorState } from '../common/error';
+import { formatError, isTokenExistenceError, standardErrorState } from '../common/error';
 import StandardErrorDisplay from '../components/StandardErrorDisplay';
 
 import Skeleton from 'react-loading-skeleton';
@@ -100,7 +101,7 @@ export default function NFTPage( { location }) {
                 try {
                     isValid = await contract.exists(prevId);
                 } catch (e) {
-                    setStandardError(e.message);
+                    setStandardError(formatError(e));
                     break;
                 }
 
@@ -128,7 +129,7 @@ export default function NFTPage( { location }) {
             setLastNFTId(newLastNFTId.toNumber());
             return newLastNFTId.toNumber();
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -156,7 +157,7 @@ export default function NFTPage( { location }) {
                 try {
                     isValid = await contract.exists(nextId);
                 } catch (e) {
-                    setStandardError(e.message);
+                    setStandardError(formatError(e));
                     break;
                 }
 
@@ -191,7 +192,7 @@ export default function NFTPage( { location }) {
             if (isTokenExistenceError(e)) {
                 setExists(false);
             } else {
-                setStandardError(e.message);
+                setStandardError(formatError(e));
             }
         }
     }
@@ -206,7 +207,7 @@ export default function NFTPage( { location }) {
         }
         catch (e) {
             if (!isTokenExistenceError(e)) {
-                setStandardError(e.message);
+                setStandardError(formatError(e));
             }
         }
     }
@@ -220,7 +221,7 @@ export default function NFTPage( { location }) {
             setTokenData(newTokenData);
         }
         catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -235,7 +236,7 @@ export default function NFTPage( { location }) {
             setTokenType(response.headers.get("content-type"))
             setTokenContent(parsedText)
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -252,7 +253,7 @@ export default function NFTPage( { location }) {
                 amount: amount.div(100).toNumber()
             })
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -264,7 +265,7 @@ export default function NFTPage( { location }) {
         try {
             setTotalSupply(await contract.totalSupply(id));
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -288,7 +289,7 @@ export default function NFTPage( { location }) {
             try {
                 setWalletAddress(await walletProvider.getSigner().getAddress());
             } catch (e) {
-                setStandardError(e?.message);
+                setStandardError(formatError(e));
             }
         }
     }, [walletProvider])
@@ -354,7 +355,7 @@ export default function NFTPage( { location }) {
         const newGroups = []
 
         for (const [seller, _listings] of Object.entries(groups)) {
-            _listings.sort((a, b) => a.price - b.price)
+            _listings.sort((a, b) => a.price - b.price);
 
             newGroups.push({
                 seller,
@@ -362,6 +363,12 @@ export default function NFTPage( { location }) {
                 sellerBalance: listingSellerBalances[seller] // undefined means that it's not available yet
             })
         }
+
+        // Sort by price
+        for (const group of newGroups) {
+            group.listings.sort((a, b) => a.price - b.price);
+        }
+        newGroups.sort((a, b) => a.listings[0].price - b.listings[0].price);
 
         return newGroups;
     }
@@ -426,10 +433,12 @@ export default function NFTPage( { location }) {
 
             await Promise.all(promises);
 
+            newListings.sort((a, b) => a.price - b.price);
+
             // If a listing has seller 0x0000... it has been delisted
             setListings(newListings);
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -443,7 +452,7 @@ export default function NFTPage( { location }) {
             setListingSellerBalances((currentBalance) => ({...currentBalance, [sellerAddress]: balance.toNumber()}));
         }
         catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -466,7 +475,7 @@ export default function NFTPage( { location }) {
             
             await Promise.all(promises);
         } catch (e) {
-            setStandardError(e.message);
+            setStandardError(formatError(e));
         }
     }
 
@@ -512,7 +521,7 @@ export default function NFTPage( { location }) {
                                                     <div className="box">
                                                         {tokenType && (tokenContent || tokenContent == '') ? (
                                                             tokenType == 'text/markdown' ? (
-                                                                <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
+                                                                <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
                                                             ) : <pre className="nft-plain">{tokenContent}</pre>
                                                         ) : <Skeleton count="12"/>}
                                                     </div>

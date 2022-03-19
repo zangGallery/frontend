@@ -3,6 +3,8 @@ import rehypeSanitize from "rehype-sanitize";
 
 import MDEditor from "@uiw/react-md-editor"
 import { defaultCommands } from "../common/commands"
+import schemas from "../common/schemas"
+import { sanitize } from "hast-util-sanitize"
 
 const styles = {
     link: {
@@ -19,7 +21,7 @@ export default function MultiEditor({textType, value, setValue}) {
             { textType == 'text/markdown' ? 
                 (
                     <div>
-                        <MDEditor value={value} onChange={setValue} highlightEnable={false} previewOptions={{ rehypePlugins : [rehypeSanitize] }} commands={defaultCommands} />
+                        <MDEditor value={value} onChange={setValue} highlightEnable={false} previewOptions={{ rehypePlugins : [() => rehypeSanitize(schemas.validMarkdown)] }} commands={defaultCommands} />
                         <article className="message is-info is-small mt-2">
                             <div class="message-body">
                             <p>For help regarding Markdown, see the{' '}
