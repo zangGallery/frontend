@@ -7,6 +7,16 @@ import config from "../config";
 import { useRecoilState } from 'recoil';
 import { standardErrorState } from '../common/error';
 
+const ensAddressState = atom({
+    key: 'ensAddress',
+    default: null
+});
+
+const ensAvatarState = atom({
+    key: 'ensAvatar',
+    default: null
+});
+
 const styles = {
     ensInfoContainer: {
         display: 'flex',
@@ -21,8 +31,8 @@ const styles = {
 export default function WalletButton() {
     const [readProvider, setReadProvider] = useReadProvider();
     const [walletProvider, setWalletProvider] = useWalletProvider();
-    const [ensAddress, setEnsAddress] = useState(null);
-    const [ensAvatar, setEnsAvatar] = useState(null);
+    const [ensAddress, setEnsAddress] = useRecoilState(ensAddressState);
+    const [ensAvatar, setEnsAvatar] = useRecoilState(ensAvatarState);
     const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const providerOptions = {
