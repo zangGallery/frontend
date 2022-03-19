@@ -7,6 +7,7 @@ import { v1 } from "../common/abi";
 import { navigate } from "gatsby-link";
 import MDEditor from "@uiw/react-md-editor"
 import rehypeSanitize from "rehype-sanitize";
+import schemas from "../common/schemas";
 import { useEns } from "../common/ens";
 import TypeTag from "./TypeTag";
 import { isTokenExistenceError } from "../common/error";
@@ -141,7 +142,7 @@ export default function NFTCard({ id }) {
             <div style={styles.cardPreview}>
                 {tokenType && (tokenContent !== null) ? (
                     tokenType == 'text/markdown' ? (
-                        <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
+                        <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
                     ) : <pre className="nft-plain" style={{overflow: 'hidden'}}>{tokenContent}</pre>
                 ) : <Skeleton count={10}/>}
             </div>

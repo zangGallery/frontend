@@ -6,6 +6,7 @@ import config from '../config';
 import { ethers } from 'ethers';
 import { v1 } from '../common/abi';
 import rehypeSanitize from "rehype-sanitize";
+import schemas from '../common/schemas'
 import * as queryString from "query-string";
 
 import MDEditor from "@uiw/react-md-editor"
@@ -512,7 +513,7 @@ export default function NFTPage( { location }) {
                                                     <div className="box">
                                                         {tokenType && (tokenContent || tokenContent == '') ? (
                                                             tokenType == 'text/markdown' ? (
-                                                                <MDEditor.Markdown source={tokenContent} rehypePlugins={[rehypeSanitize]} />
+                                                                <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
                                                             ) : <pre className="nft-plain">{tokenContent}</pre>
                                                         ) : <Skeleton count="12"/>}
                                                     </div>
