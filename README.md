@@ -6,4 +6,5 @@
 
 1. `git clone https://github.com/zangGallery/frontend`
 2. `cd frontend`
-3. `yarn dev`
+3. `yarn`
+4. `yarn dev`
