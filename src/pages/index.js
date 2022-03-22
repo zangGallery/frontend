@@ -15,11 +15,11 @@ import "bulma/css/bulma.min.css";
 import '../styles/globals.css'
 
 export default function Home() {
-  const [readProvider, setReadProvider] = useReadProvider();
+  const [readProvider, ] = useReadProvider();
   const [lastNFTId, setLastNFTId] = useState(null);
   const [nfts, setNFTs] = useState([])
 
-  const [_, setStandardError] = useRecoilState(standardErrorState);
+  const [, setStandardError] = useRecoilState(standardErrorState);
 
   const increment = 5;
 

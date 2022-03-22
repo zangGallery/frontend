@@ -51,8 +51,11 @@ export default function WalletButton() {
         walletconnect: {
             package: WalletConnectProvider,
             options: {
-                infuraId: config.api_keys.infura.project_id
-            }
+                rpc: {
+                    137: "https://matic-mainnet.chainstacklabs.com"
+                },
+                network: "matic"
+            },
         },
         frame: {
             package: ethProvider

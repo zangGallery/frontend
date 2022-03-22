@@ -60,8 +60,8 @@ export default function NFTPage( { location }) {
     const id = parsedQuery ? parseInt(parsedQuery.id) : null;
     const [updateTracker, setUpdateTracker] = useState([0, null]);
 
-    const [readProvider, setReadProvider] = useReadProvider()
-    const [walletProvider, setWalletProvider] = useWalletProvider()
+    const [readProvider,] = useReadProvider()
+    const [walletProvider,] = useWalletProvider()
     const { lookupEns } = useEns()
 
     const [burnedIds, setBurnedIds] = useRecoilState(burnedIdsState);
@@ -83,7 +83,7 @@ export default function NFTPage( { location }) {
 
     const [walletAddress, setWalletAddress] = useState(null);
 
-    const [_, setStandardError] = useRecoilState(standardErrorState);
+    const [, setStandardError] = useRecoilState(standardErrorState);
 
     const queryPrevValidId = async () => {
         if (!id) {

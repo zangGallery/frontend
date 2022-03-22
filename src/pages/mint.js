@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ethers } from "ethers";
 import { v1 } from '../common/abi';
 import config from '../config'
-import { ensProvider, useReadProvider, useWalletProvider } from "../common/provider";
+import { ensProvider, useWalletProvider } from "../common/provider";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import Decimal from "decimal.js";
@@ -11,7 +11,6 @@ import { joiResolver } from "@hookform/resolvers/joi"
 import { schemas } from "../common";
 import { MintConfirmModal, MultiEditor, RoutingLink } from "../components";
 import { Header } from "../components";
-import { navigate } from "gatsby-link";
 import { Helmet } from "react-helmet";
 
 import "bulma/css/bulma.min.css";
@@ -33,13 +32,13 @@ const defaultValues = {
 export default function Mint() {
   const { register, formState: { errors, isValid }, handleSubmit, watch } = useForm({ defaultValues: defaultValues, mode: 'onChange', resolver: joiResolver(schemas.mint)});
   const [text, setText] = useState('')
-  const [walletProvider, setWalletProvider] = useWalletProvider()
-  const [transactionState, setTransactionState] = useState({ status: 'noTransaction'})
+  const [walletProvider,] = useWalletProvider()
+  const [transactionState,] = useState({ status: 'noTransaction'})
   const [confirmModalOpen, setConfirmModalOpen] = useState(false)
   const watchUseCustomRecipient = watch('useCustomRecipient', defaultValues.useCustomRecipient);
   const watchTextType = watch('textType', defaultValues.textType)
   const handleTransaction = useTransactionHelper()
-  const [_, setStandardError] = useRecoilState(standardErrorState)
+  const [, setStandardError] = useRecoilState(standardErrorState)
 
   const executeTransaction = (mintConfirmed)  => async (data) => {
     if (!walletProvider) {
@@ -65,7 +64,7 @@ export default function Mint() {
 
     const uri = 'data:'
                 + data.textType
-                + (isUTF8() && data.textType == 'text/plain' ? ',charset=UTF-8' : '')
+                + (isUTF8() && data.textType === 'text/plain' ? ',charset=UTF-8' : '')
                 + ',' + encodeURIComponent(data.text)
 
     const contractAddress = config.contractAddresses.v1.zang;
@@ -115,8 +114,8 @@ export default function Mint() {
       }
       
       if (success && receipt && receipt.blockNumber) {
-        const matchingEvents = receipt.events.filter(event => event.event == 'TransferSingle' && event.args.from == 0)
-        if (matchingEvents.length == 1) {
+        const matchingEvents = receipt.events.filter(event => event.event === 'TransferSingle' && event.args.from === 0)
+        if (matchingEvents.length === 1) {
           const tokenId = matchingEvents[0].args[3].toString();
           return (
             <div>
@@ -154,10 +153,10 @@ export default function Mint() {
           <ValidatedInput label="Description" name="description" type="text" register={register} errors={errors} />
           <ValidatedInput label="Edition size" name="editionSize" type="number" register={register} errors={errors} />
           <div className="field">
-            <label className="label">Content</label>
+            <label className="label" htmlFor="content">Content</label>
             <div className="control">
               <div className="select">
-                <select {...register('textType')}>
+                <select {...register('textType')} id="content">
                   <option value='text/plain'>Plain Text</option>
                   <option value='text/markdown'>Markdown</option>
                 </select>
@@ -185,7 +184,7 @@ export default function Mint() {
           </div>
           {
             walletProvider ? (
-              transactionState.status == 'noTransaction' || transactionState.status == 'error' ?
+              transactionState.status === 'noTransaction' || transactionState.status === 'error' ?
                 <button className="button is-primary" disabled={!isValid} onClick={handleSubmit(executeTransaction(false))}>Mint</button> : <></>
             )
             : <p>Connect a wallet to mint</p>
