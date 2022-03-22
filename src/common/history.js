@@ -1,6 +1,5 @@
-import config from "../config";
-import { v1 } from "../common/abi";
 import { ethers } from "ethers";
+import { formatEther } from "ethers/lib/utils";
 
 const getTransferEvents = async (id, zangContract, relevantAddresses, firstZangBlock) => {
     relevantAddresses = [...relevantAddresses];
@@ -144,7 +143,80 @@ const computeBalances = (events) => {
     return balances;
 }
 
+const parseHistory = (events) => {
+    const parsedEvents = [];
+
+    for (let i = 0; i < events.length; i++) {
+        const event = events[i];
+        switch(event.event) {
+            case 'TokenListed':
+                parsedEvents.push({
+                    type: 'list',
+                    seller: event.args._seller,
+                    price: formatEther(event.args._price.toString()),
+                    amount: event.args.amount.toNumber(), // Note the lack of _
+                    transactionHash: event.transactionHash
+                });
+                break;
+            case 'TokenDelisted':
+                parsedEvents.push({
+                    type: 'delist',
+                    seller: event.args._seller,
+                    transactionHash: event.transactionHash
+                });
+                break;
+            case 'TransferSingle':
+                let transferType = 'transfer';
+                if (event.args.from == ethers.constants.AddressZero) {
+                    transferType = 'mint';
+                } else if (event.args.to == ethers.constants.AddressZero) {
+                    transferType = 'burn';
+                }
+                parsedEvents.push({
+                    type: transferType,
+                    from: event.args.from,
+                    to: event.args.to,
+                    amount: event.args.value.toNumber(),
+                    operator: event.args.operator,
+                    transactionHash: event.transactionHash
+                });
+
+                break;
+            case 'TokenPurchased':
+                // If the previous event is a delist, it was part of the same event
+                if (parsedEvents[parsedEvents.length - 1].type == 'delist' &&
+                    parsedEvents[parsedEvents.length - 1].seller == event.args._seller &&
+                    parsedEvents[parsedEvents.length - 1].transactionHash == event.transactionHash) {
+                    parsedEvents.pop();
+                }
+                parsedEvents.push({
+                    type: 'purchase',
+                    buyer: event.args._buyer,
+                    seller: event.args._seller,
+                    amount: event.args._amount.toNumber(),
+                    price: formatEther(event.args._price.toString()).toString(),
+                    transactionHash: event.transactionHash
+                });
+
+                // Skip the next transfer event, since it is part of the same event
+                // Check first if the next event is a transfer event
+                if (i == events.length - 1 || events[i + 1].event != 'TransferSingle' ||
+                    events[i + 1].transactionHash != event.transactionHash || events[i + 1].args.value.toNumber() != event.args._amount.toNumber()) {
+                    console.log('Next event is not a valid transfer');
+                }
+                i++;
+
+                break;
+            default:
+                console.log('Unknown event type: ' + event.event);
+        }
+    }
+
+    return parsedEvents;
+}
+
 export {
     getEvents,
-    computeBalances
+    computeBalances,
+    parseHistory
 }
