@@ -62,14 +62,14 @@ export default function BuyModal ({ isOpen, setIsOpen, onClose, maxAmount, selle
             <p>Price: {price}</p>
             <ValidatedInput label="Amount" name="amount" type="number" step="1" min="1" errors={errors} register={register} />
             {
-                total() ? (
+                total() && errors.amount === undefined ? (
                     <p>Total: {total()} <object className="matic-6" type="image/svg+xml" data="https://zang.gallery/matic_logo.svg" aria-label="Matic" /></p>
                 ) : (
                     <p>Total: </p>
                 )
             }
             { validAmount() ? <></> : <p className="notification is-danger">
-                <b>Error</b>: 
+                <b>Error</b>:
                 { watchAmount <= maxAmount ?
                     ` Cannot buy more tokens than the seller's balance (${sellerBalance}).` :
                     ` Cannot buy more tokens than the listed amount (${maxAmount}).`
