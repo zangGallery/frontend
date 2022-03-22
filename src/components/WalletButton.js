@@ -52,7 +52,7 @@ export default function WalletButton() {
             package: WalletConnectProvider,
             options: {
                 rpc: {
-                    137: "https://matic-mainnet.chainstacklabs.com"
+                    137: "https://polygon-rpc.com/"
                 },
                 network: "matic"
             },
