@@ -14,7 +14,8 @@ exports.onCreateWebpackConfig = ({ stage, actions }) => {
                 "crypto": require.resolve("crypto-browserify"),
                 "tls": require.resolve("tls-browserify"),
                 "net": require.resolve("net-browserify"),
-                "zlib": require.resolve("zlib-browserify")
+                "zlib": require.resolve("zlib-browserify"),
+                "fs": require.resolve("browserify-fs")
             } 
         },
         plugins: [
