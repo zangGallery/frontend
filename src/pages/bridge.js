@@ -27,6 +27,9 @@ export default function Bridge() {
                 <title>Bridge</title>
             </Helmet>
             <Header />
+            <div className="notification">
+                <b>Note</b>: We are not affiliated with Li.Finance.
+            </div>
             <div id="lifi-widget" style={styles.lifi}>
                 <iframe id="lifi-iframe" style={styles.iframe} src="https://li.finance/embed?fromChain=eth&amp;toChain=pol&amp;toToken=0x0000000000000000000000000000000000000000" scrolling="auto" allowtransparency="true" title="Li.Fi Widget" class="lifi__widget-iframe" frameborder="0"></iframe>
             </div>
