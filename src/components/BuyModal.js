@@ -20,7 +20,7 @@ const defaultValues = {
 }
 
 export default function BuyModal ({ isOpen, setIsOpen, onClose, maxAmount, sellerBalance, price }) {
-    console.log('Seller balance: ', sellerBalance);
+    //console.log('Seller balance: ', sellerBalance);
 
     const { register, formState: { isDirty, isValid, errors }, handleSubmit, watch } = useForm({ defaultValues, mode: 'onChange', resolver: joiResolver(schemas.buy)});
 

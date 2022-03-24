@@ -2,34 +2,64 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import { useReadProvider } from "../common/provider";
 import config from "../config";
-import { v1 } from "../common/abi";
-import { ethers } from "ethers";
-import { computeBalances, getEvents } from "../common/history";
+import { blockToDateState, computeBalances, getBlockTime, getEvents } from "../common/history";
+import Skeleton from 'react-loading-skeleton';
+import {shortenAddress} from "../common/utils";
+import { useRecoilState } from "recoil";
 
-export default function NFTHistory({ id, authorAddress }) {
-    const zangAddress = config.contractAddresses.v1.zang;
-    const zangABI = v1.zang;
-    const firstZangBlock = config.firstBlocks.v1.polygon.zang;
+import TimeAgo from "javascript-time-ago";
+import en from 'javascript-time-ago/locale/en.json';
 
-    const marketplaceAddress = config.contractAddresses.v1.marketplace;
-    const marketplaceABI = v1.marketplace;
-    const firstMarketplaceBlock = config.firstBlocks.v1.polygon.marketplace;
+TimeAgo.addDefaultLocale(en)
 
-    const [readProvider, setReadProvider] = useReadProvider();
-    const [history, setHistory] = useState(null);
-    const [balances, setBalances] = useState(null);
+const timeAgo = new TimeAgo('en-US')
 
-    const zangContract = new ethers.Contract(zangAddress, zangABI, readProvider);
-    const marketplaceContract = new ethers.Contract(marketplaceAddress, marketplaceABI, readProvider);
+export default function NFTHistory({ history }) {
+    const [readProvider,] = useReadProvider();
+    const [blockToDate, setBlockToDate] = useRecoilState(blockToDateState);
 
+    useEffect(() => {
+        for(const event of history) {
+            if (!(event.blockNumber in blockToDate)) {
+                getBlockTime(readProvider, event.blockNumber).then(date => {
+                    setBlockToDate((prev) => ({
+                        ...prev,
+                        [event.blockNumber]: date
+                    }));
+                });
+            }
+        }
+    }, [history]);
 
-    useEffect(async () => {
-        const events = await getEvents(id, zangContract, marketplaceContract, authorAddress, firstZangBlock, firstMarketplaceBlock);
-        const balances = computeBalances(events);
-
-        console.log(events);
-        console.log(balances);
-    }, [id, authorAddress]);
-
-    return <></>;
+    return (
+        history ?
+        (
+            <div style={{maxHeight: '25em', overflowY: 'auto'}}>
+                {
+                    [...history].reverse().map((event, index) => {
+                        return (
+                            <div className="mb-4">
+                                <div key={index} className="is-flex is-justify-content-space-between is-align-items-center">
+                                    <b className="is-size-6"><tt>{(event.type).toUpperCase()}</tt></b>
+                                    {
+                                        blockToDate[event.blockNumber] ?
+                                        <tt className="is-size-7 mr-2 mt-1">{timeAgo.format(blockToDate[event.blockNumber]).toUpperCase()}</tt> :
+                                        <Skeleton width={100} />
+                                    } 
+                                </div>
+                                <p>{event.from ? <tt className="is-size-7">FROM: {shortenAddress(event.from, 8)}</tt> : <></>}</p>
+                                <p>{event.to ? <tt className="is-size-7">TO: &nbsp;&nbsp;{shortenAddress(event.to, 8)}</tt> : <></>}</p>
+                                <p>{event.seller ? <tt className="is-size-7">SELLER: {shortenAddress(event.seller, 8)}</tt> : <></>}</p>
+                                <p>{event.buyer ? <tt className="is-size-7">BUYER: &nbsp;{shortenAddress(event.buyer, 8)}</tt> : <></>}</p>
+                                <p>{event.price ? <tt className="is-size-7">PRICE: &nbsp;{event.price} MATIC</tt> : <></>}</p>
+                                <p>{event.amount ? <tt className="is-size-7">AMOUNT: {event.amount}</tt> : <></>}</p>
+                                <p className="is-size-7"><a target="_blank" rel="noopener" style={{textDecoration: 'underline'}} href={config.blockExplorer.url + '/tx/' + event.transactionHash}><tt>[tx]</tt></a></p>
+                                <hr/>
+                            </div>
+                        )
+                    })
+                }
+            </div>
+        ) : <Skeleton/>
+    )
 }

@@ -27,6 +27,7 @@ import EditRoyaltyButton from '../components/EditRoyaltyButton';
 import Decimal from 'decimal.js';
 import { formatError, isTokenExistenceError, standardErrorState } from '../common/error';
 import StandardErrorDisplay from '../components/StandardErrorDisplay';
+import NFTOwners from '../components/NFTOwners';
 
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
@@ -34,6 +35,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 
 import {getEvents, computeBalances, parseHistory} from '../common/history';
 import {shortenAddress} from '../common/utils';
+import NFTHistory from '../components/NFTHistory';
 
 const burnedIdsState = atom({
     key: 'burnedIds',
@@ -90,10 +92,9 @@ export default function NFTPage( { location }) {
     const [isOwners, setIsOwners] = useState(true);
     const setOwners = () => setIsOwners(true);
     const setHistory = () => setIsOwners(false);
+    const [events, setEvents] = useState(null);
 
     const [, setStandardError] = useRecoilState(standardErrorState);
-
-    const [balances, setBalances] = useState(null);
 
     const queryBalances = async (author) => {
         if (!readProvider || !id || !author) {
@@ -104,9 +105,9 @@ export default function NFTPage( { location }) {
         const firstZangBlock = config.firstBlocks.v1.polygon.zang;
         const firstMarketplaceBlock = config.firstBlocks.v1.polygon.marketplace;
 
-        let events = await getEvents(id, zangContract, marketplaceContract, author, firstZangBlock, firstMarketplaceBlock);
+        const events = await getEvents(id, zangContract, marketplaceContract, author, firstZangBlock, firstMarketplaceBlock);
         console.log('Find events', events, id, author);
-        setBalances(computeBalances(events));
+        setEvents(events);
     }
 
     const queryPrevValidId = async () => {
@@ -334,7 +335,7 @@ export default function NFTPage( { location }) {
         setNextValidId(null);
         setListings(null);
         setListingSellerBalances({});
-        setBalances(null);
+        setEvents(null);
 
         queryTokenURI()
             .then((tURI) => queryTokenData(tURI))
@@ -629,21 +630,9 @@ export default function NFTPage( { location }) {
                                                     <div>
                                                         {
                                                             isOwners ? (
-                                                                <div>
-                                                                    {
-                                                                        balances ? (Object.keys(balances).map((owner, index) => {
-                                                                            return (
-                                                                                <div key={index}>
-                                                                                    <p className="is-size-6">{balances[owner]} <span>×</span> <tt>{lookupEns(owner) || shortenAddress(owner, 8)}</tt></p>
-                                                                                </div>
-                                                                            )
-                                                                        })) : <Skeleton/>
-                                                                    }
-                                                                </div>
+                                                                <NFTOwners balances={computeBalances(events)} />
                                                             ) : (
-                                                                <div>
-                                                                    <p>soon</p>
-                                                                </div>
+                                                                <NFTHistory history={parseHistory(events)} />
                                                             )
                                                         }
                                                     </div>

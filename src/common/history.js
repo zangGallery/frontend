@@ -1,5 +1,11 @@
 import { ethers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
+import { atom } from "recoil";
+
+const blockToDateState = atom({
+    key: 'blockToDateState',
+    default: {}
+});
 
 const getTransferEvents = async (id, zangContract, relevantAddresses, firstZangBlock) => {
     relevantAddresses = [...relevantAddresses];
@@ -118,6 +124,10 @@ const getEvents = async (id, zangContract, marketplaceContract, authorAddress, f
 }
 
 const computeBalances = (events) => {
+    if (!events) {
+        return;
+    }
+
     const balances = {};
 
     const updateBalance = (address, variation) => {
@@ -144,10 +154,12 @@ const computeBalances = (events) => {
 }
 
 const parseHistory = (events) => {
-    const parsedEvents = [];
+    if (!events) {
+        return;
+    }
+    let parsedEvents = [];
 
-    for (let i = 0; i < events.length; i++) {
-        const event = events[i];
+    for (const event of events) {
         switch(event.event) {
             case 'TokenListed':
                 parsedEvents.push({
@@ -155,14 +167,16 @@ const parseHistory = (events) => {
                     seller: event.args._seller,
                     price: formatEther(event.args._price.toString()),
                     amount: event.args.amount.toNumber(), // Note the lack of _
-                    transactionHash: event.transactionHash
+                    transactionHash: event.transactionHash,
+                    blockNumber: event.blockNumber
                 });
                 break;
             case 'TokenDelisted':
                 parsedEvents.push({
                     type: 'delist',
                     seller: event.args._seller,
-                    transactionHash: event.transactionHash
+                    transactionHash: event.transactionHash,
+                    blockNumber: event.blockNumber
                 });
                 break;
             case 'TransferSingle':
@@ -178,33 +192,21 @@ const parseHistory = (events) => {
                     to: event.args.to,
                     amount: event.args.value.toNumber(),
                     operator: event.args.operator,
-                    transactionHash: event.transactionHash
+                    transactionHash: event.transactionHash,
+                    blockNumber: event.blockNumber
                 });
 
                 break;
             case 'TokenPurchased':
-                // If the previous event is a delist, it was part of the same event
-                if (parsedEvents[parsedEvents.length - 1].type == 'delist' &&
-                    parsedEvents[parsedEvents.length - 1].seller == event.args._seller &&
-                    parsedEvents[parsedEvents.length - 1].transactionHash == event.transactionHash) {
-                    parsedEvents.pop();
-                }
                 parsedEvents.push({
                     type: 'purchase',
                     buyer: event.args._buyer,
                     seller: event.args._seller,
                     amount: event.args._amount.toNumber(),
                     price: formatEther(event.args._price.toString()).toString(),
-                    transactionHash: event.transactionHash
+                    transactionHash: event.transactionHash,
+                    blockNumber: event.blockNumber
                 });
-
-                // Skip the next transfer event, since it is part of the same event
-                // Check first if the next event is a transfer event
-                if (i == events.length - 1 || events[i + 1].event != 'TransferSingle' ||
-                    events[i + 1].transactionHash != event.transactionHash || events[i + 1].args.value.toNumber() != event.args._amount.toNumber()) {
-                    console.log('Next event is not a valid transfer');
-                }
-                i++;
 
                 break;
             default:
@@ -212,10 +214,27 @@ const parseHistory = (events) => {
         }
     }
 
+    for (const event of parsedEvents.filter(event => event.type == 'purchase')) {
+        // Filter out transfer and delist events that are part of the same purchase
+        parsedEvents = parsedEvents.filter(otherEvent => !(
+            (otherEvent.type == 'transfer' || otherEvent.type == 'delist') && event.transactionHash == otherEvent.transactionHash)
+        );
+    }
+
+    console.log(parsedEvents.map(e => e.type));
+
     return parsedEvents;
 }
 
+
+const getBlockTime = async (provider, blockNumber) => {
+    const block = await provider.getBlock(blockNumber);
+    return new Date(parseInt(block.timestamp) * 1000);
+}
+
 export {
+    blockToDateState,
+    getBlockTime,
     getEvents,
     computeBalances,
     parseHistory

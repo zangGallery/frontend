@@ -41,6 +41,7 @@
     "gatsby-plugin-react-helmet": "^4.14.0",
     "gatsby-source-filesystem": "^3.14.0",
     "https-browserify": "^1.0.0",
+    "javascript-time-ago": "^2.3.13",
     "joi": "^17.4.2",
     "net-browserify": "^0.2.4",
     "os-browserify": "^0.3.0",
