@@ -1,7 +1,7 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { atom, useRecoilState } from 'recoil'
-import { useReadProvider, useWalletProvider } from '../common/provider';
+import { defaultReadProvider, useReadProvider, useWalletProvider } from '../common/provider';
 import config from '../config';
 import { ethers } from 'ethers';
 import { v1 } from '../common/abi';
@@ -27,9 +27,17 @@ import EditRoyaltyButton from '../components/EditRoyaltyButton';
 import Decimal from 'decimal.js';
 import { formatError, isTokenExistenceError, standardErrorState } from '../common/error';
 import StandardErrorDisplay from '../components/StandardErrorDisplay';
+import NFTOwners from '../components/NFTOwners';
 
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+//import { getEventListeners } from 'ws';
+
+import {getEvents, computeBalances, parseHistory} from '../common/history';
+import {shortenAddress} from '../common/utils';
+import NFTHistory from '../components/NFTHistory';
+
+import Address from '../components/Address';
 
 const burnedIdsState = atom({
     key: 'burnedIds',
@@ -70,7 +78,6 @@ export default function NFTPage( { location }) {
 
     // === NFT Info ===
 
-    const [tokenURI, setTokenURI] = useState(null)
     const [tokenData, setTokenData] = useState(null)
     const [tokenType, setTokenType] = useState(null)
     const [tokenContent, setTokenContent] = useState(null)
@@ -83,7 +90,27 @@ export default function NFTPage( { location }) {
 
     const [walletAddress, setWalletAddress] = useState(null);
 
+    // Owners tab or History tab
+    const [isOwners, setIsOwners] = useState(true);
+    const setOwners = () => setIsOwners(true);
+    const setHistory = () => setIsOwners(false);
+    const [events, setEvents] = useState(null);
+
     const [, setStandardError] = useRecoilState(standardErrorState);
+
+    const queryBalances = async (author) => {
+        if (!readProvider || !id || !author) {
+            return;
+        }
+        const zangContract = new ethers.Contract(zangAddress, zangABI, defaultReadProvider);
+        const marketplaceContract = new ethers.Contract(marketplaceAddress, marketplaceABI, defaultReadProvider);
+        const firstZangBlock = config.firstBlocks.v1.polygon.zang;
+        const firstMarketplaceBlock = config.firstBlocks.v1.polygon.marketplace;
+
+        const events = await getEvents(id, zangContract, marketplaceContract, author, firstZangBlock, firstMarketplaceBlock);
+        console.log('Find events', events, id, author);
+        setEvents(events);
+    }
 
     const queryPrevValidId = async () => {
         if (!id) {
@@ -183,10 +210,7 @@ export default function NFTPage( { location }) {
         try {
             const contract = new ethers.Contract(zangAddress, zangABI, readProvider);
             const tURI = await contract.uri(id);
-
-            console.log('URI:', tURI);
-      
-            setTokenURI(tURI);
+            return tURI;
         }
         catch (e) {
             if (isTokenExistenceError(e)) {
@@ -204,6 +228,8 @@ export default function NFTPage( { location }) {
         try {
             const author = await contract.authorOf(id);
             setTokenAuthor(author);
+
+            return author;
         }
         catch (e) {
             if (!isTokenExistenceError(e)) {
@@ -212,27 +238,28 @@ export default function NFTPage( { location }) {
         }
     }
 
-    const queryTokenData = async () => {
-        if (!tokenURI) return;
+    const queryTokenData = async (tURI) => {
+        if (!tURI) return;
 
         try {
-            const tokenDataResponse = await fetch(tokenURI);
+            const tokenDataResponse = await fetch(tURI);
             const newTokenData = await tokenDataResponse.json();
             setTokenData(newTokenData);
+
+            return newTokenData;
         }
         catch (e) {
             setStandardError(formatError(e));
         }
     }
 
-    const queryTokenContent = async () => {
-        if (!tokenData?.text_uri) return;
-        var parsedTextURI = tokenData.text_uri
+    const queryTokenContent = async (newTokenData) => {
+        if (!newTokenData?.text_uri) return;
+        var parsedTextURI = newTokenData.text_uri
         parsedTextURI = parsedTextURI.replace("text/markdown;charset=UTF-8", "text/markdown");
         try {
             const response = await fetch(parsedTextURI);
-            const parsedText = await response.text()
-            console.log("content: "+parsedTextURI)
+            const parsedText = await response.text();
             setTokenType(response.headers.get("content-type"))
             setTokenContent(parsedText)
         } catch (e) {
@@ -300,7 +327,6 @@ export default function NFTPage( { location }) {
 
     useEffect(async () => {
         setExists(true);
-        setTokenURI(null);
         setTokenData(null);
         setTokenContent(null);
         setTokenType(null);
@@ -311,9 +337,12 @@ export default function NFTPage( { location }) {
         setNextValidId(null);
         setListings(null);
         setListingSellerBalances({});
+        setEvents(null);
 
-        queryTokenURI();
-        queryTokenAuthor();
+        queryTokenURI()
+            .then((tURI) => queryTokenData(tURI))
+            .then((newTokenData) => queryTokenContent(newTokenData));
+        queryTokenAuthor().then((author) => queryBalances(author));
         queryRoyaltyInfo();
         queryTotalSupply();
 
@@ -321,13 +350,11 @@ export default function NFTPage( { location }) {
         setPrevValidId(prevId);
         setNextValidId(nextId);
     }, [id, readProvider])
-    useEffect(() => queryTokenData(), [tokenURI])
-    useEffect(() => queryTokenContent(), [tokenData])
 
-    useEffect(() => queryTokenAuthor(), [id, readProvider])
+    /*useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryRoyaltyInfo(), [id, readProvider])
     useEffect(() => queryTotalSupply(), [id, readProvider])
-    useEffect(() => setExists(true), [id, readProvider])
+    useEffect(() => setExists(true), [id, readProvider])*/
     useEffect(queryLastNFTId, [])
 
     // === Listing info ===
@@ -498,6 +525,7 @@ export default function NFTPage( { location }) {
     useEffect(queryUserBalance, [id, walletAddress])
     useEffect(queryListingSellerBalances, [id, readProvider, listings])
 
+
     return (
         <div>
             <Helmet>
@@ -533,14 +561,17 @@ export default function NFTPage( { location }) {
                                     </div> 
                                         <div className="column">
                                             <h1 className="title">{(tokenData?.name !== null && tokenData?.name !== undefined) ? tokenData.name : <Skeleton/>}</h1>
-                                            <p className="subtitle mb-1">{tokenAuthor !== null ? `by ${lookupEns(tokenAuthor) || tokenAuthor}` : <Skeleton/>}</p>
+                                            <p className="subtitle mb-1">{tokenAuthor !== null ?
+                                                    <>
+                                                        by <Address address={tokenAuthor} shorten nChar={8} />
+                                                    </> : <Skeleton/>}</p>
                                             <div className="has-text-left m-0">
                                                 {tokenType && totalSupply !== null ? <span><TypeTag type={tokenType}/><span className="tag is-black ml-1">Edition size: {totalSupply.toString()}</span></span> : <Skeleton className="mr-1" inline count={2} width={90}/>}
                                             </div>
                                             <p className="is-italic">{tokenData?.description !== undefined && tokenData?.description !== null ? tokenData.description : <Skeleton/>}</p>
 
                                             {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== null ? 
-                                            <p className="is-size-6">{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
+                                            <p className="is-size-6 mt-5">{royaltyInfo.amount.toFixed(2)}% of every secondary sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
                                             : <Skeleton/>
                                             }
                                             <hr />
@@ -585,6 +616,27 @@ export default function NFTPage( { location }) {
                                                         ) : <Skeleton height={3}/>
                                                     }
                                                 </div>
+                                            ) : <></>
+                                        }
+                                        {
+                                            readProvider ? (
+                                                <>
+                                                    <div class="tabs is-centered is-fullwidth">
+                                                        <ul>
+                                                            <li className={isOwners ? 'is-active has-text-weight-semibold' : ''} onClick={setOwners}><a>Owners</a></li>
+                                                            <li className={isOwners ? '' : 'is-active has-text-weight-semibold'} onClick={setHistory}><a>History</a></li>
+                                                        </ul>
+                                                    </div>
+                                                    <div>
+                                                        {
+                                                            isOwners ? (
+                                                                <NFTOwners balances={computeBalances(events)} />
+                                                            ) : (
+                                                                <NFTHistory history={parseHistory(events)} />
+                                                            )
+                                                        }
+                                                    </div>
+                                                </>
                                             ) : <></>
                                         }
                                     </div>
