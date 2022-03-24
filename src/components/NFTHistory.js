@@ -10,6 +10,8 @@ import { useRecoilState } from "recoil";
 import TimeAgo from "javascript-time-ago";
 import en from 'javascript-time-ago/locale/en.json';
 
+import Address from "./Address";
+
 TimeAgo.addDefaultLocale(en)
 
 const timeAgo = new TimeAgo('en-US')
@@ -19,6 +21,10 @@ export default function NFTHistory({ history }) {
     const [blockToDate, setBlockToDate] = useRecoilState(blockToDateState);
 
     useEffect(() => {
+        if (!history) {
+            return;
+        }
+
         for(const event of history) {
             if (!(event.blockNumber in blockToDate)) {
                 getBlockTime(readProvider, event.blockNumber).then(date => {
@@ -30,6 +36,8 @@ export default function NFTHistory({ history }) {
             }
         }
     }, [history]);
+
+    console.log(history);
 
     return (
         history ?
@@ -47,10 +55,10 @@ export default function NFTHistory({ history }) {
                                         <Skeleton width={100} />
                                     } 
                                 </div>
-                                <p>{event.from ? <tt className="is-size-7">FROM: {shortenAddress(event.from, 8)}</tt> : <></>}</p>
-                                <p>{event.to ? <tt className="is-size-7">TO: &nbsp;&nbsp;{shortenAddress(event.to, 8)}</tt> : <></>}</p>
-                                <p>{event.seller ? <tt className="is-size-7">SELLER: {shortenAddress(event.seller, 8)}</tt> : <></>}</p>
-                                <p>{event.buyer ? <tt className="is-size-7">BUYER: &nbsp;{shortenAddress(event.buyer, 8)}</tt> : <></>}</p>
+                                <p>{event.from ? <tt className="is-size-7">FROM: <Address address={event.from} shorten nChar={8}/></tt> : <></>}</p>
+                                <p>{event.to ? <tt className="is-size-7">TO: &nbsp;&nbsp;<Address address={event.to} shorten nChar={8}/></tt> : <></>}</p>
+                                <p>{event.seller ? <tt className="is-size-7">SELLER: <Address address={event.seller} shorten nChar={8}/></tt> : <></>}</p>
+                                <p>{event.buyer ? <tt className="is-size-7">BUYER: &nbsp;<Address address={event.buyer} shorten nChar={8}/></tt> : <></>}</p>
                                 <p>{event.price ? <tt className="is-size-7">PRICE: &nbsp;{event.price} MATIC</tt> : <></>}</p>
                                 <p>{event.amount ? <tt className="is-size-7">AMOUNT: {event.amount}</tt> : <></>}</p>
                                 <p className="is-size-7"><a target="_blank" rel="noopener" style={{textDecoration: 'underline'}} href={config.blockExplorer.url + '/tx/' + event.transactionHash}><tt>[tx]</tt></a></p>

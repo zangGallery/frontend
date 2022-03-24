@@ -56,3 +56,8 @@ a {
 a#author {
     text-decoration: underline;
 }
+
+.tabs li.is-active a {
+    border-bottom-color: #363636;
+    color: #363636;
+}

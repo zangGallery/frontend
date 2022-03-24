@@ -37,6 +37,8 @@ import {getEvents, computeBalances, parseHistory} from '../common/history';
 import {shortenAddress} from '../common/utils';
 import NFTHistory from '../components/NFTHistory';
 
+import Address from '../components/Address';
+
 const burnedIdsState = atom({
     key: 'burnedIds',
     default: []
@@ -561,9 +563,7 @@ export default function NFTPage( { location }) {
                                             <h1 className="title">{(tokenData?.name !== null && tokenData?.name !== undefined) ? tokenData.name : <Skeleton/>}</h1>
                                             <p className="subtitle mb-1">{tokenAuthor !== null ?
                                                     <>
-                                                        by <a id="author" target="_blank" rel="noopener" href={'https://polygonscan.com/address/'+tokenAuthor}>
-                                                                {lookupEns(tokenAuthor) || shortenAddress(tokenAuthor,10)}
-                                                            </a>
+                                                        by <Address address={tokenAuthor} shorten nChar={8} />
                                                     </> : <Skeleton/>}</p>
                                             <div className="has-text-left m-0">
                                                 {tokenType && totalSupply !== null ? <span><TypeTag type={tokenType}/><span className="tag is-black ml-1">Edition size: {totalSupply.toString()}</span></span> : <Skeleton className="mr-1" inline count={2} width={90}/>}
@@ -571,7 +571,7 @@ export default function NFTPage( { location }) {
                                             <p className="is-italic">{tokenData?.description !== undefined && tokenData?.description !== null ? tokenData.description : <Skeleton/>}</p>
 
                                             {royaltyInfo && tokenAuthor && royaltyInfo?.amount !== null ? 
-                                            <p className="is-size-6">{royaltyInfo.amount.toFixed(2)}% of every sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
+                                            <p className="is-size-6 mt-5">{royaltyInfo.amount.toFixed(2)}% of every secondary sale goes to {royaltyInfo.recipient == tokenAuthor ? 'the author' : royaltyInfo.recipient}.</p>
                                             : <Skeleton/>
                                             }
                                             <hr />
@@ -623,8 +623,8 @@ export default function NFTPage( { location }) {
                                                 <>
                                                     <div class="tabs is-centered is-fullwidth">
                                                         <ul>
-                                                            <li className={isOwners ? 'is-active' : ''} onClick={setOwners}><a>Owners</a></li>
-                                                            <li className={isOwners ? '' : 'is-active'} onClick={setHistory}><a>History</a></li>
+                                                            <li className={isOwners ? 'is-active has-text-weight-semibold' : ''} onClick={setOwners}><a>Owners</a></li>
+                                                            <li className={isOwners ? '' : 'is-active has-text-weight-semibold'} onClick={setHistory}><a>History</a></li>
                                                         </ul>
                                                     </div>
                                                     <div>

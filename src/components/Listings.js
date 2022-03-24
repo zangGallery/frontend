@@ -11,6 +11,7 @@ import Listing from "./Listing";
 import { useEns } from "../common/ens";
 import ListButton from "./ListButton";
 import DelistButton from "./DelistButton";
+import Address from '../components/Address';
 import { useRecoilState } from 'recoil';
 import { formatError, standardErrorState } from '../common/error';
 
@@ -87,7 +88,7 @@ export default function Listings( { walletProvider, id, listingGroups, walletAdd
                             otherListingGroups().map((group, index) => (
                                 <div key={'group' + index} className="block p-2 pb-5" style={{border: "1px #eee solid", borderRadius: "0.5em"}}>
                                     <p className="is-size-7">SELLER</p>
-                                    <p>{ lookupEns(group.seller) || shortenAddress(group.seller, 8)}</p>
+                                    <p><Address address={group.seller} shorten nChar={8} /></p>
                                     <FulfillabilityInfo group={group} />
 
                                     <div>
