@@ -15,36 +15,39 @@ import "bulma/css/bulma.min.css";
 import '../styles/globals.css'
 
 export default function Home() {
-  const [readProvider, setReadProvider] = useReadProvider();
-  const [walletProvider, setWalletProvider] = useWalletProvider();
+  const [readProvider,] = useReadProvider();
+  const [walletProvider,] = useWalletProvider();
   const [lastNFTId, setLastNFTId] = useState(null);
   const [nfts, setNFTs] = useState([])
   const [nftToBalance, setNftToBalance] = useState({});
   const [walletAddress, setWalletAddress] = useState(null);
 
-  const [_, setStandardError] = useRecoilState(standardErrorState);
+  const [, setStandardError] = useRecoilState(standardErrorState);
 
   const increment = 5;
 
-  useEffect(async () => {
+  useEffect(() => {
     if (!walletProvider) {
       return;
     }
-    try {
-      const newWalletAddress = await walletProvider.getSigner().getAddress();
-      setWalletAddress(newWalletAddress);
+    async function setInfo() {
+        try {
+            const newWalletAddress = await walletProvider.getSigner().getAddress();
+            setWalletAddress(newWalletAddress);
 
-      // Reset NFTs, since we don't know which ones we have
-      setNFTs([]);
+            // Reset NFTs, since we don't know which ones we have
+            setNFTs([]);
 
-      setNftToBalance({});
-      for (const nftId of Object.keys(nftToBalance)) {
-        updateNftToBalance(nftId, newWalletAddress);
-      }
-    } catch (e) {
-      setStandardError(formatError(e));
+            setNftToBalance({});
+            for (const nftId of Object.keys(nftToBalance)) {
+                updateNftToBalance(nftId, newWalletAddress);
+            }
+        } catch (e) {
+            setStandardError(formatError(e));
+        }
     }
-    
+    setInfo();
+
   }, [walletProvider]);
 
   useEffect(async () => {

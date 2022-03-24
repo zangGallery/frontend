@@ -5,6 +5,14 @@ const config = {
             marketplace: '0x59E52c8aB048022307ab4A92557a138f10a19d97'
         }
     },
+    firstBlocks: {
+        v1: {
+            polygon: {
+                zang: 25361905,
+                marketplace: 25362269
+            }
+        }
+    },
     networks: {
         main: {
             name: 'Polygon',

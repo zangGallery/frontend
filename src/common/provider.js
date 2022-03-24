@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import config from "../config";
 
-var _defaultReadProvider = new ethers.providers.AlchemyProvider(config.networks.main.chainId, config.api_keys.alchemy);
+var defaultReadProvider = new ethers.providers.AlchemyProvider(config.networks.main.chainId, config.api_keys.alchemy);
 
-var _readProvider = _defaultReadProvider;
+var _readProvider = defaultReadProvider;
 var _walletProvider = null;
 var _readListeners = [];
 var _writeListeners = [];
@@ -62,7 +62,7 @@ const useWalletProvider = () => {
 }
 
 const restoreDefaultReadProvider = () => {
-    _readProvider = _defaultReadProvider;
+    _readProvider = defaultReadProvider;
     for (const listener of _readListeners) {
         listener();
     }
@@ -71,6 +71,7 @@ const restoreDefaultReadProvider = () => {
 const ensProvider = new ethers.providers.AlchemyProvider(config.networks.ens.chainId, config.api_keys.alchemy_mainnet);
 
 export {
+    defaultReadProvider,
     ensProvider,
     restoreDefaultReadProvider,
     useReadProvider,
