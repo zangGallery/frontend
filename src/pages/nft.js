@@ -33,6 +33,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 //import { getEventListeners } from 'ws';
 
 import {getEvents, computeBalances, parseHistory} from '../common/history';
+import {shortenAddress} from '../common/utils';
 
 const burnedIdsState = atom({
     key: 'burnedIds',
@@ -557,7 +558,12 @@ export default function NFTPage( { location }) {
                                     </div> 
                                         <div className="column">
                                             <h1 className="title">{(tokenData?.name !== null && tokenData?.name !== undefined) ? tokenData.name : <Skeleton/>}</h1>
-                                            <p className="subtitle mb-1">{tokenAuthor !== null ? `by ${lookupEns(tokenAuthor) || tokenAuthor}` : <Skeleton/>}</p>
+                                            <p className="subtitle mb-1">{tokenAuthor !== null ?
+                                                    <>
+                                                        by <a id="author" target="_blank" rel="noopener" href={'https://polygonscan.com/address/'+tokenAuthor}>
+                                                                {lookupEns(tokenAuthor) || shortenAddress(tokenAuthor,10)}
+                                                            </a>
+                                                    </> : <Skeleton/>}</p>
                                             <div className="has-text-left m-0">
                                                 {tokenType && totalSupply !== null ? <span><TypeTag type={tokenType}/><span className="tag is-black ml-1">Edition size: {totalSupply.toString()}</span></span> : <Skeleton className="mr-1" inline count={2} width={90}/>}
                                             </div>
@@ -628,7 +634,7 @@ export default function NFTPage( { location }) {
                                                                         balances ? (Object.keys(balances).map((owner, index) => {
                                                                             return (
                                                                                 <div key={index}>
-                                                                                    <p className="is-size-6">{balances[owner]} <span>×</span> <tt>{owner.substring(0, 10)+"..."+owner.substring(owner.length - 8)}</tt></p>
+                                                                                    <p className="is-size-6">{balances[owner]} <span>×</span> <tt>{lookupEns(owner) || shortenAddress(owner, 8)}</tt></p>
                                                                                 </div>
                                                                             )
                                                                         })) : <Skeleton/>

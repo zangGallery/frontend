@@ -52,3 +52,7 @@ a {
 .w-md-editor.w-md-editor-show-live {
   max-width: 96vw;
 }
+
+a#author {
+    text-decoration: underline;
+}
