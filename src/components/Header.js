@@ -86,6 +86,14 @@ export default function Header() {
                             Mint
                         </RoutingLink>
 
+                        <RoutingLink
+                            href="/activity"
+                            className="navbar-item is-size-5 has-text-weight-bold"
+                            style={styles.navbarItem}
+                        >
+                            Activity
+                        </RoutingLink>
+
                         {walletProvider ? (
                             <RoutingLink
                                 href="/vault"

@@ -87,7 +87,7 @@ const getTransferEvents = async (
             for (const event of eventGroup) {
                 const { from, to, operator, id: nftId } = event.args;
 
-                if (nftId == id) {
+                if (nftId == id || nftId === null) {
                     addAddress(from);
                     addAddress(to);
                     addAddress(operator);
@@ -187,6 +187,22 @@ const getEvents = async (
     return allEvents;
 };
 
+const getAllEvents = async (
+    zangContract,
+    marketplaceContract,
+    firstZangBlock,
+    firstMarketplaceBlock
+) => {
+    return await getEvents(
+        null,
+        zangContract,
+        marketplaceContract,
+        null,
+        firstZangBlock,
+        firstMarketplaceBlock
+    );
+};
+
 const computeBalances = (events) => {
     if (!events) {
         return;
@@ -223,10 +239,13 @@ const parseHistory = (events) => {
     }
     let parsedEvents = [];
 
+    console.log(events);
+
     for (const event of events) {
         switch (event.event) {
             case "TokenListed":
                 parsedEvents.push({
+                    id: parseInt(event.topics[1]),
                     type: "list",
                     seller: event.args._seller,
                     price: formatEther(event.args._price.toString()),
@@ -237,6 +256,7 @@ const parseHistory = (events) => {
                 break;
             case "TokenDelisted":
                 parsedEvents.push({
+                    id: parseInt(event.topics[1]),
                     type: "delist",
                     seller: event.args._seller,
                     transactionHash: event.transactionHash,
@@ -251,6 +271,7 @@ const parseHistory = (events) => {
                     transferType = "burn";
                 }
                 parsedEvents.push({
+                    id: parseInt(event.topics[1]),
                     type: transferType,
                     from: event.args.from,
                     to: event.args.to,
@@ -263,6 +284,7 @@ const parseHistory = (events) => {
                 break;
             case "TokenPurchased":
                 parsedEvents.push({
+                    id: parseInt(event.topics[1]),
                     type: "purchase",
                     buyer: event.args._buyer,
                     seller: event.args._seller,
@@ -306,6 +328,7 @@ export {
     blockToDateState,
     getBlockTime,
     getEvents,
+    getAllEvents,
     computeBalances,
     parseHistory,
 };
