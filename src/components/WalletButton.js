@@ -29,6 +29,11 @@ const walletBalanceState = atom({
     default: null,
 });
 
+const chainIdState = atom({
+    key: "chainId",
+    default: null,
+});
+
 const styles = {
     ensInfoContainer: {
         display: "flex",
@@ -49,7 +54,8 @@ export default function WalletButton() {
     const [ensAddress, setEnsAddress] = useRecoilState(ensAddressState);
     const [ensAvatar, setEnsAvatar] = useRecoilState(ensAvatarState);
     const [balance, setBalance] = useRecoilState(walletBalanceState);
-    const [_, setStandardError] = useRecoilState(standardErrorState);
+    const [, setStandardError] = useRecoilState(standardErrorState);
+    const [chainId, setChainId] = useRecoilState(chainIdState);
 
     const providerOptions = {
         /* See Provider Options Section */
@@ -138,6 +144,8 @@ export default function WalletButton() {
         const newProvider = new ethers.providers.Web3Provider(wallet);
         setReadProvider(newProvider);
         setWalletProvider(newProvider);
+        const network = await walletProvider?.getNetwork();
+        setChainId(network?.chainId);
 
         try {
             const walletAddress = await newProvider.getSigner().getAddress();
@@ -167,7 +175,7 @@ export default function WalletButton() {
                     style={{ height: "40px" }}
                 >
                     <span>
-                        {balance ? (
+                        {balance && chainId === config.networks.main.chainId ? (
                             <div className="p-2">
                                 {parseFloat(balance).toFixed(4)}{" "}
                                 <object
