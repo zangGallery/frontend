@@ -21,7 +21,7 @@ TimeAgo.addDefaultLocale(en);
 
 const timeAgo = new TimeAgo("en-US");
 
-export default function NFTHistory({ history }) {
+export default function NFTHistory({ history, hideId }) {
     const [readProvider] = useReadProvider();
     const [blockToDate, setBlockToDate] = useRecoilState(blockToDateState);
 
@@ -45,10 +45,27 @@ export default function NFTHistory({ history }) {
     console.log(history);
 
     return history ? (
-        <div style={{ maxHeight: "25em", overflowY: "auto" }}>
+        <div>
             {[...history].reverse().map((event, index) => {
                 return (
                     <div className="mb-4">
+                        {
+                            hideId ? (
+                                <></>
+                            ) : (
+                                <b>
+                                    {
+                                        event.id ? (
+                                            <tt className="is-size-5">
+                                                <a href={"/nft/?id="+event.id} style={{ textDecoration: "underline" }}>NFT #{event.id}</a>
+                                            </tt>
+                                        ) : (
+                                            <></>
+                                        )
+                                    }
+                                </b>
+                            )
+                        }
                         <div
                             key={index}
                             className="is-flex is-justify-content-space-between is-align-items-center"
