@@ -1,18 +1,18 @@
 module.exports = {
-  siteMetadata: {
-    siteUrl: "https://www.yourdomain.tld",
-    title: "zang-frontend-4",
-  },
-  plugins: [
-    "gatsby-plugin-mdx",
-    {
-      resolve: "gatsby-source-filesystem",
-      options: {
-        name: "pages",
-        path: "./src/pages/",
-      },
-      __key: "pages",
+    siteMetadata: {
+        siteUrl: "https://www.yourdomain.tld",
+        title: "zang-frontend-4",
     },
-    "gatsby-plugin-react-helmet",
-  ],
+    plugins: [
+        "gatsby-plugin-mdx",
+        {
+            resolve: "gatsby-source-filesystem",
+            options: {
+                name: "pages",
+                path: "./src/pages/",
+            },
+            __key: "pages",
+        },
+        "gatsby-plugin-react-helmet",
+    ],
 };
