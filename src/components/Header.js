@@ -1,3 +1,4 @@
+import { hexValue } from "ethers/lib/utils";
 import React, { useEffect, useState } from "react";
 import { RoutingLink, WalletButton } from ".";
 import { useWalletProvider } from "../common/provider";
@@ -13,7 +14,7 @@ export default function Header() {
             method: "wallet_addEthereumChain",
             params: [
                 {
-                    chainId: config.networks.main.chainId,
+                    chainId: hexValue(config.networks.main.chainId),
                     rpcUrls: ["https://polygon-rpc.com/"],
                     chainName: "Polygon Mainnet",
                     nativeCurrency: {
