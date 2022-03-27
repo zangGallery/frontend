@@ -3,26 +3,38 @@ import { formatEther } from "ethers/lib/utils";
 import { atom } from "recoil";
 
 const blockToDateState = atom({
-    key: 'blockToDateState',
-    default: {}
+    key: "blockToDateState",
+    default: {},
 });
 
-const getTransferEvents = async (id, zangContract, relevantAddresses, firstZangBlock) => {
+const getTransferEvents = async (
+    id,
+    zangContract,
+    relevantAddresses,
+    firstZangBlock
+) => {
     relevantAddresses = [...relevantAddresses];
     const queriedAddresses = [];
 
     const foundEvents = [];
 
     const addAddress = (address) => {
-        if (!relevantAddresses.includes(address) && !queriedAddresses.includes(address) && address != ethers.constants.AddressZero) {
+        if (
+            !relevantAddresses.includes(address) &&
+            !queriedAddresses.includes(address) &&
+            address != ethers.constants.AddressZero
+        ) {
             relevantAddresses.push(address);
         }
-    }
+    };
 
     const addEvent = (event) => {
         let eventExists = false;
         for (const foundEvent of foundEvents) {
-            if (foundEvent.transactionHash == event.transactionHash && foundEvent.logIndex == event.logIndex) {
+            if (
+                foundEvent.transactionHash == event.transactionHash &&
+                foundEvent.logIndex == event.logIndex
+            ) {
                 eventExists = true;
                 break;
             }
@@ -31,7 +43,7 @@ const getTransferEvents = async (id, zangContract, relevantAddresses, firstZangB
         if (!eventExists) {
             foundEvents.push(event);
         }
-    }
+    };
 
     while (relevantAddresses.length > 0) {
         const currentRelevantAddresses = [...relevantAddresses];
@@ -40,15 +52,30 @@ const getTransferEvents = async (id, zangContract, relevantAddresses, firstZangB
         const eventPromises = [];
 
         for (const address of currentRelevantAddresses) {
-            console.log('Querying address', address);
+            console.log("Querying address", address);
             queriedAddresses.push(address);
 
-            const transferOperatorFilter = zangContract.filters.TransferSingle(address, null, null);
-            const transferFromFilter = zangContract.filters.TransferSingle(null, address, null);
-            const transferToFilter = zangContract.filters.TransferSingle(null, null, address);
+            const transferOperatorFilter = zangContract.filters.TransferSingle(
+                address,
+                null,
+                null
+            );
+            const transferFromFilter = zangContract.filters.TransferSingle(
+                null,
+                address,
+                null
+            );
+            const transferToFilter = zangContract.filters.TransferSingle(
+                null,
+                null,
+                address
+            );
 
             eventPromises.push(
-                zangContract.queryFilter(transferOperatorFilter, firstZangBlock),
+                zangContract.queryFilter(
+                    transferOperatorFilter,
+                    firstZangBlock
+                ),
                 zangContract.queryFilter(transferFromFilter, firstZangBlock),
                 zangContract.queryFilter(transferToFilter, firstZangBlock)
             );
@@ -60,7 +87,7 @@ const getTransferEvents = async (id, zangContract, relevantAddresses, firstZangB
             for (const event of eventGroup) {
                 const { from, to, operator, id: nftId } = event.args;
 
-                if (nftId == id) {
+                if (nftId == id || nftId === null) {
                     addAddress(from);
                     addAddress(to);
                     addAddress(operator);
@@ -72,26 +99,53 @@ const getTransferEvents = async (id, zangContract, relevantAddresses, firstZangB
     }
 
     return foundEvents;
-}
+};
 
-const getEvents = async (id, zangContract, marketplaceContract, authorAddress, firstZangBlock, firstMarketplaceBlock) => {
+const getEvents = async (
+    id,
+    zangContract,
+    marketplaceContract,
+    authorAddress,
+    firstZangBlock,
+    firstMarketplaceBlock
+) => {
     const tokenListedFilter = marketplaceContract.filters.TokenListed(id, null);
-    const tokenDelistedFilter = marketplaceContract.filters.TokenDelisted(id, null);
-    const tokenPurchasedFilter = marketplaceContract.filters.TokenPurchased(id, null, null);
+    const tokenDelistedFilter = marketplaceContract.filters.TokenDelisted(
+        id,
+        null
+    );
+    const tokenPurchasedFilter = marketplaceContract.filters.TokenPurchased(
+        id,
+        null,
+        null
+    );
 
-    const [tokenListedEvents, tokenDelistedEvents, tokenPurchasedEvents] = await Promise.all([
-        marketplaceContract.queryFilter(tokenListedFilter, firstMarketplaceBlock),
-        marketplaceContract.queryFilter(tokenDelistedFilter, firstMarketplaceBlock),
-        marketplaceContract.queryFilter(tokenPurchasedFilter, firstMarketplaceBlock)
-    ]);
+    const [tokenListedEvents, tokenDelistedEvents, tokenPurchasedEvents] =
+        await Promise.all([
+            marketplaceContract.queryFilter(
+                tokenListedFilter,
+                firstMarketplaceBlock
+            ),
+            marketplaceContract.queryFilter(
+                tokenDelistedFilter,
+                firstMarketplaceBlock
+            ),
+            marketplaceContract.queryFilter(
+                tokenPurchasedFilter,
+                firstMarketplaceBlock
+            ),
+        ]);
 
     const relevantAddresses = [authorAddress];
 
     const addRelevantAddress = (address) => {
-        if (!relevantAddresses.includes(address) && address != ethers.constants.AddressZero) {
+        if (
+            !relevantAddresses.includes(address) &&
+            address != ethers.constants.AddressZero
+        ) {
             relevantAddresses.push(address);
         }
-    }
+    };
 
     for (const tokenListedEvent of tokenDelistedEvents) {
         addRelevantAddress(tokenListedEvent.args._seller);
@@ -101,9 +155,19 @@ const getEvents = async (id, zangContract, marketplaceContract, authorAddress, f
         addRelevantAddress(tokenPurchasedEvent.args._seller);
     }
 
-    const transferEvents = await getTransferEvents(id, zangContract, relevantAddresses, firstZangBlock);
+    const transferEvents = await getTransferEvents(
+        id,
+        zangContract,
+        relevantAddresses,
+        firstZangBlock
+    );
 
-    const allEvents = [...tokenListedEvents, ...tokenDelistedEvents, ...tokenPurchasedEvents, ...transferEvents];
+    const allEvents = [
+        ...tokenListedEvents,
+        ...tokenDelistedEvents,
+        ...tokenPurchasedEvents,
+        ...transferEvents,
+    ];
 
     allEvents.sort((a, b) => {
         const aElements = [a.blockNumber, a.transactionIndex, a.logIndex];
@@ -121,7 +185,23 @@ const getEvents = async (id, zangContract, marketplaceContract, authorAddress, f
     });
 
     return allEvents;
-}
+};
+
+const getAllEvents = async (
+    zangContract,
+    marketplaceContract,
+    firstZangBlock,
+    firstMarketplaceBlock
+) => {
+    return await getEvents(
+        null,
+        zangContract,
+        marketplaceContract,
+        null,
+        firstZangBlock,
+        firstMarketplaceBlock
+    );
+};
 
 const computeBalances = (events) => {
     if (!events) {
@@ -140,10 +220,10 @@ const computeBalances = (events) => {
         }
 
         balances[address] += variation;
-    }
+    };
 
     for (const event of events) {
-        if (event.event == 'TransferSingle') {
+        if (event.event == "TransferSingle") {
             const { from, to, value } = event.args;
             updateBalance(from, -value.toNumber());
             updateBalance(to, value.toNumber());
@@ -151,7 +231,7 @@ const computeBalances = (events) => {
     }
 
     return balances;
-}
+};
 
 const parseHistory = (events) => {
     if (!events) {
@@ -159,83 +239,96 @@ const parseHistory = (events) => {
     }
     let parsedEvents = [];
 
+    console.log(events);
+
     for (const event of events) {
-        switch(event.event) {
-            case 'TokenListed':
+        switch (event.event) {
+            case "TokenListed":
                 parsedEvents.push({
-                    type: 'list',
+                    id: parseInt(event.topics[1]),
+                    type: "list",
                     seller: event.args._seller,
                     price: formatEther(event.args._price.toString()),
                     amount: event.args.amount.toNumber(), // Note the lack of _
                     transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber
+                    blockNumber: event.blockNumber,
                 });
                 break;
-            case 'TokenDelisted':
+            case "TokenDelisted":
                 parsedEvents.push({
-                    type: 'delist',
+                    id: parseInt(event.topics[1]),
+                    type: "delist",
                     seller: event.args._seller,
                     transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber
+                    blockNumber: event.blockNumber,
                 });
                 break;
-            case 'TransferSingle':
-                let transferType = 'transfer';
+            case "TransferSingle":
+                let transferType = "transfer";
                 if (event.args.from == ethers.constants.AddressZero) {
-                    transferType = 'mint';
+                    transferType = "mint";
                 } else if (event.args.to == ethers.constants.AddressZero) {
-                    transferType = 'burn';
+                    transferType = "burn";
                 }
                 parsedEvents.push({
+                    id: parseInt(event.topics[1]),
                     type: transferType,
                     from: event.args.from,
                     to: event.args.to,
                     amount: event.args.value.toNumber(),
                     operator: event.args.operator,
                     transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber
+                    blockNumber: event.blockNumber,
                 });
 
                 break;
-            case 'TokenPurchased':
+            case "TokenPurchased":
                 parsedEvents.push({
-                    type: 'purchase',
+                    id: parseInt(event.topics[1]),
+                    type: "purchase",
                     buyer: event.args._buyer,
                     seller: event.args._seller,
                     amount: event.args._amount.toNumber(),
                     price: formatEther(event.args._price.toString()).toString(),
                     transactionHash: event.transactionHash,
-                    blockNumber: event.blockNumber
+                    blockNumber: event.blockNumber,
                 });
 
                 break;
             default:
-                console.log('Unknown event type: ' + event.event);
+                console.log("Unknown event type: " + event.event);
         }
     }
 
-    for (const event of parsedEvents.filter(event => event.type == 'purchase')) {
+    for (const event of parsedEvents.filter(
+        (event) => event.type == "purchase"
+    )) {
         // Filter out transfer and delist events that are part of the same purchase
-        parsedEvents = parsedEvents.filter(otherEvent => !(
-            (otherEvent.type == 'transfer' || otherEvent.type == 'delist') && event.transactionHash == otherEvent.transactionHash)
+        parsedEvents = parsedEvents.filter(
+            (otherEvent) =>
+                !(
+                    (otherEvent.type == "transfer" ||
+                        otherEvent.type == "delist") &&
+                    event.transactionHash == otherEvent.transactionHash
+                )
         );
     }
 
-    console.log(parsedEvents.map(e => e.type));
+    console.log(parsedEvents.map((e) => e.type));
 
     return parsedEvents;
-}
-
+};
 
 const getBlockTime = async (provider, blockNumber) => {
     const block = await provider.getBlock(blockNumber);
     return new Date(parseInt(block.timestamp) * 1000);
-}
+};
 
 export {
     blockToDateState,
     getBlockTime,
     getEvents,
+    getAllEvents,
     computeBalances,
-    parseHistory
-}
+    parseHistory,
+};

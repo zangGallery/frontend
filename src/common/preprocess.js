@@ -5,13 +5,9 @@ import Wrapper from "../Wrapper";
 const wrapPageElement = ({ element, props }) => {
     return (
         <RecoilRoot {...props}>
-            <Wrapper {...props}>
-                {element}
-            </Wrapper>
+            <Wrapper {...props}>{element}</Wrapper>
         </RecoilRoot>
     );
-}
+};
 
-export {
-    wrapPageElement
-}
+export { wrapPageElement };

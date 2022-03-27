@@ -13,5 +13,5 @@ export {
     MultiEditor,
     NFTCard,
     RoutingLink,
-    WalletButton
-}
+    WalletButton,
+};
