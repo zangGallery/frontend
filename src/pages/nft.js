@@ -840,9 +840,19 @@ export default function NFTPage({ location }) {
                                                 )}
                                             />
                                         ) : (
-                                            <NFTHistory
-                                                history={parseHistory(events)}
-                                            />
+                                            <div
+                                                style={{
+                                                    maxHeight: "25em",
+                                                    overflowY: "auto",
+                                                }}
+                                            >
+                                                <NFTHistory
+                                                    history={parseHistory(
+                                                        events
+                                                    )}
+                                                    hideId
+                                                />
+                                            </div>
                                         )}
                                     </div>
                                 </>
