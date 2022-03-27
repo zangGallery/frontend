@@ -15,6 +15,7 @@ import { useRecoilState } from 'recoil';
 import { formatError, standardErrorState } from '../common/error';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import Address from "./Address";
 
 const styles = {
     card: {
@@ -121,17 +122,13 @@ export default function NFTCard({ id }) {
         }
     }
 
-    const shorten = (text, maxLength) => {
-        return text.length > maxLength ? `${text.substring(0, maxLength - 3)}...` : text;
-    }
-
     useEffect(() => queryTokenURI(), [id, readProvider])
     useEffect(() => queryTokenData(), [tokenURI])
     useEffect(() => queryTokenAuthor(), [id, readProvider])
     useEffect(() => queryTokenContent(), [tokenData])
     useEffect(() => setExists(true), [id, readProvider])
 
-    const effectiveTokenAuthor = lookupEns(tokenAuthor) || tokenAuthor || null;
+    const effectiveTokenAuthor = tokenAuthor || null;
 
     if (!exists) {
         return <></>
@@ -151,7 +148,7 @@ export default function NFTCard({ id }) {
                 <div className="media">
                     <div className="media-content">
                         <p className="title is-4 mb-0">{tokenData?.name || <Skeleton/>}</p>
-                        <span className="subtitle is-6">{effectiveTokenAuthor !== null ? "by " + effectiveTokenAuthor : <Skeleton/>}</span>
+                        <span className="subtitle is-6">{effectiveTokenAuthor !== null ? <span>by <Address address={effectiveTokenAuthor} shorten nChar={8} disableLink/></span> : <Skeleton/>}</span>
                     </div>
                 </div>
 
