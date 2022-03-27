@@ -9,6 +9,23 @@ export default function Header() {
     const [chainId, setChainId] = useState(null);
 
     useEffect(async () => {
+        window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+                {
+                    chainId: config.networks.main.chainId,
+                    rpcUrls: ["https://polygon-rpc.com/"],
+                    chainName: "Polygon Mainnet",
+                    nativeCurrency: {
+                        name: "Polygon",
+                        symbol: "MATIC",
+                        decimals: 18,
+                    },
+                    blockExplorerUrls: [config.blockExplorer.url],
+                },
+            ],
+        });
+
         if (walletProvider) {
             const network = await walletProvider.getNetwork();
 
