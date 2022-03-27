@@ -5,44 +5,44 @@ import { useReadProvider } from "../common/provider";
 import config from "../config";
 import { v1 } from "../common/abi";
 import { navigate } from "gatsby-link";
-import MDEditor from "@uiw/react-md-editor"
+import MDEditor from "@uiw/react-md-editor";
 import rehypeSanitize from "rehype-sanitize";
 import schemas from "../common/schemas";
 import { useEns } from "../common/ens";
 import TypeTag from "./TypeTag";
 import { isTokenExistenceError } from "../common/error";
-import { useRecoilState } from 'recoil';
-import { formatError, standardErrorState } from '../common/error';
-import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
+import { useRecoilState } from "recoil";
+import { formatError, standardErrorState } from "../common/error";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import Address from "./Address";
 
 const styles = {
     card: {
-        width: '52ch',
-        maxWidth: '90%'
+        width: "52ch",
+        maxWidth: "90%",
     },
     description: {
-        display: '-webkit-box',
+        display: "-webkit-box",
         WebkitLineClamp: 3,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden'
+        WebkitBoxOrient: "vertical",
+        overflow: "hidden",
     },
     cardPreview: {
-        height: '20ch',
-        overflow: 'hidden',
-        padding: '3ch',
-        position: 'relative',
+        height: "20ch",
+        overflow: "hidden",
+        padding: "3ch",
+        position: "relative",
     },
     cardShadow: {
-        boxShadow: 'inset 0 -2em 2em -3em gray',
-        position: 'absolute',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '20ch'
-    }
-}
+        boxShadow: "inset 0 -2em 2em -3em gray",
+        position: "absolute",
+        top: "0",
+        left: "0",
+        width: "100%",
+        height: "20ch",
+    },
+};
 
 export default function NFTCard({ id }) {
     const { lookupEns } = useEns();
@@ -61,7 +61,11 @@ export default function NFTCard({ id }) {
     const queryTokenURI = async () => {
         if (!id || !readProvider) return;
 
-        const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
+        const contract = new ethers.Contract(
+            contractAddress,
+            contractABI,
+            readProvider
+        );
 
         try {
             const tURI = await contract.uri(id);
@@ -73,12 +77,16 @@ export default function NFTCard({ id }) {
                 setStandardError(formatError(e));
             }
         }
-    }
+    };
 
     const queryTokenAuthor = async () => {
         if (!id || !readProvider) return;
 
-        const contract = new ethers.Contract(contractAddress, contractABI, readProvider);
+        const contract = new ethers.Contract(
+            contractAddress,
+            contractABI,
+            readProvider
+        );
 
         try {
             const author = await contract.authorOf(id);
@@ -91,7 +99,7 @@ export default function NFTCard({ id }) {
                 setStandardError(formatError(e));
             }
         }
-    }
+    };
 
     const queryTokenData = async () => {
         if (!tokenURI) return;
@@ -104,61 +112,103 @@ export default function NFTCard({ id }) {
         } catch (e) {
             setStandardError(formatError(e));
         }
-    }
+    };
 
     const queryTokenContent = async () => {
         if (!tokenData?.text_uri) return;
-        var parsedTextURI = tokenData.text_uri.replaceAll("#", "%23") //TODO: workaround, togliere con nuovo deploy
-        parsedTextURI = parsedTextURI.replace("text/markdown;charset=UTF-8", "text/markdown");
+        var parsedTextURI = tokenData.text_uri.replaceAll("#", "%23"); //TODO: workaround, togliere con nuovo deploy
+        parsedTextURI = parsedTextURI.replace(
+            "text/markdown;charset=UTF-8",
+            "text/markdown"
+        );
 
         try {
             const response = await fetch(parsedTextURI);
-            const parsedText = await response.text()
+            const parsedText = await response.text();
             //console.log("content: " + parsedTextURI)
-            setTokenType(response.headers.get("content-type"))
-            setTokenContent(parsedText)
+            setTokenType(response.headers.get("content-type"));
+            setTokenContent(parsedText);
         } catch (e) {
             setStandardError(formatError(e));
         }
-    }
+    };
 
-    useEffect(() => queryTokenURI(), [id, readProvider])
-    useEffect(() => queryTokenData(), [tokenURI])
-    useEffect(() => queryTokenAuthor(), [id, readProvider])
-    useEffect(() => queryTokenContent(), [tokenData])
-    useEffect(() => setExists(true), [id, readProvider])
+    useEffect(() => queryTokenURI(), [id, readProvider]);
+    useEffect(() => queryTokenData(), [tokenURI]);
+    useEffect(() => queryTokenAuthor(), [id, readProvider]);
+    useEffect(() => queryTokenContent(), [tokenData]);
+    useEffect(() => setExists(true), [id, readProvider]);
 
     const effectiveTokenAuthor = tokenAuthor || null;
 
     if (!exists) {
-        return <></>
+        return <></>;
     }
 
     return (
-        <div className="card m-3 cursor-pointer" style={styles.card} onClick={() => navigate('/nft?id=' + id)}>
+        <div
+            className="card m-3 cursor-pointer"
+            style={styles.card}
+            onClick={() => navigate("/nft?id=" + id)}
+        >
             <div style={styles.cardPreview}>
-                {tokenType && (tokenContent !== null) ? (
-                    tokenType == 'text/markdown' ? (
-                        <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
-                    ) : <pre className="nft-plain" style={{overflow: 'hidden'}}>{tokenContent}</pre>
-                ) : <Skeleton count={10}/>}
+                {tokenType && tokenContent !== null ? (
+                    tokenType == "text/markdown" ? (
+                        <MDEditor.Markdown
+                            source={tokenContent}
+                            rehypePlugins={[
+                                () => rehypeSanitize(schemas.validMarkdown),
+                            ]}
+                        />
+                    ) : (
+                        <pre
+                            className="nft-plain"
+                            style={{ overflow: "hidden" }}
+                        >
+                            {tokenContent}
+                        </pre>
+                    )
+                ) : (
+                    <Skeleton count={10} />
+                )}
             </div>
             <div style={styles.cardShadow}></div>
-            <div className="card-content" >
+            <div className="card-content">
                 <div className="media">
                     <div className="media-content">
-                        <p className="title is-4 mb-0">{tokenData?.name || <Skeleton/>}</p>
-                        <span className="subtitle is-6">{effectiveTokenAuthor !== null ? <span>by <Address address={effectiveTokenAuthor} shorten nChar={8} disableLink/></span> : <Skeleton/>}</span>
+                        <p className="title is-4 mb-0">
+                            {tokenData?.name || <Skeleton />}
+                        </p>
+                        <span className="subtitle is-6">
+                            {effectiveTokenAuthor !== null ? (
+                                <span>
+                                    by{" "}
+                                    <Address
+                                        address={effectiveTokenAuthor}
+                                        shorten
+                                        nChar={8}
+                                        disableLink
+                                    />
+                                </span>
+                            ) : (
+                                <Skeleton />
+                            )}
+                        </span>
                     </div>
                 </div>
 
                 <div className="content is-italic" style={styles.description}>
-                    {tokenData?.description !== undefined && tokenData?.description !== null ? tokenData.description : <Skeleton/>}
+                    {tokenData?.description !== undefined &&
+                    tokenData?.description !== null ? (
+                        tokenData.description
+                    ) : (
+                        <Skeleton />
+                    )}
                 </div>
                 <div className="has-text-right">
                     <TypeTag type={tokenData?.text_uri} isUri={true} />
                 </div>
             </div>
         </div>
-    )
+    );
 }

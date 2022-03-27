@@ -1,22 +1,28 @@
 import React, { useState } from "react";
-import { ethers } from 'ethers';
-import { v1 } from '../common/abi';
-import config from '../config';
+import { ethers } from "ethers";
+import { v1 } from "../common/abi";
+import config from "../config";
 
-import { useWalletProvider, ensProvider } from '../common/provider';
+import { useWalletProvider, ensProvider } from "../common/provider";
 
 import TransferModal from "./TransferModal";
 import { useTransactionHelper } from "../common/transaction_status";
-import { useRecoilState } from 'recoil';
-import { standardErrorState } from '../common/error';
+import { useRecoilState } from "recoil";
+import { standardErrorState } from "../common/error";
 
-export default function TransferButton ( { id, walletAddress, balance, availableAmount, onUpdate } ) {
+export default function TransferButton({
+    id,
+    walletAddress,
+    balance,
+    availableAmount,
+    onUpdate,
+}) {
     const zangAddress = config.contractAddresses.v1.zang;
     const zangABI = v1.zang;
 
-    const [walletProvider, setWalletProvider] = useWalletProvider()
+    const [walletProvider, setWalletProvider] = useWalletProvider();
 
-    const handleTransaction = useTransactionHelper()
+    const handleTransaction = useTransactionHelper();
 
     const [transferModalOpen, setTransferModalOpen] = useState(false);
 
@@ -24,44 +30,69 @@ export default function TransferButton ( { id, walletAddress, balance, available
 
     const transfer = async (to, amount) => {
         if (to === null) {
-            setStandardError('Please enter a valid address.');
+            setStandardError("Please enter a valid address.");
             return;
         }
 
         if (amount === null) {
-            setStandardError('Please enter an amount.');
+            setStandardError("Please enter an amount.");
             return;
         }
 
         if (!id) {
-            setStandardError('Could not determine the ID of the NFT.')
+            setStandardError("Could not determine the ID of the NFT.");
             return;
         }
         if (!walletProvider) {
-            setStandardError('Please connect a wallet.')
+            setStandardError("Please connect a wallet.");
             return;
         }
 
         setStandardError(null);
 
-        if (to.includes('.eth')) {
+        if (to.includes(".eth")) {
             to = ensProvider.resolveName(to);
         }
 
-        const contract = new ethers.Contract(zangAddress, zangABI, walletProvider);
+        const contract = new ethers.Contract(
+            zangAddress,
+            zangABI,
+            walletProvider
+        );
         const contractWithSigner = contract.connect(walletProvider.getSigner());
 
-        const transactionFunction = async () => await contractWithSigner.safeTransferFrom(walletAddress, to, id, amount, []);
-        const { success } = await handleTransaction(transactionFunction, `Transfer NFT #${id}`);
+        const transactionFunction = async () =>
+            await contractWithSigner.safeTransferFrom(
+                walletAddress,
+                to,
+                id,
+                amount,
+                []
+            );
+        const { success } = await handleTransaction(
+            transactionFunction,
+            `Transfer NFT #${id}`
+        );
         if (success && onUpdate) {
             onUpdate(id);
         }
-    }
+    };
 
     return (
         <div>
-            <button className="button is-black is-small mr-1" onClick={() => setTransferModalOpen(true)}>Gift</button>
-            <TransferModal isOpen={transferModalOpen} setIsOpen={setTransferModalOpen} onClose={transfer} balance={balance} availableAmount={availableAmount} />
+            <button
+                className="button is-black is-small mr-1"
+                onClick={() => setTransferModalOpen(true)}
+            >
+                Gift
+            </button>
+            <TransferModal
+                isOpen={transferModalOpen}
+                setIsOpen={setTransferModalOpen}
+                onClose={transfer}
+                balance={balance}
+                availableAmount={availableAmount}
+            />
         </div>
-    )
+    );
 }

@@ -1,19 +1,19 @@
-import { atom, useRecoilState } from 'recoil'
-import { formatError } from './error';
+import { atom, useRecoilState } from "recoil";
+import { formatError } from "./error";
 
 const transactionCountState = atom({
-    key: 'transactionCount',
-    default: 0
+    key: "transactionCount",
+    default: 0,
 });
 
 const transactionStatusState = atom({
-    key: 'transactionStatus',
+    key: "transactionStatus",
     default: {},
 });
 
 const transactionListenersState = atom({
-    key: 'transactionListeners',
-    default: []
+    key: "transactionListeners",
+    default: [],
 });
 
 // Transaction status schema:
@@ -30,11 +30,14 @@ const transactionListenersState = atom({
 // Pending = not approved yet
 // Approved = Approved, not inserted yet
 
-
 const useTransactionStatus = () => {
-    const [transactionsStatus, setTransactionsStatus] = useRecoilState(transactionStatusState);
+    const [transactionsStatus, setTransactionsStatus] = useRecoilState(
+        transactionStatusState
+    );
 
-    const [transactionListeners, setTransactionListeners] = useRecoilState(transactionListenersState);
+    const [transactionListeners, setTransactionListeners] = useRecoilState(
+        transactionListenersState
+    );
 
     const register = (listener) => {
         setTransactionListeners((transactionListeners) => {
@@ -43,7 +46,7 @@ const useTransactionStatus = () => {
             }
             return [...transactionListeners, listener];
         });
-    }
+    };
 
     const updateTransactionStatus = async (transactionId, status) => {
         setTransactionsStatus((currentTransactionStatus) => ({
@@ -54,89 +57,105 @@ const useTransactionStatus = () => {
         for (const listener of transactionListeners) {
             listener(transactionId, status);
         }
-    }
+    };
 
     const getTransactionStatus = (transactionId) => {
         return transactionsStatus[transactionId];
-    }
+    };
 
     const getTransactions = () => {
         return transactionsStatus;
-    }
+    };
 
     return {
         getTransactionStatus,
         transactions: transactionsStatus,
         updateTransactionStatus,
-        register
+        register,
     };
-}
+};
 
 const useTransactionHelper = () => {
     const { updateTransactionStatus } = useTransactionStatus();
-    const [transactionCount, setTransactionCount] = useRecoilState(transactionCountState);
+    const [transactionCount, setTransactionCount] = useRecoilState(
+        transactionCountState
+    );
 
     const newId = () => {
         setTransactionCount((transactionCount) => transactionCount + 1);
         return transactionCount;
-    }
+    };
 
-    const handleTransaction = async (transactionFunction, transactionName, contentFunction, rethrow) => {
+    const handleTransaction = async (
+        transactionFunction,
+        transactionName,
+        contentFunction,
+        rethrow
+    ) => {
         const transactionId = newId();
         let transaction;
         try {
             updateTransactionStatus(transactionId, {
-                status: 'pending',
+                status: "pending",
                 name: transactionName,
-                content: contentFunction ? await contentFunction('pending') : null
+                content: contentFunction
+                    ? await contentFunction("pending")
+                    : null,
             });
             transaction = await transactionFunction();
             updateTransactionStatus(transactionId, {
-                status: 'approved',
+                status: "approved",
                 name: transactionName,
                 hash: transaction.hash,
-                content: contentFunction ? await contentFunction('approved', transaction) : null
+                content: contentFunction
+                    ? await contentFunction("approved", transaction)
+                    : null,
             });
 
             const receipt = await transaction.wait(1);
 
             updateTransactionStatus(transactionId, {
-                status: 'success',
+                status: "success",
                 name: transactionName,
                 hash: transaction.hash,
-                content: contentFunction ? await contentFunction('success', transaction, true, receipt) : null
+                content: contentFunction
+                    ? await contentFunction(
+                          "success",
+                          transaction,
+                          true,
+                          receipt
+                      )
+                    : null,
             });
 
             return {
                 transaction,
                 receipt,
-                success: true
+                success: true,
             };
-        }
-        catch (e) {
+        } catch (e) {
             console.log(e);
             updateTransactionStatus(transactionId, {
-                'status': 'error',
-                'name': transactionName,
-                'hash': transaction?.hash,
-                'errorMessage': formatError(e),
-                content: contentFunction ? await contentFunction('success', transaction, false) : null
+                status: "error",
+                name: transactionName,
+                hash: transaction?.hash,
+                errorMessage: formatError(e),
+                content: contentFunction
+                    ? await contentFunction("success", transaction, false)
+                    : null,
             });
-            
+
             if (rethrow) {
                 throw e;
             }
 
             return {
                 error: e,
-                success: false
-            }
+                success: false,
+            };
         }
-    }
+    };
     return handleTransaction;
-}
+};
 
-export {
-    useTransactionStatus,
-    useTransactionHelper
-}
+export { useTransactionStatus, useTransactionHelper };
