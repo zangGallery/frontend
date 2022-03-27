@@ -75,7 +75,7 @@ const mint = Joi.object().keys({
     royaltyPercentage: Joi.number().custom(maxDigits(2)).min(0).max(100).empty('').required().label('Royalty percentage'),
     useCustomRecipient: Joi.boolean().required(),
     customRecipient: _customRecipient.label('Address'),
-    textType: Joi.valid('text/plain', 'text/markdown').required()
+    textType: Joi.valid('text/plain', 'text/markdown', 'text/html').required()
 })
 
 const transfer = Joi.object().keys({

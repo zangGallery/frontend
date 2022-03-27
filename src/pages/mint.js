@@ -159,6 +159,7 @@ export default function Mint() {
                 <select {...register('textType')} id="content">
                   <option value='text/plain'>Plain Text</option>
                   <option value='text/markdown'>Markdown</option>
+                  <option value='text/html'>HTML</option>
                 </select>
               </div>
             </div>
