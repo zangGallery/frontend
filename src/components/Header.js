@@ -10,22 +10,27 @@ export default function Header() {
     const [chainId, setChainId] = useState(null);
 
     useEffect(async () => {
-        window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [
-                {
-                    chainId: hexValue(config.networks.main.chainId),
-                    rpcUrls: ["https://polygon-rpc.com/"],
-                    chainName: "Polygon Mainnet",
-                    nativeCurrency: {
-                        name: "Polygon",
-                        symbol: "MATIC",
-                        decimals: 18,
+        try {
+            window.ethereum.request({
+                method: "wallet_addEthereumChain",
+                params: [
+                    {
+                        chainId: hexValue(config.networks.main.chainId),
+                        rpcUrls: ["https://polygon-rpc.com/"],
+                        chainName: "Polygon Mainnet",
+                        nativeCurrency: {
+                            name: "Polygon",
+                            symbol: "MATIC",
+                            decimals: 18,
+                        },
+                        blockExplorerUrls: [config.blockExplorer.url],
                     },
-                    blockExplorerUrls: [config.blockExplorer.url],
-                },
-            ],
-        });
+                ],
+            });
+        } catch (e) {
+            // Will revert if there is already a chain request, ignore
+            console.log(e);
+        }
 
         if (walletProvider) {
             const network = await walletProvider.getNetwork();
@@ -33,7 +38,7 @@ export default function Header() {
             const newChainId = network.chainId;
 
             if (chainId !== null && newChainId !== chainId) {
-                // Chain ID changed. Following ethers.js recommednations, we
+                // Chain ID changed. Following ethers.js recommendations, we
                 // should reload the page
                 window.location.reload();
             }

@@ -144,7 +144,7 @@ export default function WalletButton() {
         const newProvider = new ethers.providers.Web3Provider(wallet);
         setReadProvider(newProvider);
         setWalletProvider(newProvider);
-        const network = await walletProvider?.getNetwork();
+        const network = await newProvider.getNetwork();
         setChainId(network?.chainId);
 
         try {

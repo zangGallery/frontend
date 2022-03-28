@@ -55,30 +55,37 @@ const getTransferEvents = async (
             console.log("Querying address", address);
             queriedAddresses.push(address);
 
-            const transferOperatorFilter = zangContract.filters.TransferSingle(
-                address,
-                null,
-                null
-            );
-            const transferFromFilter = zangContract.filters.TransferSingle(
-                null,
-                address,
-                null
-            );
-            const transferToFilter = zangContract.filters.TransferSingle(
-                null,
-                null,
-                address
-            );
+            if (address === null) {
+                const allTransfersFilter = zangContract.filters.TransferSingle();
+                eventPromises.push(
+                    zangContract.queryFilter(allTransfersFilter)
+                );
+            } else {
+                const transferOperatorFilter = zangContract.filters.TransferSingle(
+                    address,
+                    null,
+                    null
+                );
+                const transferFromFilter = zangContract.filters.TransferSingle(
+                    null,
+                    address,
+                    null
+                );
+                const transferToFilter = zangContract.filters.TransferSingle(
+                    null,
+                    null,
+                    address
+                );
 
-            eventPromises.push(
-                zangContract.queryFilter(
-                    transferOperatorFilter,
-                    firstZangBlock
-                ),
-                zangContract.queryFilter(transferFromFilter, firstZangBlock),
-                zangContract.queryFilter(transferToFilter, firstZangBlock)
-            );
+                eventPromises.push(
+                    zangContract.queryFilter(
+                        transferOperatorFilter,
+                        firstZangBlock
+                    ),
+                    zangContract.queryFilter(transferFromFilter, firstZangBlock),
+                    zangContract.queryFilter(transferToFilter, firstZangBlock)
+                );
+            }
         }
 
         const events = await Promise.all(eventPromises);
@@ -87,7 +94,7 @@ const getTransferEvents = async (
             for (const event of eventGroup) {
                 const { from, to, operator, id: nftId } = event.args;
 
-                if (nftId == id || nftId === null) {
+                if (nftId == id || id === null) {
                     addAddress(from);
                     addAddress(to);
                     addAddress(operator);
@@ -97,6 +104,8 @@ const getTransferEvents = async (
             }
         }
     }
+
+    console.log('Found events:', foundEvents)
 
     return foundEvents;
 };
@@ -245,7 +254,7 @@ const parseHistory = (events) => {
         switch (event.event) {
             case "TokenListed":
                 parsedEvents.push({
-                    id: parseInt(event.topics[1]),
+                    id: parseInt(event.args._tokenId),
                     type: "list",
                     seller: event.args._seller,
                     price: formatEther(event.args._price.toString()),
@@ -256,7 +265,7 @@ const parseHistory = (events) => {
                 break;
             case "TokenDelisted":
                 parsedEvents.push({
-                    id: parseInt(event.topics[1]),
+                    id: parseInt(event.args._tokenId),
                     type: "delist",
                     seller: event.args._seller,
                     transactionHash: event.transactionHash,
@@ -271,7 +280,7 @@ const parseHistory = (events) => {
                     transferType = "burn";
                 }
                 parsedEvents.push({
-                    id: parseInt(event.topics[1]),
+                    id: parseInt(event.args.id),
                     type: transferType,
                     from: event.args.from,
                     to: event.args.to,
@@ -284,7 +293,7 @@ const parseHistory = (events) => {
                 break;
             case "TokenPurchased":
                 parsedEvents.push({
-                    id: parseInt(event.topics[1]),
+                    id: parseInt(event.args._tokenId),
                     type: "purchase",
                     buyer: event.args._buyer,
                     seller: event.args._seller,
