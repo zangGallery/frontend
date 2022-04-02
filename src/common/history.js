@@ -239,7 +239,10 @@ const computeBalances = (events) => {
         }
     }
 
-    return balances;
+    // Filter out addresses with zero balance
+    return Object.fromEntries(
+        Object.keys(balances).filter((address) => balances[address] != 0
+        ).map((address) => [address, balances[address]]));
 };
 
 const parseHistory = (events) => {
