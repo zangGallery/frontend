@@ -116,12 +116,32 @@ const validMarkdown = {
     }
 };
 
+const validHTML = {
+    ...rehypeDefaultSchema,
+    protocols: {
+        ...rehypeDefaultSchema.protocols,
+        src: [
+            ...rehypeDefaultSchema.protocols.src,
+            'data'
+        ]
+    },
+    attributes: {
+        ...rehypeDefaultSchema.attributes,
+        '*': [
+            ...rehypeDefaultSchema.attributes['*'],
+            'class',
+            'style'
+        ]
+    }
+};
+
 export default {
     burn,
     buy,
     edit,
     editRoyalty,
     list,
+    validHTML,
     validMarkdown,
     mint,
     transfer
