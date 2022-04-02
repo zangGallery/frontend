@@ -297,8 +297,8 @@ export default function NFTPage({ location }) {
         if (!newTokenData?.text_uri) return;
         var parsedTextURI = newTokenData.text_uri;
         parsedTextURI = parsedTextURI.replace(
-            "text/markdown;charset=UTF-8",
-            "text/markdown"
+            "charset=UTF-8,",
+            ""
         );
         try {
             const response = await fetch(parsedTextURI);
