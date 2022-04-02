@@ -18,8 +18,6 @@ import { navigate } from "gatsby-link";
 import { Helmet } from "react-helmet";
 import { Header } from "../components";
 
-import { formatEther, parseUnits } from "@ethersproject/units";
-
 import "bulma/css/bulma.min.css";
 import "../styles/globals.css";
 import Listings from "../components/Listings";
@@ -46,6 +44,8 @@ import { shortenAddress } from "../common/utils";
 import NFTHistory from "../components/NFTHistory";
 
 import Address from "../components/Address";
+
+import { getListings } from "../common/listings";
 
 const burnedIdsState = atom({
     key: "burnedIds",
@@ -492,41 +492,14 @@ export default function NFTPage({ location }) {
     const queryListings = async () => {
         if (!id || !readProvider) return;
 
-        const contract = new ethers.Contract(
+        const marketplaceContract = new ethers.Contract(
             marketplaceAddress,
             marketplaceABI,
             readProvider
         );
 
         try {
-            const listingCount = (await contract.listingCount(id)).toNumber();
-
-            const newListings = [];
-            const promises = [];
-
-            for (let i = 0; i < listingCount; i++) {
-                promises.push(
-                    contract
-                        .listings(id, i)
-                        .then((listing) =>
-                            newListings.push({
-                                amount: listing.amount.toNumber(),
-                                price: formatEther(
-                                    parseUnits(listing.price.toString(), "wei")
-                                ),
-                                seller: listing.seller,
-                                id: i,
-                            })
-                        )
-                        .catch((e) => console.log(e))
-                );
-            }
-
-            await Promise.all(promises);
-
-            newListings.sort((a, b) => a.price - b.price);
-
-            // If a listing has seller 0x0000... it has been delisted
+            const newListings = await getListings(id, marketplaceContract);
             setListings(newListings);
         } catch (e) {
             setStandardError(formatError(e));
