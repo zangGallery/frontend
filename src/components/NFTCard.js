@@ -13,6 +13,7 @@ import TypeTag from "./TypeTag";
 import { isTokenExistenceError } from "../common/error";
 import { useRecoilState } from 'recoil';
 import { formatError, standardErrorState } from '../common/error';
+import HTMLViewer from "./HTMLViewer";
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
@@ -141,9 +142,13 @@ export default function NFTCard({ id }) {
         <div className="card m-3 cursor-pointer" style={styles.card} onClick={() => navigate('/nft?id=' + id)}>
             <div style={styles.cardPreview}>
                 {tokenType && (tokenContent !== null) ? (
-                    tokenType == 'text/markdown' ? (
-                        <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
-                    ) : <pre className="nft-plain" style={{overflow: 'hidden'}}>{tokenContent}</pre>
+                    tokenType == 'text/html' ? (
+                        <HTMLViewer source={tokenContent} />
+                    ) : (
+                        tokenType == 'text/markdown' ? (
+                            <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
+                        ) : <pre className="nft-plain" style={{overflow: 'hidden'}}>{tokenContent}</pre>
+                    )
                 ) : <Skeleton count={10}/>}
             </div>
             <div style={styles.cardShadow}></div>

@@ -10,6 +10,7 @@ import schemas from '../common/schemas'
 import * as queryString from "query-string";
 
 import MDEditor from "@uiw/react-md-editor"
+import HTMLViewer from "../components/HTMLViewer";
 import { navigate } from 'gatsby-link';
 import { Helmet } from 'react-helmet';
 import { Header } from '../components';
@@ -525,6 +526,7 @@ export default function NFTPage( { location }) {
     useEffect(queryUserBalance, [id, walletAddress])
     useEffect(queryListingSellerBalances, [id, readProvider, listings])
 
+    console.log('Token DATA: ', tokenData);
 
     return (
         <div>
@@ -548,9 +550,13 @@ export default function NFTPage( { location }) {
                                                 <div>
                                                     <div className="box">
                                                         {tokenType && (tokenContent || tokenContent == '') ? (
-                                                            tokenType == 'text/markdown' ? (
-                                                                <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
-                                                            ) : <pre className="nft-plain">{tokenContent}</pre>
+                                                            tokenType == 'text/html' ? (
+                                                                <HTMLViewer source={tokenContent} />
+                                                            ) : (
+                                                                tokenType == 'text/markdown' ? (
+                                                                    <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
+                                                                ) : <pre className="nft-plain">{tokenContent}</pre>
+                                                            )
                                                         ) : <Skeleton count="12"/>}
                                                     </div>
                                                 </div>
