@@ -118,6 +118,10 @@ const validMarkdown = {
 
 const validHTML = {
     ...rehypeDefaultSchema,
+    tagNames: [
+        ...rehypeDefaultSchema.tagNames,
+        'style'
+    ],
     protocols: {
         ...rehypeDefaultSchema.protocols,
         src: [
