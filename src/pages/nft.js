@@ -589,6 +589,10 @@ export default function NFTPage({ location }) {
         setUpdateTracker(([_, counter]) => [updatedNFTId, counter + 1]);
     };
 
+    useEffect(queryListings, [id, walletAddress])
+    useEffect(queryUserBalance, [id, walletAddress])
+    useEffect(queryListingSellerBalances, [id, readProvider, listings])
+
     return (
         <div>
             <Helmet>
