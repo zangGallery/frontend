@@ -19,7 +19,9 @@ export default function HTMLViewer({ source }) {
     }
 
     const onLoad = () => {
-        setHeight((parseFloat(ref.current.contentWindow.document.body.scrollHeight) + convertRemToPixels(PADDING*2)) + "px");
+        if (typeof window !== 'undefined') {
+            setHeight((parseFloat(ref.current.contentWindow.document.body.scrollHeight) + convertRemToPixels(PADDING*2)) + "px");
+        }
       };
 
     const sanitize = (html) => {

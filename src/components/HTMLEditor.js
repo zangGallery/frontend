@@ -1,6 +1,5 @@
 import React from "react";
-import {createElement, Fragment, useState} from "react";
-import {Split} from "@geoffcox/react-splitter"
+
 import HTMLViewer from "./HTMLViewer";
 
 
@@ -9,7 +8,8 @@ export default function HTMLEditor({value, setValue}) {
         const AceEditor = require('react-ace').default;
         require('ace-builds/src-noconflict/mode-html');
         require('ace-builds/src-noconflict/theme-github');
-        require('ace-builds/src-noconflict/theme-monokai')
+        require('ace-builds/src-noconflict/theme-monokai');
+        const {Split} = require('@geoffcox/react-splitter');
 
         return (
             <>
