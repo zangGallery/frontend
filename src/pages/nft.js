@@ -13,10 +13,11 @@ import rehypeSanitize from "rehype-sanitize";
 import schemas from "../common/schemas";
 import * as queryString from "query-string";
 
-import MDEditor from "@uiw/react-md-editor";
-import { navigate } from "gatsby-link";
-import { Helmet } from "react-helmet";
-import { Header } from "../components";
+import MDEditor from "@uiw/react-md-editor"
+import HTMLViewer from "../components/HTMLViewer";
+import { navigate } from 'gatsby-link';
+import { Helmet } from 'react-helmet';
+import { Header } from '../components';
 
 import { formatEther, parseUnits } from "@ethersproject/units";
 
@@ -296,10 +297,7 @@ export default function NFTPage({ location }) {
     const queryTokenContent = async (newTokenData) => {
         if (!newTokenData?.text_uri) return;
         var parsedTextURI = newTokenData.text_uri;
-        parsedTextURI = parsedTextURI.replace(
-            "charset=UTF-8,",
-            ""
-        );
+        parsedTextURI = parsedTextURI.replace("charset=UTF-8,", "");
         try {
             const response = await fetch(parsedTextURI);
             const parsedText = await response.text();
@@ -591,10 +589,6 @@ export default function NFTPage({ location }) {
         setUpdateTracker(([_, counter]) => [updatedNFTId, counter + 1]);
     };
 
-    useEffect(queryListings, [id, walletAddress]);
-    useEffect(queryUserBalance, [id, walletAddress]);
-    useEffect(queryListingSellerBalances, [id, readProvider, listings]);
-
     return (
         <div>
             <Helmet>
@@ -629,35 +623,27 @@ export default function NFTPage({ location }) {
                     <></>
                 )}
             </div>
-            <StandardErrorDisplay />
-            {exists ? (
-                <div>
-                    <div className="columns m-4">
-                        <div
-                            className="column is-two-thirds"
-                            style={{ overflow: "hidden" }}
-                        >
-                            {readProvider ? (
-                                <div>
-                                    <div className="box">
-                                        {tokenType &&
-                                        (tokenContent || tokenContent == "") ? (
-                                            tokenType == "text/markdown" ? (
-                                                <MDEditor.Markdown
-                                                    source={tokenContent}
-                                                    rehypePlugins={[
-                                                        () =>
-                                                            rehypeSanitize(
-                                                                schemas.validMarkdown
-                                                            ),
-                                                    ]}
-                                                />
+
+                <StandardErrorDisplay />
+                {
+                    exists ?
+                        (
+                            <div>
+                                <div className="columns m-4">
+                                    <div className="column is-two-thirds" style={{overflow: 'hidden'}}>
+                                        { readProvider ? 
+                                            (
+                                                <div>
+                                                    <div className="box">
+                                                        {tokenType && (tokenContent || tokenContent == '') ? (
+                                                            tokenType == 'text/html' ? (
+                                                                <HTMLViewer source={tokenContent} />
+                                                            ) : (
+                                                                tokenType == 'text/markdown' ? (
+                                                                    <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
+                                                                ) : <pre className="nft-plain">{tokenContent}</pre>
+                                                            )
                                             ) : (
-                                                <pre className="nft-plain">
-                                                    {tokenContent}
-                                                </pre>
-                                            )
-                                        ) : (
                                             <Skeleton count="12" />
                                         )}
                                     </div>

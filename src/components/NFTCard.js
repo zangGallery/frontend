@@ -11,11 +11,12 @@ import schemas from "../common/schemas";
 import { useEns } from "../common/ens";
 import TypeTag from "./TypeTag";
 import { isTokenExistenceError } from "../common/error";
-import { useRecoilState } from "recoil";
-import { formatError, standardErrorState } from "../common/error";
-import Skeleton from "react-loading-skeleton";
-import "react-loading-skeleton/dist/skeleton.css";
+import { useRecoilState } from 'recoil';
+import { formatError, standardErrorState } from '../common/error';
+import HTMLViewer from "./HTMLViewer";
 import Address from "./Address";
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 const styles = {
     card: {
@@ -117,10 +118,7 @@ export default function NFTCard({ id }) {
     const queryTokenContent = async () => {
         if (!tokenData?.text_uri) return;
         var parsedTextURI = tokenData.text_uri.replaceAll("#", "%23"); //TODO: workaround, togliere con nuovo deploy
-        parsedTextURI = parsedTextURI.replace(
-            "charset=UTF-8,",
-            ""
-        );
+        parsedTextURI = parsedTextURI.replace("charset=UTF-8,", "");
 
         try {
             const response = await fetch(parsedTextURI);
@@ -152,25 +150,15 @@ export default function NFTCard({ id }) {
             onClick={() => navigate("/nft?id=" + id)}
         >
             <div style={styles.cardPreview}>
-                {tokenType && tokenContent !== null ? (
-                    tokenType == "text/markdown" ? (
-                        <MDEditor.Markdown
-                            source={tokenContent}
-                            rehypePlugins={[
-                                () => rehypeSanitize(schemas.validMarkdown),
-                            ]}
-                        />
+                {tokenType && (tokenContent !== null) ? (
+                    tokenType == 'text/html' ? (
+                        <HTMLViewer source={tokenContent} />
                     ) : (
-                        <pre
-                            className="nft-plain"
-                            style={{ overflow: "hidden" }}
-                        >
-                            {tokenContent}
-                        </pre>
+                        tokenType == 'text/markdown' ? (
+                            <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
+                        ) : <pre className="nft-plain" style={{overflow: 'hidden'}}>{tokenContent}</pre>
                     )
-                ) : (
-                    <Skeleton count={10} />
-                )}
+                ) : <Skeleton count={10}/>}
             </div>
             <div style={styles.cardShadow}></div>
             <div className="card-content">

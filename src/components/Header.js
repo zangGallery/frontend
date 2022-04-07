@@ -10,29 +10,29 @@ export default function Header() {
     const [chainId, setChainId] = useState(null);
 
     useEffect(async () => {
-        try {
-            window.ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [
-                    {
-                        chainId: hexValue(config.networks.main.chainId),
-                        rpcUrls: ["https://polygon-rpc.com/"],
-                        chainName: "Polygon Mainnet",
-                        nativeCurrency: {
-                            name: "Polygon",
-                            symbol: "MATIC",
-                            decimals: 18,
-                        },
-                        blockExplorerUrls: [config.blockExplorer.url],
-                    },
-                ],
-            });
-        } catch (e) {
-            // Will revert if there is already a chain request, ignore
-            console.log(e);
-        }
-
         if (walletProvider) {
+            try {
+                window.ethereum.request({
+                    method: "wallet_addEthereumChain",
+                    params: [
+                        {
+                            chainId: hexValue(config.networks.main.chainId),
+                            rpcUrls: ["https://polygon-rpc.com/"],
+                            chainName: "Polygon Mainnet",
+                            nativeCurrency: {
+                                name: "Polygon",
+                                symbol: "MATIC",
+                                decimals: 18,
+                            },
+                            blockExplorerUrls: [config.blockExplorer.url],
+                        },
+                    ],
+                });
+            } catch (e) {
+                // Will revert if there is already a chain request, ignore
+                console.log(e);
+            }
+
             const network = await walletProvider.getNetwork();
 
             const newChainId = network.chainId;
