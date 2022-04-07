@@ -85,9 +85,9 @@ const mint = Joi.object().keys({
         .required()
         .label("Royalty percentage"),
     useCustomRecipient: Joi.boolean().required(),
-    customRecipient: _customRecipient.label('Address'),
-    textType: Joi.valid('text/plain', 'text/markdown', 'text/html').required()
-})
+    customRecipient: _customRecipient.label("Address"),
+    textType: Joi.valid("text/plain", "text/markdown", "text/html").required(),
+});
 
 const transfer = Joi.object().keys({
     to: _customRecipient.label("Address"),
@@ -139,25 +139,21 @@ const validMarkdown = {
 
 const validHTML = {
     ...rehypeDefaultSchema,
-    tagNames: [
-        ...rehypeDefaultSchema.tagNames,
-        'style'
-    ],
+    tagNames: [...rehypeDefaultSchema.tagNames, "style"],
     protocols: {
         ...rehypeDefaultSchema.protocols,
-        src: [
-            ...rehypeDefaultSchema.protocols.src,
-            'data'
-        ]
+        src: [...rehypeDefaultSchema.protocols.src, "data"],
     },
     attributes: {
         ...rehypeDefaultSchema.attributes,
-        '*': [
-            ...rehypeDefaultSchema.attributes['*'],
-            'class',
-            'style'
-        ]
-    }
+        "*": [
+            ...rehypeDefaultSchema.attributes["*"],
+            "class",
+            "className",
+            "style",
+        ],
+    },
+    clobber: [],
 };
 
 export default {
