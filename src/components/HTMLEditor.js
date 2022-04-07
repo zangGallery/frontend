@@ -1,6 +1,6 @@
 import React from "react";
 import {createElement, Fragment, useState} from "react";
-import SplitPane from "react-split-pane";
+import {Split} from "@geoffcox/react-splitter"
 import HTMLViewer from "./HTMLViewer";
 
 
@@ -9,14 +9,15 @@ export default function HTMLEditor({value, setValue}) {
         const AceEditor = require('react-ace').default;
         require('ace-builds/src-noconflict/mode-html');
         require('ace-builds/src-noconflict/theme-github');
+        require('ace-builds/src-noconflict/theme-monokai')
 
         return (
             <div className="Resizer" style={{height: "500px"}}>
-                <SplitPane split="vertical" minSize={50} defaultSize={100}>
-                    <div width="200px">
+                <Split vertical onSplitChanged={() => window.dispatchEvent(new Event('resize'))}>
+                    <div>
                         <AceEditor
                             mode="html"
-                            theme="github"
+                            theme="monokai"
                             onChange={setValue}
                             name="html-editor"
                             editorProps={{ $blockScrolling: false }}
@@ -25,13 +26,13 @@ export default function HTMLEditor({value, setValue}) {
                             enableLiveAutocompletion: true,
                             enableSnippets: true
                             }}
-                            style={{width: "100%"}}
+                            width="100%"
                         />
                     </div>
-                    <div>
+                    <div style={{height: '100%', overflow: 'scroll'}}>
                         <HTMLViewer source={value}/>
                     </div>
-                </SplitPane>
+                </Split>
             </div>
         )
       }

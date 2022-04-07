@@ -1,5 +1,5 @@
 import React from "react";
-import {createElement, Fragment, useState} from "react";
+import {createElement, Fragment, useState, useRef} from "react";
 import SplitPane from "react-split-pane";
 import {unified} from 'unified'
 import rehypeParse from 'rehype-parse'
@@ -9,7 +9,20 @@ import { schemas } from "../common";
 import rehypeStringify from "rehype-stringify/lib";
 
 
-export default function HTMLEditor({ source }) {
+export default function HTMLViewer({ source }) {
+    const [height, setHeight] = useState('0px');
+    const ref = React.useRef();
+
+    const PADDING = 1.25 // rem
+
+    const convertRemToPixels = (rem) => {    
+        return rem * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    }
+
+    const onLoad = () => {
+        setHeight((parseFloat(ref.current.contentWindow.document.body.scrollHeight) + convertRemToPixels(PADDING*2)) + "px");
+      };
+
     const sanitize = (html) => {
         const sanitized = unified()
             .use(rehypeParse, {fragment: true})
@@ -23,6 +36,13 @@ export default function HTMLEditor({ source }) {
     console.log('Source:', source)
 
     return (
-        <iframe style={{width: "100%", height: "400px"}} srcDoc={sanitize(source)} sandbox/>
+        <iframe 
+            ref={ref}
+            onLoad={onLoad}
+            height={height}
+            style={{width: "100%", overflow: 'auto'}}
+            srcDoc={sanitize(source)}
+            sandbox
+        />
     )
 }
