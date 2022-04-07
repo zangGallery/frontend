@@ -164,7 +164,7 @@ export default function Mint() {
                         </div>
                     );
                 } else {
-                    setStandardError(
+                    console.log(
                         "Could not find token ID in transaction receipt."
                     );
                     return;
