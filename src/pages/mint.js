@@ -133,7 +133,6 @@ export default function Mint() {
                 return;
             }
         }
-
         const contentFunction = (status, transaction, success, receipt) => {
             console.log("Calling content function");
             if (status !== "success") {
@@ -189,60 +188,32 @@ export default function Mint() {
 
     return (
         <div>
-            <Helmet>
-                <title>Mint - zang</title>
-            </Helmet>
-            <Header />
-            <StandardErrorDisplay />
-            <div className="columns m-4">
-                <div className="column">
-                    <h1 className="title">Mint your NFT</h1>
-                    <ValidatedInput
-                        label="Title"
-                        name="title"
-                        type="text"
-                        register={register}
-                        errors={errors}
-                    />
-                    <ValidatedInput
-                        label="Description"
-                        name="description"
-                        type="text"
-                        register={register}
-                        errors={errors}
-                    />
-                    <ValidatedInput
-                        label="Edition size"
-                        name="editionSize"
-                        type="number"
-                        register={register}
-                        errors={errors}
-                    />
-                    <div className="field">
-                        <label className="label" htmlFor="content">
-                            Content
-                        </label>
-                        <div className="control">
-                            <div className="select">
-                                <select {...register("textType")} id="content">
-                                    <option value="text/plain">
-                                        Plain Text
-                                    </option>
-                                    <option value="text/markdown">
-                                        Markdown
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-                        <div className="control mt-3">
-                            <MultiEditor
-                                textType={watchTextType}
-                                value={text}
-                                setValue={setText}
-                            />
-                        </div>
-                    </div>
-                    <ValidatedInput
+          <Helmet>
+            <title>Mint - zang</title>
+          </Helmet>
+          <Header />
+          <StandardErrorDisplay />
+          <div className="columns m-4">
+            <div className="column">
+              <h1 className="title">Mint your NFT</h1>
+              <ValidatedInput label="Title" name="title" type="text" register={register} errors={errors} />
+              <ValidatedInput label="Description" name="description" type="text" register={register} errors={errors} />
+              <ValidatedInput label="Edition size" name="editionSize" type="number" register={register} errors={errors} />
+              <div className="field">
+                <label className="label" htmlFor="content">Content</label>
+                <div className="control">
+                  <div className="select">
+                    <select {...register('textType')} id="content">
+                      <option value='text/plain'>Plain Text</option>
+                      <option value='text/markdown'>Markdown</option>
+                      <option value='text/html'>HTML</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="control mt-3">
+                  <MultiEditor textType={watchTextType} value={text} setValue={setText} />
+                </div>
+                <ValidatedInput
                         label="Royalty percentage"
                         name="royaltyPercentage"
                         type="number"
@@ -303,13 +274,14 @@ export default function Mint() {
                     )}
                 </div>
             </div>
-            <MintConfirmModal
-                isOpen={confirmModalOpen}
-                setIsOpen={setConfirmModalOpen}
-                onClose={(confirmed) =>
-                    handleSubmit(executeTransaction(confirmed))()
-                }
-            />
+                <MintConfirmModal
+                    isOpen={confirmModalOpen}
+                    setIsOpen={setConfirmModalOpen}
+                    onClose={(confirmed) =>
+                        handleSubmit(executeTransaction(confirmed))()
+                    }
+                />
+            </div>
         </div>
     );
 }
