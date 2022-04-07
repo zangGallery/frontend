@@ -23,6 +23,6 @@ export default function HTMLEditor({ source }) {
     console.log('Source:', source)
 
     return (
-        <iframe style={{width: "100%", height: "400px"}} srcDoc={sanitize(source)} />
+        <iframe style={{width: "100%", height: "400px"}} srcDoc={sanitize(source)} sandbox/>
     )
 }
