@@ -56,16 +56,14 @@ const getTransferEvents = async (
             queriedAddresses.push(address);
 
             if (address === null) {
-                const allTransfersFilter = zangContract.filters.TransferSingle();
+                const allTransfersFilter =
+                    zangContract.filters.TransferSingle();
                 eventPromises.push(
                     zangContract.queryFilter(allTransfersFilter)
                 );
             } else {
-                const transferOperatorFilter = zangContract.filters.TransferSingle(
-                    address,
-                    null,
-                    null
-                );
+                const transferOperatorFilter =
+                    zangContract.filters.TransferSingle(address, null, null);
                 const transferFromFilter = zangContract.filters.TransferSingle(
                     null,
                     address,
@@ -82,7 +80,10 @@ const getTransferEvents = async (
                         transferOperatorFilter,
                         firstZangBlock
                     ),
-                    zangContract.queryFilter(transferFromFilter, firstZangBlock),
+                    zangContract.queryFilter(
+                        transferFromFilter,
+                        firstZangBlock
+                    ),
                     zangContract.queryFilter(transferToFilter, firstZangBlock)
                 );
             }
@@ -105,7 +106,7 @@ const getTransferEvents = async (
         }
     }
 
-    console.log('Found events:', foundEvents)
+    console.log("Found events:", foundEvents);
 
     return foundEvents;
 };
@@ -241,8 +242,10 @@ const computeBalances = (events) => {
 
     // Filter out addresses with zero balance
     return Object.fromEntries(
-        Object.keys(balances).filter((address) => balances[address] != 0
-        ).map((address) => [address, balances[address]]));
+        Object.keys(balances)
+            .filter((address) => balances[address] != 0)
+            .map((address) => [address, balances[address]])
+    );
 };
 
 const parseHistory = (events) => {

@@ -118,10 +118,7 @@ export default function NFTCard({ id }) {
     const queryTokenContent = async () => {
         if (!tokenData?.text_uri) return;
         var parsedTextURI = tokenData.text_uri.replaceAll("#", "%23"); //TODO: workaround, togliere con nuovo deploy
-        parsedTextURI = parsedTextURI.replace(
-            "charset=UTF-8,",
-            ""
-        );
+        parsedTextURI = parsedTextURI.replace("charset=UTF-8,", "");
 
         try {
             const response = await fetch(parsedTextURI);
