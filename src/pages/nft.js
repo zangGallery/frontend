@@ -296,10 +296,7 @@ export default function NFTPage({ location }) {
     const queryTokenContent = async (newTokenData) => {
         if (!newTokenData?.text_uri) return;
         var parsedTextURI = newTokenData.text_uri;
-        parsedTextURI = parsedTextURI.replace(
-            "charset=UTF-8,",
-            ""
-        );
+        parsedTextURI = parsedTextURI.replace("charset=UTF-8,", "");
         try {
             const response = await fetch(parsedTextURI);
             const parsedText = await response.text();
