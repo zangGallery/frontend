@@ -188,92 +188,121 @@ export default function Mint() {
 
     return (
         <div>
-          <Helmet>
-            <title>Mint - zang</title>
-          </Helmet>
-          <Header />
-          <StandardErrorDisplay />
-          <div className="columns m-4">
-            <div className="column">
-              <h1 className="title">Mint your NFT</h1>
-              <ValidatedInput label="Title" name="title" type="text" register={register} errors={errors} />
-              <ValidatedInput label="Description" name="description" type="text" register={register} errors={errors} />
-              <ValidatedInput label="Edition size" name="editionSize" type="number" register={register} errors={errors} />
-              <div className="field">
-                <label className="label" htmlFor="content">Content</label>
-                <div className="control">
-                  <div className="select">
-                    <select {...register('textType')} id="content">
-                      <option value='text/plain'>Plain Text</option>
-                      <option value='text/markdown'>Markdown</option>
-                      <option value='text/html'>HTML</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="control mt-3">
-                  <MultiEditor textType={watchTextType} value={text} setValue={setText} />
-                </div>
-                <ValidatedInput
-                        label="Royalty percentage"
-                        name="royaltyPercentage"
+            <Helmet>
+                <title>Mint - zang</title>
+            </Helmet>
+            <Header />
+            <StandardErrorDisplay />
+            <div className="columns m-4">
+                <div className="column">
+                    <h1 className="title">Mint your NFT</h1>
+                    <ValidatedInput
+                        label="Title"
+                        name="title"
+                        type="text"
+                        register={register}
+                        errors={errors}
+                    />
+                    <ValidatedInput
+                        label="Description"
+                        name="description"
+                        type="text"
+                        register={register}
+                        errors={errors}
+                    />
+                    <ValidatedInput
+                        label="Edition size"
+                        name="editionSize"
                         type="number"
-                        defaultValue="10"
-                        min="0"
-                        max="100"
-                        step="0.01"
                         register={register}
                         errors={errors}
                     />
                     <div className="field">
-                        <label className="checkbox label">
-                            <input
-                                type="checkbox"
-                                {...register("useCustomRecipient")}
-                                className="mr-1"
-                            />
-                            Custom royalty recipient
+                        <label className="label" htmlFor="content">
+                            Content
                         </label>
-                    </div>
-                    {watchUseCustomRecipient ? (
+                        <div className="control">
+                            <div className="select">
+                                <select {...register("textType")} id="content">
+                                    <option value="text/plain">
+                                        Plain Text
+                                    </option>
+                                    <option value="text/markdown">
+                                        Markdown
+                                    </option>
+                                    <option value="text/html">HTML</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="control mt-3">
+                            <MultiEditor
+                                textType={watchTextType}
+                                value={text}
+                                setValue={setText}
+                            />
+                        </div>
                         <ValidatedInput
-                            label="Address"
-                            name="customRecipient"
-                            type="text"
-                            placeholder="0x... or ENS address"
+                            label="Royalty percentage"
+                            name="royaltyPercentage"
+                            type="number"
+                            defaultValue="10"
+                            min="0"
+                            max="100"
+                            step="0.01"
                             register={register}
                             errors={errors}
                         />
-                    ) : (
-                        <></>
-                    )}
-                    <div className="notification is-danger">
-                        <p>
-                            <strong>Important</strong>: zang.gallery currently
-                            uses <strong>{config.networks.main.name}</strong>.
-                            Make sure that you're signing a transaction on the
-                            Polygon network!
-                        </p>
-                    </div>
-                    {walletProvider ? (
-                        transactionState.status === "noTransaction" ||
-                        transactionState.status === "error" ? (
-                            <button
-                                className="button is-primary"
-                                disabled={!isValid}
-                                onClick={handleSubmit(
-                                    executeTransaction(false)
-                                )}
-                            >
-                                Mint
-                            </button>
+                        <div className="field">
+                            <label className="checkbox label">
+                                <input
+                                    type="checkbox"
+                                    {...register("useCustomRecipient")}
+                                    className="mr-1"
+                                />
+                                Custom royalty recipient
+                            </label>
+                        </div>
+                        {watchUseCustomRecipient ? (
+                            <ValidatedInput
+                                label="Address"
+                                name="customRecipient"
+                                type="text"
+                                placeholder="0x... or ENS address"
+                                register={register}
+                                errors={errors}
+                            />
                         ) : (
                             <></>
-                        )
-                    ) : (
-                        <p>Connect a wallet to mint</p>
-                    )}
+                        )}
+                        <div className="notification is-danger">
+                            <p>
+                                <strong>Important</strong>: zang.gallery
+                                currently uses{" "}
+                                <strong>{config.networks.main.name}</strong>.
+                                Make sure that you're signing a transaction on
+                                the Polygon network!
+                            </p>
+                        </div>
+                        {walletProvider ? (
+                            transactionState.status === "noTransaction" ||
+                            transactionState.status === "error" ? (
+                                <button
+                                    className="button is-primary"
+                                    disabled={!isValid}
+                                    onClick={handleSubmit(
+                                        executeTransaction(false)
+                                    )}
+                                >
+                                    Mint
+                                </button>
+                            ) : (
+                                <></>
+                            )
+                        ) : (
+                            <p>Connect a wallet to mint</p>
+                        )}
+                    </div>
                 </div>
-            </div>
                 <MintConfirmModal
                     isOpen={confirmModalOpen}
                     setIsOpen={setConfirmModalOpen}

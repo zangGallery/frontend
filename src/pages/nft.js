@@ -13,11 +13,11 @@ import rehypeSanitize from "rehype-sanitize";
 import schemas from "../common/schemas";
 import * as queryString from "query-string";
 
-import MDEditor from "@uiw/react-md-editor"
+import MDEditor from "@uiw/react-md-editor";
 import HTMLViewer from "../components/HTMLViewer";
-import { navigate } from 'gatsby-link';
-import { Helmet } from 'react-helmet';
-import { Header } from '../components';
+import { navigate } from "gatsby-link";
+import { Helmet } from "react-helmet";
+import { Header } from "../components";
 
 import { formatEther, parseUnits } from "@ethersproject/units";
 
@@ -589,9 +589,9 @@ export default function NFTPage({ location }) {
         setUpdateTracker(([_, counter]) => [updatedNFTId, counter + 1]);
     };
 
-    useEffect(queryListings, [id, walletAddress])
-    useEffect(queryUserBalance, [id, walletAddress])
-    useEffect(queryListingSellerBalances, [id, readProvider, listings])
+    useEffect(queryListings, [id, walletAddress]);
+    useEffect(queryUserBalance, [id, walletAddress]);
+    useEffect(queryListingSellerBalances, [id, readProvider, listings]);
 
     return (
         <div>
@@ -628,26 +628,39 @@ export default function NFTPage({ location }) {
                 )}
             </div>
 
-                <StandardErrorDisplay />
-                {
-                    exists ?
-                        (
-                            <div>
-                                <div className="columns m-4">
-                                    <div className="column is-two-thirds" style={{overflow: 'hidden'}}>
-                                        { readProvider ? 
-                                            (
-                                                <div>
-                                                    <div className="box">
-                                                        {tokenType && (tokenContent || tokenContent == '') ? (
-                                                            tokenType == 'text/html' ? (
-                                                                <HTMLViewer source={tokenContent} />
-                                                            ) : (
-                                                                tokenType == 'text/markdown' ? (
-                                                                    <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
-                                                                ) : <pre className="nft-plain">{tokenContent}</pre>
-                                                            )
+            <StandardErrorDisplay />
+            {exists ? (
+                <div>
+                    <div className="columns m-4">
+                        <div
+                            className="column is-two-thirds"
+                            style={{ overflow: "hidden" }}
+                        >
+                            {readProvider ? (
+                                <div>
+                                    <div className="box">
+                                        {tokenType &&
+                                        (tokenContent || tokenContent == "") ? (
+                                            tokenType == "text/html" ? (
+                                                <HTMLViewer
+                                                    source={tokenContent}
+                                                />
+                                            ) : tokenType == "text/markdown" ? (
+                                                <MDEditor.Markdown
+                                                    source={tokenContent}
+                                                    rehypePlugins={[
+                                                        () =>
+                                                            rehypeSanitize(
+                                                                schemas.validMarkdown
+                                                            ),
+                                                    ]}
+                                                />
                                             ) : (
+                                                <pre className="nft-plain">
+                                                    {tokenContent}
+                                                </pre>
+                                            )
+                                        ) : (
                                             <Skeleton count="12" />
                                         )}
                                     </div>

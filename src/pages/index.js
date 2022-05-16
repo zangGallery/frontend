@@ -9,6 +9,7 @@ import { Header } from "../components";
 import { Helmet } from "react-helmet";
 import { useRecoilState } from "recoil";
 import { formatError, standardErrorState } from "../common/error";
+import * as bl from "../blacklist.json";
 import StandardErrorDisplay from "../components/StandardErrorDisplay";
 
 import "bulma/css/bulma.min.css";
@@ -17,11 +18,13 @@ import "../styles/globals.css";
 export default function Home() {
     const [readProvider] = useReadProvider();
     const [lastNFTId, setLastNFTId] = useState(null);
+    const [lastDisplayedNFTId, setLastDisplayedNFTId] = useState(null);
     const [nfts, setNFTs] = useState([]);
 
     const [, setStandardError] = useRecoilState(standardErrorState);
 
     const increment = 5;
+    var blacklist = bl.default;
 
     useEffect(async () => {
         const contractAddress = config.contractAddresses.v1.zang;
@@ -34,23 +37,33 @@ export default function Home() {
 
         try {
             const newLastNFTId = await contract.lastTokenId();
+            console.log("ffff");
             setLastNFTId(newLastNFTId.toNumber());
+            setLastDisplayedNFTId(newLastNFTId.toNumber());
         } catch (e) {
             setStandardError(formatError(e));
         }
     }, []);
 
     const getMoreIds = (count) => {
-        const newNFTs = [...nfts];
+        const NFTs = [...nfts];
+        console.log(blacklist);
+        var last = lastDisplayedNFTId || lastNFTId;
+        if (lastDisplayedNFTId) last--;
+        var lastDisplayed = lastDisplayedNFTId;
+        console.log("last", last);
 
         for (let i = 0; i < count; i++) {
-            const newId = lastNFTId - newNFTs.length;
-            if (newId >= 1) {
-                newNFTs.push(newId);
+            var id = last - i;
+            if (id >= 1 && !blacklist.includes(id)) {
+                console.log(id);
+                NFTs.push(id);
+                lastDisplayed = id;
             }
         }
 
-        setNFTs(newNFTs);
+        setLastDisplayedNFTId(lastDisplayed);
+        setNFTs(NFTs);
     };
 
     useEffect(() => getMoreIds(20), [lastNFTId]);
