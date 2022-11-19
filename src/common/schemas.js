@@ -139,7 +139,13 @@ const validMarkdown = {
 
 const validHTML = {
     ...rehypeDefaultSchema,
-    tagNames: [...rehypeDefaultSchema.tagNames, "style"],
+    tagNames: [
+        ...rehypeDefaultSchema.tagNames,
+        "style",
+        "svg",
+        "path",
+        "clipPath",
+    ],
     protocols: {
         ...rehypeDefaultSchema.protocols,
         src: [...rehypeDefaultSchema.protocols.src, "data"],
@@ -152,6 +158,18 @@ const validHTML = {
             "className",
             "style",
         ],
+        svg: [
+            ...(rehypeDefaultSchema.attributes["svg"] || []),
+            "viewBox",
+            "xml:space",
+            "xmlns",
+        ],
+        path: [
+            ...(rehypeDefaultSchema.attributes["path"] || []),
+            "d",
+            "transform",
+        ],
+        clipPath: [...(rehypeDefaultSchema.attributes["clipPath"] || []), "d"],
     },
     clobber: [],
 };
