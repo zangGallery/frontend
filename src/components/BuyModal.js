@@ -100,15 +100,7 @@ export default function BuyModal({
                         register={register}
                     />
                     {total() && errors.amount === undefined ? (
-                        <p>
-                            Total: {total()}{" "}
-                            <object
-                                className="matic-6"
-                                type="image/svg+xml"
-                                data="https://zang.gallery/matic_logo.svg"
-                                aria-label="Matic"
-                            />
-                        </p>
+                        <p>Total: {total()} Ξ</p>
                     ) : (
                         <p>Total: </p>
                     )}

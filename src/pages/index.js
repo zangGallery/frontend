@@ -35,12 +35,16 @@ export default function Home() {
             readProvider
         );
 
+        console.log(await contract.name());
+
         try {
+            console.log("Connecting to", contract);
             const newLastNFTId = await contract.lastTokenId();
             console.log("ffff");
             setLastNFTId(newLastNFTId.toNumber());
             setLastDisplayedNFTId(newLastNFTId.toNumber());
         } catch (e) {
+            console.log(e);
             setStandardError(formatError(e));
         }
     }, []);

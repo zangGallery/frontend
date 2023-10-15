@@ -202,7 +202,7 @@ export default function ListModal({
                         register={register}
                     />
                     <ValidatedInput
-                        label="Price (MATIC)"
+                        label="Price (Ξ)"
                         name="price"
                         type="number"
                         step="0.1"

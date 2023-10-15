@@ -280,7 +280,7 @@ export default function Mint() {
                                 currently uses{" "}
                                 <strong>{config.networks.main.name}</strong>.
                                 Make sure that you're signing a transaction on
-                                the Polygon network!
+                                the Base network!
                             </p>
                         </div>
                         {walletProvider ? (

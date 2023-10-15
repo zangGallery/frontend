@@ -63,9 +63,8 @@ export default function WalletButton() {
             package: WalletConnectProvider,
             options: {
                 rpc: {
-                    137: "https://polygon-rpc.com/",
+                    8453: "https://mainnet.base.org",
                 },
-                network: "matic",
             },
         },
         frame: {
@@ -177,13 +176,7 @@ export default function WalletButton() {
                     <span>
                         {balance && chainId === config.networks.main.chainId ? (
                             <div className="p-2">
-                                {parseFloat(balance).toFixed(4)}{" "}
-                                <object
-                                    className="matic-6"
-                                    type="image/svg+xml"
-                                    data="https://zang.gallery/matic_logo.svg"
-                                    aria-label="Matic"
-                                />
+                                {parseFloat(balance).toFixed(4)} Ξ
                             </div>
                         ) : (
                             ""
@@ -214,16 +207,6 @@ export default function WalletButton() {
                     )}
                 </a>
             </div>
-            {balance ? (
-                <p className="is-size-7">
-                    Need more?{" "}
-                    <RoutingLink href="/bridge">
-                        <u>Bridge</u>
-                    </RoutingLink>
-                </p>
-            ) : (
-                <></>
-            )}
         </div>
     );
 }

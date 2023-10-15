@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import config from "../config";
 
-var defaultReadProvider = new ethers.providers.AlchemyProvider(
-    config.networks.main.chainId,
-    config.api_keys.alchemy
+var defaultReadProvider = new ethers.providers.JsonRpcProvider(
+    config.networks.main.rpc
 );
 
 var _readProvider = defaultReadProvider;

@@ -1,5 +1,5 @@
 import React from "react";
-import { createElement, Fragment, useState, useRef } from "react";
+import { createElement, Fragment, useState, useRef, useEffect } from "react";
 import { unified } from "unified";
 import rehypeParse from "rehype-parse";
 import rehypeReact from "rehype-react";
@@ -21,7 +21,7 @@ export default function HTMLViewer({ source }) {
     };
 
     const onLoad = () => {
-        if (typeof window !== "undefined") {
+        if (typeof window !== "undefined" && ref.current) {
             setHeight(
                 parseFloat(
                     ref.current.contentWindow.document.body.scrollHeight
@@ -43,6 +43,10 @@ export default function HTMLViewer({ source }) {
         return sanitized.value;
     };
     //console.log('Source:', source)
+
+    useEffect(() => {
+        setInterval(() => onLoad(), 1000);
+    }, []);
 
     return (
         <iframe

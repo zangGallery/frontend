@@ -1,8 +1,8 @@
 const config = {
     contractAddresses: {
         v1: {
-            zang: "0x62d76F41c4d538712A4404e39b2E20BA7d18FEd0",
-            marketplace: "0x59E52c8aB048022307ab4A92557a138f10a19d97",
+            zang: "0x5541ff300e9b01176b953EA3153006e36D4BA273",
+            marketplace: "0xbD5C4612084eA90847DeB475529aC74B3521498d",
         },
     },
     firstBlocks: {
@@ -11,12 +11,19 @@ const config = {
                 zang: 25361905,
                 marketplace: 25362269,
             },
+            base: {
+                zang: 5299416,
+                marketplace: 5299416,
+            },
         },
     },
     networks: {
         main: {
-            name: "Polygon",
-            chainId: 137,
+            name: "Base",
+            chainId: 8453,
+            rpc:
+                "https://base-mainnet.g.alchemy.com/v2/" +
+                process.env.GATSBY_ALCHEMY_API_KEY,
         },
         ens: {
             name: "ENS",
@@ -34,8 +41,8 @@ const config = {
         cacheExpiration: 1000 * 60 * 2, // 2 minutes
     },
     blockExplorer: {
-        name: "PolygonScan",
-        url: "https://polygonscan.com",
+        name: "BaseScan",
+        url: "https://basescan.org",
     },
 };
 

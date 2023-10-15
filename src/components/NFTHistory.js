@@ -145,7 +145,7 @@ export default function NFTHistory({ history, hideId }) {
                         <p>
                             {event.price ? (
                                 <tt className="is-size-7">
-                                    PRICE: &nbsp;{event.price} MATIC
+                                    PRICE: &nbsp;{event.price} Ξ
                                 </tt>
                             ) : (
                                 <></>

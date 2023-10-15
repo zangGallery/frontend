@@ -121,8 +121,8 @@ export default function NFTPage({ location }) {
             marketplaceABI,
             defaultReadProvider
         );
-        const firstZangBlock = config.firstBlocks.v1.polygon.zang;
-        const firstMarketplaceBlock = config.firstBlocks.v1.polygon.marketplace;
+        const firstZangBlock = config.firstBlocks.v1.base.zang;
+        const firstMarketplaceBlock = config.firstBlocks.v1.base.marketplace;
 
         const events = await getEvents(
             id,
