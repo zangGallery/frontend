@@ -13,11 +13,11 @@ import rehypeSanitize from "rehype-sanitize";
 import schemas from "../common/schemas";
 import * as queryString from "query-string";
 
-import MDEditor from "@uiw/react-md-editor"
+import MDEditor from "@uiw/react-md-editor";
 import HTMLViewer from "../components/HTMLViewer";
-import { navigate } from 'gatsby-link';
-import { Helmet } from 'react-helmet';
-import { Header } from '../components';
+import { navigate } from "gatsby-link";
+import { Helmet } from "react-helmet";
+import { Header } from "../components";
 
 import { formatEther, parseUnits } from "@ethersproject/units";
 
@@ -42,7 +42,7 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 //import { getEventListeners } from 'ws';
 
-import { getEvents, computeBalances, parseHistory } from "../common/history";
+import { getEvents, computeBalances, parseHistory, getNftAuthor } from "../common/history";
 import { shortenAddress } from "../common/utils";
 import NFTHistory from "../components/NFTHistory";
 
@@ -269,14 +269,13 @@ export default function NFTPage({ location }) {
             readProvider
         );
         try {
-            const author = await contract.authorOf(id);
+            const author = await getNftAuthor(contract, id);
             setTokenAuthor(author);
-
-            return author;
         } catch (e) {
             if (!isTokenExistenceError(e)) {
                 setStandardError(formatError(e));
             }
+            setTokenAuthor(null);
         }
     };
 
@@ -301,6 +300,7 @@ export default function NFTPage({ location }) {
         try {
             const response = await fetch(parsedTextURI);
             const parsedText = await response.text();
+            console.log("Token type:", response.headers.get("content-type"));
             setTokenType(response.headers.get("content-type"));
             setTokenContent(parsedText);
         } catch (e) {
@@ -319,6 +319,7 @@ export default function NFTPage({ location }) {
 
         try {
             let [recipient, amount] = await contract.royaltyInfo(id, 10000);
+            console.log("Royalty info:", recipient, amount);
             amount = new Decimal(amount.toString());
             setRoyaltyInfo({
                 recipient,
@@ -338,8 +339,36 @@ export default function NFTPage({ location }) {
             readProvider
         );
 
+        const marketplaceContract = new ethers.Contract(
+            marketplaceAddress,
+            marketplaceABI,
+            readProvider
+        )
+
         try {
-            setTotalSupply(await contract.totalSupply(id));
+            const events = await getEvents(
+                id,
+                contract,
+                marketplaceContract,
+                null,
+                config.firstBlocks.v1.polygon.zang,
+                config.firstBlocks.v1.polygon.marketplace
+            );
+
+            // Find transfers from the 0 address to get the total supply
+            const matchingEvents = events.filter(
+                (event) => event.args.from == ethers.constants.AddressZero
+            );
+
+            if (matchingEvents.length == 1) {
+                console.log("Found total supply:", matchingEvents[0].args.to);
+                setTotalSupply(matchingEvents[0].args.value);
+            } else {
+                console.log("No total supply found");
+                setTotalSupply(null);
+            }
+
+            //setTotalSupply(await contract.totalSupply(id));
         } catch (e) {
             setStandardError(formatError(e));
         }
@@ -497,7 +526,12 @@ export default function NFTPage({ location }) {
         );
 
         try {
-            const listingCount = (await contract.listingCount(id)).toNumber();
+            console.log("Querying listing count for", zangAddress, id);
+            // TODO: Temp
+            const listingCount = (
+                await contract.listingCount(zangAddress, id)
+            ).toNumber();
+            console.log("Listing count:", listingCount);
 
             const newListings = [];
             const promises = [];
@@ -505,7 +539,7 @@ export default function NFTPage({ location }) {
             for (let i = 0; i < listingCount; i++) {
                 promises.push(
                     contract
-                        .listings(id, i)
+                        .listings(zangAddress, id, i) // Temp
                         .then((listing) =>
                             newListings.push({
                                 amount: listing.amount.toNumber(),
@@ -576,13 +610,13 @@ export default function NFTPage({ location }) {
 
     useEffect(() => {
         const updateId = updateTracker[0];
-        if (updateId === id) {
-            queryListingSellerBalances();
-            queryListings();
-            queryUserBalance();
-            queryTotalSupply();
-            queryRoyaltyInfo();
-        }
+        //if (updateId === id) {
+        queryListingSellerBalances();
+        queryListings();
+        queryUserBalance();
+        queryTotalSupply();
+        queryRoyaltyInfo();
+        //}
     }, [updateTracker]);
 
     const onUpdate = (updatedNFTId) => {
@@ -624,26 +658,39 @@ export default function NFTPage({ location }) {
                 )}
             </div>
 
-                <StandardErrorDisplay />
-                {
-                    exists ?
-                        (
-                            <div>
-                                <div className="columns m-4">
-                                    <div className="column is-two-thirds" style={{overflow: 'hidden'}}>
-                                        { readProvider ? 
-                                            (
-                                                <div>
-                                                    <div className="box">
-                                                        {tokenType && (tokenContent || tokenContent == '') ? (
-                                                            tokenType == 'text/html' ? (
-                                                                <HTMLViewer source={tokenContent} />
-                                                            ) : (
-                                                                tokenType == 'text/markdown' ? (
-                                                                    <MDEditor.Markdown source={tokenContent} rehypePlugins={[() => rehypeSanitize(schemas.validMarkdown)]} />
-                                                                ) : <pre className="nft-plain">{tokenContent}</pre>
-                                                            )
+            <StandardErrorDisplay />
+            {exists ? (
+                <div>
+                    <div className="columns m-4">
+                        <div
+                            className="column is-two-thirds"
+                            style={{ overflow: "hidden" }}
+                        >
+                            {readProvider ? (
+                                <div>
+                                    <div className="box">
+                                        {tokenType &&
+                                        (tokenContent || tokenContent == "") ? (
+                                            tokenType == "text/html" ? (
+                                                <HTMLViewer
+                                                    source={tokenContent}
+                                                />
+                                            ) : tokenType == "text/markdown" ? (
+                                                <MDEditor.Markdown
+                                                    source={tokenContent}
+                                                    rehypePlugins={[
+                                                        () =>
+                                                            rehypeSanitize(
+                                                                schemas.validMarkdown
+                                                            ),
+                                                    ]}
+                                                />
                                             ) : (
+                                                <pre className="nft-plain">
+                                                    {tokenContent}
+                                                </pre>
+                                            )
+                                        ) : (
                                             <Skeleton count="12" />
                                         )}
                                     </div>
