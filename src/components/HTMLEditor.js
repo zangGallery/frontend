@@ -2,19 +2,23 @@ import React from "react";
 
 import HTMLViewer from "./HTMLViewer";
 
-
-export default function HTMLEditor({value, setValue}) {
-    if (typeof window !== 'undefined') {
-        const AceEditor = require('react-ace').default;
-        require('ace-builds/src-noconflict/mode-html');
-        require('ace-builds/src-noconflict/theme-github');
-        require('ace-builds/src-noconflict/theme-monokai');
-        const {Split} = require('@geoffcox/react-splitter');
+export default function HTMLEditor({ value, setValue }) {
+    if (typeof window !== "undefined") {
+        const AceEditor = require("react-ace").default;
+        require("ace-builds/src-noconflict/mode-html");
+        require("ace-builds/src-noconflict/theme-github");
+        require("ace-builds/src-noconflict/theme-monokai");
+        const { Split } = require("@geoffcox/react-splitter");
 
         return (
             <>
-                <div className="Resizer" style={{height: "500px"}}>
-                    <Split vertical onSplitChanged={() => window.dispatchEvent(new Event('resize'))}>
+                <div className="Resizer" style={{ height: "500px" }}>
+                    <Split
+                        vertical
+                        onSplitChanged={() =>
+                            window.dispatchEvent(new Event("resize"))
+                        }
+                    >
                         <div>
                             <AceEditor
                                 mode="html"
@@ -23,25 +27,30 @@ export default function HTMLEditor({value, setValue}) {
                                 name="html-editor"
                                 editorProps={{ $blockScrolling: false }}
                                 setOptions={{
-                                enableBasicAutocompletion: true,
-                                enableLiveAutocompletion: true,
-                                enableSnippets: true
+                                    enableBasicAutocompletion: true,
+                                    enableLiveAutocompletion: true,
+                                    enableSnippets: true,
                                 }}
                                 width="100%"
                             />
                         </div>
-                        <div style={{height: '100%', overflow: 'scroll'}}>
-                            <HTMLViewer source={value}/>
+                        <div style={{ height: "100%", overflow: "scroll" }}>
+                            <HTMLViewer source={value} />
                         </div>
                     </Split>
                 </div>
                 <article className="message is-info is-small mt-2">
                     <div class="message-body">
-                        <p><strong>Note</strong>: Most HTML tags are supported, with the notable exception of <tt>{'<script>'}</tt>. A full list of the allowed tags will be released soon.</p>
+                        <p>
+                            <strong>Note</strong>: Most HTML tags are supported,
+                            with the notable exception of <tt>{"<script>"}</tt>.
+                            A full list of the allowed tags will be released
+                            soon.
+                        </p>
                     </div>
                 </article>
             </>
-        )
-      }
+        );
+    }
     return null;
 }

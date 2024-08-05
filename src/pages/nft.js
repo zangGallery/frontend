@@ -42,7 +42,12 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 //import { getEventListeners } from 'ws';
 
-import { getEvents, computeBalances, parseHistory, getNftAuthor } from "../common/history";
+import {
+    getEvents,
+    computeBalances,
+    parseHistory,
+    getNftAuthor,
+} from "../common/history";
 import { shortenAddress } from "../common/utils";
 import NFTHistory from "../components/NFTHistory";
 
@@ -343,7 +348,7 @@ export default function NFTPage({ location }) {
             marketplaceAddress,
             marketplaceABI,
             readProvider
-        )
+        );
 
         try {
             const events = await getEvents(
