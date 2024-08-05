@@ -48,7 +48,7 @@ export default function NFTHistory({ history, hideId }) {
         <div>
             {[...history].reverse().map((event, index) => {
                 return (
-                    <div className="mb-4">
+                    <div className="mb-4" id={index}>
                         {hideId ? (
                             <></>
                         ) : (
