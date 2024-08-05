@@ -339,9 +339,26 @@ const getBlockTime = async (provider, blockNumber) => {
     return new Date(parseInt(block.timestamp) * 1000);
 };
 
+const getNftAuthor = async (contract, id) => {
+    const transferFromFilter = contract.filters.TransferSingle(
+        null,
+        ethers.constants.AddressZero,
+        null
+    );
+    const events = await contract.queryFilter(transferFromFilter);
+    const filteredEvents = events.filter((event) => event.args.id == id);
+    if (filteredEvents.length == 1) {
+        console.log("Found author:", filteredEvents[0].args.operator);
+        return filteredEvents[0].args.operator;
+    } else {
+        throw new Error("Could not find author of NFT");
+    }
+};
+
 export {
     blockToDateState,
     getBlockTime,
+    getNftAuthor,
     getEvents,
     getAllEvents,
     computeBalances,
