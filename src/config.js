@@ -1,28 +1,29 @@
 const config = {
     contractAddresses: {
         v1: {
-            zang: "0x62d76F41c4d538712A4404e39b2E20BA7d18FEd0",
-            marketplace: "0x59E52c8aB048022307ab4A92557a138f10a19d97",
+            zang: "0xdCaDd503b7b444F5196d1B63A383a24ADAd4A42e",
+            marketplace: "0x28336f2397B6f8038b27EE32C5Abd618c94440B1",
         },
     },
     firstBlocks: {
         v1: {
             polygon: {
-                zang: 25361905,
-                marketplace: 25362269,
+                zang: 467700,
+                marketplace: 467700,
             },
         },
     },
     networks: {
         main: {
-            name: "Polygon",
-            chainId: 137,
+            name: "Vinu",
+            chainId: 206,
         },
         ens: {
             name: "ENS",
             chainId: 1,
         },
     },
+    rpc: "https://vinufoundation-rpc.com",
     api_keys: {
         alchemy: process.env.GATSBY_ALCHEMY_API_KEY,
         alchemy_mainnet: process.env.GATSBY_ALCHEMY_MAINNET_API_KEY,
@@ -34,8 +35,8 @@ const config = {
         cacheExpiration: 1000 * 60 * 2, // 2 minutes
     },
     blockExplorer: {
-        name: "PolygonScan",
-        url: "https://polygonscan.com",
+        name: "VinuScan",
+        url: "https://testnet.vinuscan.com",
     },
 };
 
