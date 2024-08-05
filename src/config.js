@@ -7,10 +7,8 @@ const config = {
     },
     firstBlocks: {
         v1: {
-            polygon: {
-                zang: 467700,
-                marketplace: 467700,
-            },
+            zang: 467700,
+            marketplace: 467700,
         },
     },
     networks: {

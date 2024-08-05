@@ -9,9 +9,9 @@ const blockToDateState = atom({
 
 const getTransferEvents = async (
     id,
-    zangContract,
+    nftContract,
     relevantAddresses,
-    firstZangBlock
+    firstNftBlock
 ) => {
     relevantAddresses = [...relevantAddresses];
     const queriedAddresses = [];
@@ -56,35 +56,29 @@ const getTransferEvents = async (
             queriedAddresses.push(address);
 
             if (address === null) {
-                const allTransfersFilter =
-                    zangContract.filters.TransferSingle();
-                eventPromises.push(
-                    zangContract.queryFilter(allTransfersFilter)
-                );
+                const allTransfersFilter = nftContract.filters.TransferSingle();
+                eventPromises.push(nftContract.queryFilter(allTransfersFilter));
             } else {
                 const transferOperatorFilter =
-                    zangContract.filters.TransferSingle(address, null, null);
-                const transferFromFilter = zangContract.filters.TransferSingle(
+                    nftContract.filters.TransferSingle(address, null, null);
+                const transferFromFilter = nftContract.filters.TransferSingle(
                     null,
                     address,
                     null
                 );
-                const transferToFilter = zangContract.filters.TransferSingle(
+                const transferToFilter = nftContract.filters.TransferSingle(
                     null,
                     null,
                     address
                 );
 
                 eventPromises.push(
-                    zangContract.queryFilter(
+                    nftContract.queryFilter(
                         transferOperatorFilter,
-                        firstZangBlock
+                        firstNftBlock
                     ),
-                    zangContract.queryFilter(
-                        transferFromFilter,
-                        firstZangBlock
-                    ),
-                    zangContract.queryFilter(transferToFilter, firstZangBlock)
+                    nftContract.queryFilter(transferFromFilter, firstNftBlock),
+                    nftContract.queryFilter(transferToFilter, firstNftBlock)
                 );
             }
         }
@@ -113,13 +107,13 @@ const getTransferEvents = async (
 
 const getEvents = async (
     id,
-    zangContract,
+    nftContract,
     marketplaceContract,
     authorAddress,
-    firstZangBlock,
+    firstNftBlock,
     firstMarketplaceBlock
 ) => {
-    const nftAddress = await zangContract.address;
+    const nftAddress = await nftContract.address;
     const tokenListedFilter = marketplaceContract.filters.TokenListed(
         nftAddress,
         id,
@@ -174,9 +168,9 @@ const getEvents = async (
 
     const transferEvents = await getTransferEvents(
         id,
-        zangContract,
+        nftContract,
         relevantAddresses,
-        firstZangBlock
+        firstNftBlock
     );
 
     const allEvents = [
@@ -205,17 +199,17 @@ const getEvents = async (
 };
 
 const getAllEvents = async (
-    zangContract,
+    nftContract,
     marketplaceContract,
-    firstZangBlock,
+    firstNftBlock,
     firstMarketplaceBlock
 ) => {
     return await getEvents(
         null,
-        zangContract,
+        nftContract,
         marketplaceContract,
         null,
-        firstZangBlock,
+        firstNftBlock,
         firstMarketplaceBlock
     );
 };
@@ -256,6 +250,7 @@ const computeBalances = (events) => {
 };
 
 const parseHistory = (events) => {
+    console.log("Parsing history for events:", events);
     if (!events) {
         return;
     }

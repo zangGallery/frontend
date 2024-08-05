@@ -72,14 +72,17 @@ const styles = {
 };
 
 export default function NFTPage({ location }) {
-    const zangAddress = config.contractAddresses.v1.zang;
-    const zangABI = v1.zang;
-
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
     const parsedQuery = queryString.parse(location.search);
     const id = parsedQuery ? parseInt(parsedQuery.id) : null;
+
+    const macroNftType = parsedQuery?.type || "zang";
+
+    const nftAddress = config.contractAddresses.v1[macroNftType];
+    const nftABI = v1[macroNftType];
+
     const [updateTracker, setUpdateTracker] = useState([0, null]);
 
     const [readProvider] = useReadProvider();
@@ -117,8 +120,8 @@ export default function NFTPage({ location }) {
             return;
         }
         const zangContract = new ethers.Contract(
-            zangAddress,
-            zangABI,
+            nftAddress,
+            nftABI,
             defaultReadProvider
         );
         const marketplaceContract = new ethers.Contract(
@@ -126,8 +129,8 @@ export default function NFTPage({ location }) {
             marketplaceABI,
             defaultReadProvider
         );
-        const firstZangBlock = config.firstBlocks.v1.polygon.zang;
-        const firstMarketplaceBlock = config.firstBlocks.v1.polygon.marketplace;
+        const firstZangBlock = config.firstBlocks.v1.zang;
+        const firstMarketplaceBlock = config.firstBlocks.v1.marketplace;
 
         const events = await getEvents(
             id,
@@ -146,11 +149,7 @@ export default function NFTPage({ location }) {
             return;
         }
 
-        const contract = new ethers.Contract(
-            zangAddress,
-            zangABI,
-            readProvider
-        );
+        const contract = new ethers.Contract(nftAddress, nftABI, readProvider);
 
         let prevId = id - 1;
         let isValid = false;
@@ -182,11 +181,7 @@ export default function NFTPage({ location }) {
     };
 
     const queryLastNFTId = async () => {
-        const contract = new ethers.Contract(
-            zangAddress,
-            zangABI,
-            readProvider
-        );
+        const contract = new ethers.Contract(nftAddress, nftABI, readProvider);
 
         try {
             const newLastNFTId = await contract.lastTokenId();
@@ -200,11 +195,7 @@ export default function NFTPage({ location }) {
     const queryNextValidId = async () => {
         if (!id || !readProvider) return;
 
-        const contract = new ethers.Contract(
-            zangAddress,
-            zangABI,
-            readProvider
-        );
+        const contract = new ethers.Contract(nftAddress, nftABI, readProvider);
 
         let nextId = id + 1;
         let isValid = false;
@@ -250,8 +241,8 @@ export default function NFTPage({ location }) {
 
         try {
             const contract = new ethers.Contract(
-                zangAddress,
-                zangABI,
+                nftAddress,
+                nftABI,
                 readProvider
             );
             const tURI = await contract.uri(id);
@@ -268,19 +259,17 @@ export default function NFTPage({ location }) {
     const queryTokenAuthor = async () => {
         if (!id || !readProvider) return;
 
-        const contract = new ethers.Contract(
-            zangAddress,
-            zangABI,
-            readProvider
-        );
+        const contract = new ethers.Contract(nftAddress, nftABI, readProvider);
         try {
             const author = await getNftAuthor(contract, id);
             setTokenAuthor(author);
+            return author;
         } catch (e) {
             if (!isTokenExistenceError(e)) {
                 setStandardError(formatError(e));
             }
             setTokenAuthor(null);
+            return null;
         }
     };
 
@@ -316,11 +305,7 @@ export default function NFTPage({ location }) {
     const queryRoyaltyInfo = async () => {
         if (!id || !readProvider) return;
 
-        const contract = new ethers.Contract(
-            zangAddress,
-            zangABI,
-            readProvider
-        );
+        const contract = new ethers.Contract(nftAddress, nftABI, readProvider);
 
         try {
             let [recipient, amount] = await contract.royaltyInfo(id, 10000);
@@ -338,11 +323,7 @@ export default function NFTPage({ location }) {
     const queryTotalSupply = async () => {
         if (!id || !readProvider) return;
 
-        const contract = new ethers.Contract(
-            zangAddress,
-            zangABI,
-            readProvider
-        );
+        const contract = new ethers.Contract(nftAddress, nftABI, readProvider);
 
         const marketplaceContract = new ethers.Contract(
             marketplaceAddress,
@@ -356,8 +337,8 @@ export default function NFTPage({ location }) {
                 contract,
                 marketplaceContract,
                 null,
-                config.firstBlocks.v1.polygon.zang,
-                config.firstBlocks.v1.polygon.marketplace
+                config.firstBlocks.v1.zang,
+                config.firstBlocks.v1.marketplace
             );
 
             // Find transfers from the 0 address to get the total supply
@@ -531,10 +512,9 @@ export default function NFTPage({ location }) {
         );
 
         try {
-            console.log("Querying listing count for", zangAddress, id);
-            // TODO: Temp
+            console.log("Querying listing count for", nftAddress, id);
             const listingCount = (
-                await contract.listingCount(zangAddress, id)
+                await contract.listingCount(nftAddress, id)
             ).toNumber();
             console.log("Listing count:", listingCount);
 
@@ -544,7 +524,7 @@ export default function NFTPage({ location }) {
             for (let i = 0; i < listingCount; i++) {
                 promises.push(
                     contract
-                        .listings(zangAddress, id, i) // Temp
+                        .listings(nftAddress, id, i)
                         .then((listing) =>
                             newListings.push({
                                 amount: listing.amount.toNumber(),
@@ -573,11 +553,7 @@ export default function NFTPage({ location }) {
     const updateSellerBalance = async (sellerAddress) => {
         if (!sellerAddress || !readProvider || !id) return;
 
-        const contract = new ethers.Contract(
-            zangAddress,
-            zangABI,
-            readProvider
-        );
+        const contract = new ethers.Contract(nftAddress, nftABI, readProvider);
 
         try {
             const balance = await contract.balanceOf(sellerAddress, id);
