@@ -119,12 +119,19 @@ const getEvents = async (
     firstZangBlock,
     firstMarketplaceBlock
 ) => {
-    const tokenListedFilter = marketplaceContract.filters.TokenListed(id, null);
+    const nftAddress = await zangContract.address;
+    const tokenListedFilter = marketplaceContract.filters.TokenListed(
+        nftAddress,
+        id,
+        null
+    );
     const tokenDelistedFilter = marketplaceContract.filters.TokenDelisted(
+        nftAddress,
         id,
         null
     );
     const tokenPurchasedFilter = marketplaceContract.filters.TokenPurchased(
+        nftAddress,
         id,
         null,
         null
