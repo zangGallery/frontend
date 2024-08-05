@@ -594,11 +594,14 @@ export default function NFTPage({ location }) {
         //if (updateId === id) {
         queryListingSellerBalances();
         queryListings();
-        queryUserBalance();
         queryTotalSupply();
         queryRoyaltyInfo();
         //}
-    }, [updateTracker]);
+    }, [updateTracker, id]);
+
+    useEffect(() => {
+        queryUserBalance();
+    }, [updateTracker, walletAddress, id]);
 
     const onUpdate = (updatedNFTId) => {
         setUpdateTracker(([_, counter]) => [updatedNFTId, counter + 1]);
