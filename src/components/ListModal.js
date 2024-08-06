@@ -8,6 +8,7 @@ import { useTransactionHelper } from "../common/transaction_status";
 import { useRecoilState } from "recoil";
 import { formatError, standardErrorState } from "../common/error";
 import config from "../config";
+import { useWalletProvider } from "../common/provider";
 
 const styles = {
     modalCard: {
