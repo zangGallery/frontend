@@ -6,11 +6,14 @@ import { useWalletProvider } from "../common/provider";
 import { useRecoilState } from "recoil";
 import { standardErrorState } from "../common/error";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 import { useTransactionHelper } from "../common/transaction_status";
 
-export default function DelistButton({ nftId, listingId, onUpdate }) {
+export default function DelistButton({
+    nftContract,
+    nftId,
+    listingId,
+    onUpdate,
+}) {
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const marketplaceABI = v1.marketplace;
 
@@ -39,7 +42,11 @@ export default function DelistButton({ nftId, listingId, onUpdate }) {
         const contractWithSigner = contract.connect(walletProvider.getSigner());
 
         const transactionFunction = async () =>
-            await contractWithSigner.delistToken(nftId, listingId);
+            await contractWithSigner.delistToken(
+                nftContract.address,
+                nftId,
+                listingId
+            );
 
         const { success } = await handleTransaction(
             transactionFunction,

@@ -63,9 +63,8 @@ export default function WalletButton() {
             package: WalletConnectProvider,
             options: {
                 rpc: {
-                    137: "https://polygon-rpc.com/",
+                    [config.networks.main.chainId]: config.rpc,
                 },
-                network: "matic",
             },
         },
         frame: {

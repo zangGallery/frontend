@@ -5,7 +5,7 @@ require("dotenv").config({
 module.exports = {
     siteMetadata: {
         siteUrl: "https://www.yourdomain.tld",
-        title: "zang-frontend-4",
+        title: "vinu-nft",
     },
     plugins: [
         "gatsby-plugin-mdx",

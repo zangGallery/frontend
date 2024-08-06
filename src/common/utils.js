@@ -1,3 +1,6 @@
+import { ethers } from "ethers";
+import config from "../config";
+
 const getWalletAddress = async (provider) => {
     const signer = provider?.getSigner();
     if (signer) {
@@ -15,4 +18,25 @@ const shortenAddress = (address, nChar) => {
     );
 };
 
-export { getWalletAddress, shortenAddress };
+function parseTokenAmount(amount, tokenId) {
+    const token = config.tokens[tokenId];
+
+    return ethers.utils.parseUnits(amount, token.decimals);
+}
+
+function formatTokenAmount(amount, tokenId) {
+    const token = config.tokens[tokenId];
+
+    if (token === undefined) {
+        throw new Error(`Token ${tokenId} not found in config.`);
+    }
+
+    return ethers.utils.formatUnits(amount, token.decimals);
+}
+
+export {
+    getWalletAddress,
+    shortenAddress,
+    parseTokenAmount,
+    formatTokenAmount,
+};

@@ -1,8 +1,5 @@
 import React, { useState } from "react";
 import { useRecoilState } from "recoil";
-import { ethers } from "ethers";
-import { v1 } from "../common/abi";
-import config from "../config";
 
 import { useWalletProvider } from "../common/provider";
 
@@ -11,6 +8,7 @@ import { useTransactionHelper } from "../common/transaction_status";
 import { standardErrorState } from "../common/error";
 
 export default function BurnButton({
+    nftContract,
     id,
     walletAddress,
     balance,
@@ -18,8 +16,6 @@ export default function BurnButton({
     onUpdate,
 }) {
     const handleTransaction = useTransactionHelper();
-    const zangAddress = config.contractAddresses.v1.zang;
-    const zangABI = v1.zang;
     const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const [walletProvider, setWalletProvider] = useWalletProvider();
@@ -43,12 +39,9 @@ export default function BurnButton({
         }
         setStandardError(null);
 
-        const contract = new ethers.Contract(
-            zangAddress,
-            zangABI,
-            walletProvider
+        const contractWithSigner = nftContract.connect(
+            walletProvider.getSigner()
         );
-        const contractWithSigner = contract.connect(walletProvider.getSigner());
         const transactionFunction = async () =>
             await contractWithSigner.burn(walletAddress, id, amount);
         const { success } = await handleTransaction(

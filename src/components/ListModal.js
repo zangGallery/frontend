@@ -4,12 +4,9 @@ import Joi from "joi";
 import { joiResolver } from "@hookform/resolvers/joi";
 import ValidatedInput from "./ValidatedInput";
 import { schemas } from "../common";
-import { useReadProvider, useWalletProvider } from "../common/provider";
 import { useTransactionHelper } from "../common/transaction_status";
 import { useRecoilState } from "recoil";
 import { formatError, standardErrorState } from "../common/error";
-import { ethers } from "ethers";
-import { v1 } from "../common/abi";
 import config from "../config";
 
 const styles = {
@@ -54,6 +51,7 @@ const etherValidator = (label) => (value, helpers) => {
 };
 
 export default function ListModal({
+    nftContract,
     isOpen,
     setIsOpen,
     onClose,
@@ -63,9 +61,6 @@ export default function ListModal({
     walletAddress,
     onUpdate,
 }) {
-    const zangAddress = config.contractAddresses.v1.zang;
-    const zangABI = v1.zang;
-
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
     const {
         register,
@@ -82,8 +77,9 @@ export default function ListModal({
 
     const closeModal = (data) => {
         setIsOpen(false);
+        console.log("Data:", data);
         if (data) {
-            onClose(data.amount, data.price);
+            onClose(data.amount, data.paymentToken, data.price);
         }
     };
 
@@ -122,12 +118,9 @@ export default function ListModal({
             return;
         }
 
-        const contract = new ethers.Contract(
-            zangAddress,
-            zangABI,
-            walletProvider
+        const contractWithSigner = nftContract.connect(
+            walletProvider.getSigner()
         );
-        const contractWithSigner = contract.connect(walletProvider.getSigner());
         const transactionFunction = async () =>
             await contractWithSigner.setApprovalForAll(
                 marketplaceAddress,
@@ -149,19 +142,14 @@ export default function ListModal({
     const checkApproval = async () => {
         if (!id || !walletAddress) return;
 
-        const zangContract = new ethers.Contract(
-            zangAddress,
-            zangABI,
-            walletProvider
-        );
-
         try {
-            const approved = await zangContract.isApprovedForAll(
+            const approved = await nftContract.isApprovedForAll(
                 walletAddress,
                 marketplaceAddress
             );
             setIsApproved(approved);
         } catch (e) {
+            console.log(e);
             setStandardError(formatError(e));
         }
     };
@@ -174,7 +162,7 @@ export default function ListModal({
         <div className="modal is-active">
             <div
                 className="modal-background"
-                onClick={() => closeModal(null, null)}
+                onClick={() => closeModal(null, null, null)}
             />
             <div className="modal-card" style={styles.modalCard}>
                 <header className="modal-card-head">
@@ -201,6 +189,16 @@ export default function ListModal({
                         errors={errors}
                         register={register}
                     />
+                    <label>
+                        Payment Token:{" "}
+                        <select {...register("paymentToken")}>
+                            {Object.entries(config.tokens).map(
+                                ([key, value]) => (
+                                    <option value={key}>{value.name}</option>
+                                )
+                            )}
+                        </select>
+                    </label>
                     <ValidatedInput
                         label="Price (MATIC)"
                         name="price"

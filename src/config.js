@@ -2,7 +2,7 @@ const config = {
     contractAddresses: {
         v1: {
             zang: "0xdCaDd503b7b444F5196d1B63A383a24ADAd4A42e",
-            marketplace: "0x28336f2397B6f8038b27EE32C5Abd618c94440B1",
+            marketplace: "0xF38778F9611F37b339410A55F9Df2940d9d6cBC7",
         },
     },
     firstBlocks: {
@@ -35,6 +35,14 @@ const config = {
     blockExplorer: {
         name: "VinuScan",
         url: "https://testnet.vinuscan.com",
+    },
+    tokens: {
+        merc: {
+            address: "0x6a219e51722df3d9882ef85dbf57720939974b5a",
+            decimals: 18,
+            symbol: "MERC",
+            name: "Mock ERC20",
+        },
     },
 };
 

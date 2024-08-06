@@ -75,6 +75,7 @@ export default function NFTCard({ id }) {
             if (isTokenExistenceError(e)) {
                 setExists(false);
             } else {
+                console.log(e);
                 setStandardError(formatError(e));
             }
         }
@@ -97,6 +98,7 @@ export default function NFTCard({ id }) {
             if (isTokenExistenceError(e)) {
                 setExists(false);
             } else {
+                console.log(e);
                 setStandardError(formatError(e));
             }
         }
@@ -111,6 +113,7 @@ export default function NFTCard({ id }) {
             //console.log(newTokenData)
             setTokenData(newTokenData);
         } catch (e) {
+            console.log(e);
             setStandardError(formatError(e));
         }
     };
@@ -127,6 +130,7 @@ export default function NFTCard({ id }) {
             setTokenType(response.headers.get("content-type"));
             setTokenContent(parsedText);
         } catch (e) {
+            console.log(e);
             setStandardError(formatError(e));
         }
     };

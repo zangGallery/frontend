@@ -113,6 +113,7 @@ const list = Joi.object().keys({
         .empty("")
         .required()
         .label("Price"),
+    paymentToken: Joi.string().empty("").required().label("Payment Token"),
 });
 
 const burn = Joi.object().keys({

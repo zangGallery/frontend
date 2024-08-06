@@ -4,20 +4,18 @@ import config from "../config";
 import { ethers } from "ethers";
 import { v1 } from "../common/abi";
 
-import { parseEther } from "@ethersproject/units";
-
 import { useWalletProvider } from "../common/provider";
 
 import EditModal from "./EditModal";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit as editIcon } from "@fortawesome/free-solid-svg-icons";
 import { useTransactionHelper } from "../common/transaction_status";
 
 import { useRecoilState } from "recoil";
 import { standardErrorState } from "../common/error";
+import { formatTokenAmount, parseTokenAmount } from "../common/utils";
 
 export default function EditButton({
+    nftContract,
     nftId,
     listingId,
     availableAmount,
@@ -32,7 +30,7 @@ export default function EditButton({
 
     const handleTransaction = useTransactionHelper();
 
-    const [buyModalOpen, setBuyModalOpen] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
     const [_, setStandardError] = useRecoilState(standardErrorState);
 
     const edit = async (newAmount, newPrice) => {
@@ -52,45 +50,51 @@ export default function EditButton({
 
         setStandardError(null);
 
-        const contract = new ethers.Contract(
+        const marketplaceContract = new ethers.Contract(
             marketplaceAddress,
             marketplaceABI,
             walletProvider
         );
-        const contractWithSigner = contract.connect(walletProvider.getSigner());
-        let transactionFunction = null;
 
-        if (newAmount === null && newPrice !== null) {
-            // Replacing only price
-            transactionFunction = async () =>
-                contractWithSigner.editListingPrice(
-                    nftId,
-                    listingId,
-                    parseEther(newPrice).toString()
-                );
-        } else if (newAmount !== null && newPrice === null) {
-            // Replacing only amount
-            transactionFunction = async () =>
-                contractWithSigner.editListingAmount(
-                    nftId,
-                    listingId,
-                    newAmount,
-                    oldAmount
-                );
-        } else if (newAmount !== null && newPrice !== null) {
-            // Replacing both
-            transactionFunction = async () =>
-                await contractWithSigner.editListing(
-                    nftId,
-                    listingId,
-                    parseEther(newPrice).toString(),
-                    newAmount,
-                    oldAmount
-                );
+        const listingInfo = await marketplaceContract.getListing(
+            nftContract.address,
+            nftId,
+            listingId
+        );
+
+        const paymentToken = listingInfo.paymentToken;
+
+        if (newPrice === null) {
+            newPrice = formatTokenAmount(
+                listingInfo.price,
+                listingInfo.paymentToken
+            );
+        }
+
+        const contractWithSigner = marketplaceContract.connect(
+            walletProvider.getSigner()
+        );
+
+        // If we update the amount, we do not want the amount to change in the middle of the transaction
+        const expectedAmount = newAmount === null ? -1 : oldAmount;
+
+        if (newAmount === null) {
+            newAmount = -1;
+        }
+
+        async function edit() {
+            return await contractWithSigner.editListing(
+                nftContract.address,
+                nftId,
+                listingId,
+                parseTokenAmount(newPrice, paymentToken).toString(),
+                newAmount,
+                expectedAmount
+            );
         }
 
         const { success } = await handleTransaction(
-            transactionFunction,
+            edit,
             `Edit listing for NFT #${nftId}`
         );
         if (success && onUpdate) {
@@ -103,13 +107,13 @@ export default function EditButton({
             <button
                 style={{ width: "7ch" }}
                 className="button is-black is-small mr-1"
-                onClick={() => setBuyModalOpen(true)}
+                onClick={() => setEditModalOpen(true)}
             >
                 Edit
             </button>
             <EditModal
-                isOpen={buyModalOpen}
-                setIsOpen={setBuyModalOpen}
+                isOpen={editModalOpen}
+                setIsOpen={setEditModalOpen}
                 onClose={edit}
                 balance={balance}
                 availableAmount={availableAmount}

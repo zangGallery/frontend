@@ -6,17 +6,18 @@ import { v1 } from "../common/abi";
 import { useRecoilState } from "recoil";
 import { standardErrorState } from "../common/error";
 
-import { parseEther } from "@ethersproject/units";
-
 import { useReadProvider, useWalletProvider } from "../common/provider";
 
 import BuyModal from "./BuyModal";
 import { useTransactionHelper } from "../common/transaction_status";
+import { parseTokenAmount } from "../common/utils";
 
 export default function BuyButton({
+    nftContract,
     nftId,
     listingId,
     price,
+    paymentToken,
     maxAmount,
     sellerBalance,
     onUpdate,
@@ -60,13 +61,17 @@ export default function BuyButton({
 
         // Convert to wei
         console.log("Original price:", price);
-        price = parseEther(price);
+        price = parseTokenAmount(price, paymentToken);
         console.log("Converted:", price.toString());
 
         const transactionFunction = async () =>
-            await contractWithSigner.buyToken(nftId, listingId, amount, {
-                value: price.mul(amount),
-            });
+            await contractWithSigner.buyToken(
+                nftContract.address,
+                nftId,
+                listingId,
+                amount,
+                price
+            );
         const { success } = await handleTransaction(
             transactionFunction,
             `Buy NFTs #${nftId}`
@@ -86,12 +91,15 @@ export default function BuyButton({
                 Buy
             </button>
             <BuyModal
+                nftId={nftId}
                 isOpen={buyModalOpen}
                 setIsOpen={setBuyModalOpen}
                 onClose={buy}
                 maxAmount={maxAmount}
                 sellerBalance={sellerBalance}
                 price={price}
+                paymentToken={paymentToken}
+                onUpdate={onUpdate}
             />
         </div>
     );

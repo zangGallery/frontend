@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { ethers } from "ethers";
-import { v1 } from "../common/abi";
 import config from "../config";
 
 import BuyButton from "./BuyButton";
@@ -8,7 +6,6 @@ import FulfillabilityInfo from "./FulfillabilityInfo";
 import EditButton from "./EditButton";
 import Listing from "./Listing";
 
-import { useEns } from "../common/ens";
 import ListButton from "./ListButton";
 import DelistButton from "./DelistButton";
 import Address from "../components/Address";
@@ -18,9 +15,10 @@ import { formatError, standardErrorState } from "../common/error";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
-import { shortenAddress } from "../common/utils";
+import { tokenAddressToId } from "../common/user";
 
 export default function Listings({
+    nftContract,
     walletProvider,
     id,
     listingGroups,
@@ -29,12 +27,7 @@ export default function Listings({
     userAvailableAmount,
     onUpdate,
 }) {
-    const zangAddress = config.contractAddresses.v1.zang;
-    const zangABI = v1.zang;
-
     const marketplaceAddress = config.contractAddresses.v1.marketplace;
-
-    const { lookupEns } = useEns();
 
     const [isApproved, setIsApproved] = useState(false);
 
@@ -52,14 +45,8 @@ export default function Listings({
     const checkApproval = async () => {
         if (!id || !walletAddress) return;
 
-        const zangContract = new ethers.Contract(
-            zangAddress,
-            zangABI,
-            walletProvider
-        );
-
         try {
-            const approved = await zangContract.isApprovedForAll(
+            const approved = await nftContract.isApprovedForAll(
                 walletAddress,
                 marketplaceAddress
             );
@@ -75,6 +62,7 @@ export default function Listings({
         <div>
             {userBalance ? (
                 <ListButton
+                    nftContract={nftContract}
                     id={id}
                     userBalance={userBalance}
                     userAvailableAmount={userAvailableAmount}
@@ -101,6 +89,7 @@ export default function Listings({
                                             style={{ width: "100%" }}
                                         >
                                             <EditButton
+                                                nftContract={nftContract}
                                                 nftId={id}
                                                 listingId={listing.id}
                                                 balance={userBalance}
@@ -111,6 +100,7 @@ export default function Listings({
                                                 }
                                             />
                                             <DelistButton
+                                                nftContract={nftContract}
                                                 nftId={id}
                                                 listingId={listing.id}
                                                 onUpdate={onUpdate}
@@ -159,9 +149,17 @@ export default function Listings({
                                             >
                                                 {walletProvider ? (
                                                     <BuyButton
+                                                        nftContract={
+                                                            nftContract
+                                                        }
                                                         nftId={id}
                                                         listingId={listing.id}
                                                         price={listing.price}
+                                                        paymentToken={
+                                                            tokenAddressToId[
+                                                                listing.paymentToken.toLowerCase()
+                                                            ]
+                                                        }
                                                         maxAmount={
                                                             listing.amount
                                                         }

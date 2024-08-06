@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
-import { formatEther } from "ethers/lib/utils";
 import { atom } from "recoil";
+import { formatTokenAmount } from "./utils";
+import { tokenAddressToId } from "./user";
 
 const blockToDateState = atom({
     key: "blockToDateState",
@@ -258,14 +259,33 @@ const parseHistory = (events) => {
 
     console.log(events);
 
+    const paymentTokens = {};
+
+    for (const event of events) {
+        if (event.event == "TokenListed") {
+            paymentTokens[event.args._listingId] =
+                tokenAddressToId[event.args._paymentToken];
+        }
+    }
+
+    console.log("Payment tokens:", paymentTokens);
+
     for (const event of events) {
         switch (event.event) {
             case "TokenListed":
+                console.log(
+                    "Parsing TokenListed event with payment token:",
+                    event.args._paymentToken
+                );
                 parsedEvents.push({
                     id: parseInt(event.args._tokenId),
                     type: "list",
                     seller: event.args._seller,
-                    price: formatEther(event.args._price.toString()),
+                    paymentToken: tokenAddressToId[event.args._paymentToken],
+                    price: formatTokenAmount(
+                        event.args._price.toString(),
+                        tokenAddressToId[event.args._paymentToken]
+                    ),
                     amount: event.args.amount.toNumber(), // Note the lack of _
                     transactionHash: event.transactionHash,
                     blockNumber: event.blockNumber,
@@ -306,7 +326,11 @@ const parseHistory = (events) => {
                     buyer: event.args._buyer,
                     seller: event.args._seller,
                     amount: event.args._amount.toNumber(),
-                    price: formatEther(event.args._price.toString()).toString(),
+                    paymentToken: paymentTokens[event.args._tokenId],
+                    price: formatTokenAmount(
+                        event.args._price.toString(),
+                        paymentTokens[event.args._listingId]
+                    ).toString(),
                     transactionHash: event.transactionHash,
                     blockNumber: event.blockNumber,
                 });

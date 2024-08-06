@@ -3,7 +3,13 @@ import { useForm } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import ValidatedInput from "./ValidatedInput";
 import { schemas } from "../common";
-import { FixedNumber } from "ethers";
+import { FixedNumber, ethers } from "ethers";
+import { useWalletProvider } from "../common/provider";
+import { useRecoilState } from "recoil";
+import { tokenAllowancesState } from "../common/user";
+import config from "../config";
+import { useTransactionHelper } from "../common/transaction_status";
+import { parseTokenAmount } from "../common/utils";
 
 const styles = {
     modalCard: {
@@ -20,14 +26,22 @@ const defaultValues = {
 };
 
 export default function BuyModal({
+    nftId,
     isOpen,
     setIsOpen,
     onClose,
     maxAmount,
     sellerBalance,
     price,
+    paymentToken,
+    onUpdate,
 }) {
-    //console.log('Seller balance: ', sellerBalance);
+    const [walletProvider, setWalletProvider] = useWalletProvider();
+    const [tokenAllowances, setTokenAllowances] =
+        useRecoilState(tokenAllowancesState);
+    const handleTransaction = useTransactionHelper();
+
+    const allowance = tokenAllowances[paymentToken];
 
     const {
         register,
@@ -64,6 +78,33 @@ export default function BuyModal({
             return undefined;
         }
     };
+
+    async function approve() {
+        const tokenContract = new ethers.Contract(
+            config.tokens[paymentToken].address,
+            ["function approve(address,uint256)"],
+            walletProvider
+        );
+
+        async function doApproval() {
+            return await tokenContract
+                .connect(walletProvider.getSigner())
+                .approve(
+                    config.contractAddresses.v1.marketplace,
+                    parseTokenAmount(total(), paymentToken)
+                );
+        }
+
+        console.log("Approving...");
+
+        const { success } = await handleTransaction(
+            doApproval,
+            `Approve ${total()} ${config.tokens[paymentToken].symbol}`
+        );
+        if (success && onUpdate) {
+            onUpdate(nftId);
+        }
+    }
 
     if (!isOpen) return <></>;
 
@@ -124,13 +165,25 @@ export default function BuyModal({
                     )}
                 </section>
                 <footer className="modal-card-foot">
-                    <button
-                        className="button is-black"
-                        disabled={!isValid && isDirty && validAmount()}
-                        onClick={handleSubmit(closeModal)}
-                    >
-                        Buy
-                    </button>
+                    {allowance &&
+                    allowance.gte(parseTokenAmount(total(), paymentToken)) ? (
+                        <button
+                            className="button is-black"
+                            disabled={(!isValid && isDirty) || !validAmount()}
+                            onClick={handleSubmit(closeModal)}
+                        >
+                            Buy
+                        </button>
+                    ) : (
+                        <button
+                            className="button is-black"
+                            disabled={(!isValid && isDirty) || !validAmount()}
+                            onClick={approve}
+                        >
+                            Approve {total()}{" "}
+                            {config.tokens[paymentToken].symbol}
+                        </button>
+                    )}
                 </footer>
             </div>
         </div>
