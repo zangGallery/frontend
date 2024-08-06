@@ -17,13 +17,9 @@ export default function Header() {
                     params: [
                         {
                             chainId: hexValue(config.networks.main.chainId),
-                            rpcUrls: ["https://polygon-rpc.com/"],
-                            chainName: "Polygon Mainnet",
-                            nativeCurrency: {
-                                name: "Polygon",
-                                symbol: "MATIC",
-                                decimals: 18,
-                            },
+                            rpcUrls: [config.rpc],
+                            chainName: config.networks.main.name,
+                            nativeCurrency: config.networks.nativeCurrency,
                             blockExplorerUrls: [config.blockExplorer.url],
                         },
                     ],

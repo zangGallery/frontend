@@ -11,9 +11,14 @@ const config = {
             marketplace: 467700,
         },
     },
+    nativeCurrency: {
+        name: "VinuCoin",
+        symbol: "VC",
+        decimals: 18,
+    },
     networks: {
         main: {
-            name: "Vinu",
+            name: "Vinu Testnet",
             chainId: 206,
         },
         ens: {
